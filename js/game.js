@@ -316,12 +316,16 @@ function renderBattle() {
   const fnm = el('div', 'nm', `${pf.hero.name}${B.mode === 'campaign' ? `<span class="sub">${B.boss.title}</span>` : ''}`);
   fbar.appendChild(fnm);
   const th = threat(state, me);
+  if (state.active === foe) fbar.appendChild(el('div', 'energychip', `⚡ ${pf.energy}`));
   fbar.appendChild(el('div', 'threat', `⚔️ ${th.incoming} incoming · ⚡${th.nextEnergy} next`));
   fbar.appendChild(el('div', 'hp', `❤ ${Math.max(0, pf.hero.hp)}`));
   fbar.onclick = () => onTargetTap({ kind: 'hero', p: foe });
   s.appendChild(fbar);
+  // their hand: little face-down cards + a count (so it never reads as an energy bar)
   const oppHand = el('div', 'opp-hand');
-  for (let i = 0; i < pf.hand.length; i++) oppHand.appendChild(el('div', 'back' + (save.crowned && B.mode === 'campaign' ? '' : '')));
+  oppHand.dataset.opphand = '1';
+  for (let i = 0; i < pf.hand.length; i++) oppHand.appendChild(el('div', 'back', '✦'));
+  if (pf.hand.length) oppHand.appendChild(el('div', 'backcount', `🃏×${pf.hand.length}`));
   s.appendChild(oppHand);
 
   // foe board
@@ -460,7 +464,12 @@ function onTargetTap(target) {
   if (B.sel.kind === 'critter') {
     const ts = attackTargets(state, B.sel.iid);
     const ok = ts.find(t => t.kind === target.kind && t.p === target.p && t.iid === target.iid);
-    if (ok) { const iid = B.sel.iid; B.sel = null; sfx.tap(); doAction({ type: 'attack', iid, target: ok }); }
+    if (ok) { const iid = B.sel.iid; B.sel = null; sfx.tap(); doAction({ type: 'attack', iid, target: ok }); return; }
+    // blocked by a Guard wall? say so — this is THE confusing moment for new players
+    const foe = foeIdx();
+    if (target.p === foe && state.players[foe].board.some(c => c.guard && c.hp > 0) && !state.players[meIdx()].flags.ignoreGuard) {
+      toast('🛡️ A Guard is in the way — you must attack the 🛡️ critter first!');
+    }
     return;
   }
 }
@@ -512,7 +521,7 @@ function doAction(action) {
   try { res = act(B.state, action); }
   catch (e) { console.error(e); B.busy = false; return; }
   B.state = res.state;
-  renderBattle();
+  if (action.type !== 'attack') renderBattle(); // attacks animate against the pre-action DOM
   runEvents(res.events, () => {
     if (B.state.over) return endOfBattle();
     if (B.mode === 'campaign') {
@@ -535,13 +544,13 @@ function aiLoop() {
     try { res = act(B.state, a); }
     catch (e) { console.error(e); res = act(B.state, { type: 'end' }); }
     B.state = res.state;
-    renderBattle();
+    if (a.type !== 'attack') renderBattle(); // attacks animate against the pre-action DOM (lunge needs the attacker alive)
     runEvents(res.events, () => {
       if (B.state.over) return endOfBattle();
       if (a.type === 'end' || B.state.active === 0) { B.busy = false; renderBattle(); playerTurnBegins(); }
       else aiLoop();
     });
-  }, 420);
+  }, 650);
 }
 
 function playerTurnBegins() {
@@ -555,9 +564,23 @@ function playerTurnBegins() {
   }
   if (B.bossIdx === 1 && pl.hand.includes('ddg')) tipOnce('t_aoe', '<b>Duck, Duck, GOOSE!</b> hits ALL of Aaron\'s critters at once. Best when his field is crowded!');
   if (pl.hand.some(c => cardDef(c).type === 'trick') && B.bossIdx <= 1) tipOnce('t_trick', '✨ <b>Tricks</b> are one-time magic — play one and it happens right away!');
+  // first time a Guard is in play (either side), explain it
+  if (state.players.some(p2 => p2.board.some(c => c.guard)) || pl.hand.some(c => cardDef(c).guard)) {
+    tipOnce('t_guard', '🛡️ <b>Guard</b> critters protect their whole team — enemies MUST attack them first. Put one in front of your squishy friends!');
+  }
 }
 
 const DUCKY = /duck|quack|goose|ddg/;
+// Big card preview when the AI plays something — "what did he just do?" solved.
+function showCardPreview(cardId, ms) {
+  const d = cardDef(cardId);
+  const wrap = el('div', 'showcard');
+  wrap.appendChild(handCardEl(cardId));
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), ms);
+}
+const foePlayed = (e) => B.mode === 'campaign' && e.p === 1;
+
 function runEvents(events, done) {
   if (!events || !events.length) { done(); return; }
   const [e, ...rest] = events;
@@ -566,19 +589,44 @@ function runEvents(events, done) {
     case 'turnStart': { sfx.energy(); renderBattle(); next(380); break; }
     case 'play': {
       DUCKY.test(e.cardId) ? sfx.quack() : sfx.play();
-      renderBattle(); next(300); break;
+      if (foePlayed(e)) { showCardPreview(e.cardId, 850); renderBattle(); next(900); }
+      else { renderBattle(); next(300); }
+      break;
     }
     case 'trick': {
       DUCKY.test(e.cardId) ? sfx.quack() : sfx.trick();
       const d = cardDef(e.cardId);
       toast(`${d.emoji} ${d.name}!`);
-      next(480); break;
+      // ring the trick's target so you can see who it's aimed at
+      if (e.target && e.target.kind === 'critter') document.querySelector(`.critter[data-iid="${e.target.iid}"]`)?.classList.add('aim');
+      if (e.target && e.target.kind === 'hero') document.querySelector(`.hero-bar[data-hero="${e.target.p}"]`)?.classList.add('aim');
+      if (foePlayed(e)) { showCardPreview(e.cardId, 1000); next(1050); }
+      else next(480);
+      break;
     }
     case 'summon': { sfx.play(); renderBattle(); next(220); break; }
     case 'attack': {
       const elFrom = document.querySelector(`.critter[data-iid="${e.fromIid}"]`);
-      if (elFrom) { elFrom.style.transition = 'transform .15s'; elFrom.style.transform = 'scale(1.15)'; }
-      next(180); break;
+      const elTo = e.target.kind === 'hero'
+        ? document.querySelector(`.hero-bar[data-hero="${e.target.p}"]`)
+        : document.querySelector(`.critter[data-iid="${e.target.iid}"]`);
+      const telegraph = foePlayed(e) ? 420 : 90; // AI attacks announce themselves first
+      elFrom?.classList.add('aim-from');
+      elTo?.classList.add('aim');
+      setTimeout(() => {
+        // lunge: slide the attacker most of the way to its target
+        if (elFrom && elTo) {
+          const a = centerOf(elFrom), b = centerOf(elTo);
+          elFrom.style.transition = 'transform .18s ease-in';
+          elFrom.style.transform = `translate(${(b.x - a.x) * 0.6}px, ${(b.y - a.y) * 0.6}px) scale(1.12)`;
+          elFrom.style.zIndex = 20;
+          setTimeout(() => {
+            elFrom.style.transition = 'transform .22s ease-out';
+            elFrom.style.transform = '';
+          }, 200);
+        }
+      }, telegraph);
+      next(telegraph + 260); break;
     }
     case 'dmg': {
       const target = e.iid == null
@@ -587,15 +635,33 @@ function runEvents(events, done) {
       const { x, y } = centerOf(target);
       floatText(x, y, `-${e.n}`, 'dmg');
       target?.classList.add('hurt');
+      // update the HP number in place (full re-render would cancel the shake)
+      const hpEl = target?.querySelector(e.iid == null ? '.hp' : '.stats .h');
+      if (hpEl) hpEl.innerHTML = e.iid == null ? `❤ ${Math.max(0, e.hp)}` : `❤${e.hp}`;
       sfx.hit(e.n);
       next(330); break;
     }
-    case 'death': { sfx.death(); const t = document.querySelector(`.critter[data-iid="${e.iid}"]`); if (t) { t.style.transition = 'all .25s'; t.style.transform = 'scale(0)'; t.style.opacity = '0'; } next(280); break; }
+    case 'recycle': {
+      toast(`♻️ ${B.state.players[e.p].hero.name}'s deck reshuffled — ${e.count} cards back!`);
+      sfx.unlock();
+      next(520); break;
+    }
+    case 'death': {
+      sfx.death();
+      const t = document.querySelector(`.critter[data-iid="${e.iid}"]`);
+      if (t) { t.style.transition = 'all .25s'; t.style.transform = 'scale(0)'; t.style.opacity = '0'; }
+      setTimeout(() => { renderBattle(); runEvents(rest, done); }, 300); // re-render clears the corpse
+      break;
+    }
     case 'heal': { const t = document.querySelector(`.hero-bar[data-hero="${e.side}"]`); const { x, y } = centerOf(t); if (e.n > 0) floatText(x, y, `+${e.n}`, 'healtxt'); sfx.heal(); renderBattle(); next(300); break; }
     case 'buff': { const t = document.querySelector(`.critter[data-iid="${e.iid}"]`); t?.classList.add('buffed'); sfx.energy(); renderBattle(); next(240); break; }
     case 'debuff': { const t = document.querySelector(`.critter[data-iid="${e.iid}"]`); const { x, y } = centerOf(t); floatText(x, y, `-${e.n}⚔️`, 'dmg'); renderBattle(); next(240); break; }
     case 'bounce': { sfx.trick(); renderBattle(); next(260); break; }
-    case 'draw': { if (e.p === meIdx()) sfx.draw(); renderBattle(); next(110); break; }
+    case 'draw': {
+      if (e.p === meIdx()) sfx.draw();
+      else { const oh = document.querySelector('.opp-hand'); if (oh) { const { x, y } = centerOf(oh); floatText(x, y, '+🃏', 'healtxt'); } }
+      renderBattle(); next(e.p === meIdx() ? 110 : 240); break;
+    }
     case 'handFull': { if (e.p === meIdx()) toast('✋ Hand full — draw skipped!'); next(220); break; }
     case 'deckEmpty': { next(60); break; }
     case 'bedtime': { toast(`🌙 Past bedtime! ${e.n} damage to ${B.state.players[e.p].hero.name}`); next(420); break; }

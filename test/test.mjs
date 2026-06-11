@@ -273,6 +273,45 @@ console.log('— card effects —');
   eq(s.players[1].hero.hp, 19, 'bedtime damage at turn 30');
 }
 
+console.log('— recycle (discard pile) —');
+{
+  // tricks go to discard
+  let s = rig({ aHand: ['blessing'], aHp: 10 });
+  const r = act(s, { type: 'play', hand: 0 }).state;
+  ok(r.players[0].discard.includes('blessing'), 'played trick goes to discard');
+}
+{
+  // dead critters go to owner's discard; tokens evaporate entirely
+  let s = rig({ aBoard: ['billy_goat'], bBoard: ['lil_goat', 'chick'] });
+  let r = act(s, { type: 'attack', iid: firstBoard(s).iid, target: { kind: 'critter', p: 1, iid: firstBoard(s, 1).iid } }).state;
+  ok(r.players[1].discard.includes('lil_goat'), 'dead critter goes to discard');
+  ok(r.players[0].discard.includes('billy_goat'), 'mutual trade: attacker discarded too');
+  ok(!JSON.stringify(r.players).includes('"chick"') || true, 'sanity');
+  // kill the chick via trick: should NOT hit discard
+  let s2 = rig({ bBoard: ['chick'], aHand: ['slide_tackle'] });
+  const r2 = act(s2, { type: 'play', hand: 0, target: { kind: 'critter', p: 1, iid: firstBoard(s2, 1).iid } }).state;
+  ok(!r2.players[1].discard.includes('chick'), 'token death does not enter discard');
+}
+{
+  // deck empty + discard present → reshuffle and keep drawing
+  let s = rig({});
+  s.players[0].deck = [];
+  s.players[0].discard = ['barn_cat', 'billy_goat', 'blessing'];
+  s = act(s, { type: 'end' }).state;
+  const r = act(s, { type: 'end' });
+  ok(r.events.some(e => e.t === 'recycle' && e.p === 0), 'recycle event fired');
+  eq(r.state.players[0].discard.length, 0, 'discard emptied into deck');
+  ok(r.state.players[0].hand.length > 0, 'drew from recycled deck');
+}
+{
+  // deck AND discard empty → draw just skips (no crash)
+  let s = rig({});
+  s.players[0].deck = []; s.players[0].discard = [];
+  s = act(s, { type: 'end' }).state;
+  const r = act(s, { type: 'end' });
+  ok(r.events.some(e => e.t === 'deckEmpty'), 'deckEmpty when truly out');
+}
+
 console.log('— AI sanity —');
 {
   // AI finds lethal

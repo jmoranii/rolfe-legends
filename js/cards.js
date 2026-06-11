@@ -128,17 +128,17 @@ export const BOSSES = [
     intro: 'Your little brother cracks his knuckles. The ducks assemble behind him.',
     tip: 'Little brothers come in waves. Duck, Duck, GOOSE! hits ALL his critters at once.',
     lossTip: 'When he floods the field with ducklings, that is EXACTLY when Duck, Duck, GOOSE! wins you the game.',
-    reward: ['sig_aaron', 'goat_stampede'],
+    reward: ['sig_aaron', 'goat_stampede', 'nutmeg'],
     unlocks: { deckBuilder: true, presets: ['farm_friends'] },
   },
   {
-    id: 'jacob', name: 'Jacob', title: 'The Wall', emoji: '🧑‍🌾', hp: 20,
-    deck: ['fence', 'fence', 'fence', 'shep', 'shep', 'barn_door', 'barn_door', 'zip_ties', 'zip_ties', 'old_reliable', 'prize_pig', 'sig_jacob'],
+    id: 'jacob', name: 'Jacob', title: 'The Wall', emoji: '🧑‍🌾', hp: 16,
+    deck: ['fence', 'fence', 'shep', 'shep', 'barn_door', 'zip_ties', 'old_reliable', 'old_reliable', 'garden_helper', 'garden_helper', 'prize_pig', 'sig_jacob'],
     persona: { aggression: 0.35, tradeCare: 0.7, healAt: 0, smart: 0, curve: 'mid' },
     intro: 'Dad nods once, and builds a wall of fences, doors, and pure patience.',
     tip: 'Your dad guards everything. Nutmeg slips right past Guards — very soccer, very sneaky.',
     lossTip: 'You cannot punch through a Barn Door with ducklings. Go around Guards (Nutmeg!) or bring bigger critters.',
-    reward: ['sig_jacob', 'nutmeg', 'math_whiz'],
+    reward: ['sig_jacob', 'math_whiz'],
   },
   {
     id: 'tory', name: 'Tory', title: 'The Team Mom', emoji: '👩‍🌾', hp: 20,
@@ -196,7 +196,7 @@ export const PRESETS = {
     blurb: 'Where every legend begins.' },
   farm_friends: {
     id: 'farm_friends', name: 'Farm Friends', emoji: '🐄',
-    cards: ['barn_cat', 'barn_cat', 'billy_goat', 'billy_goat', 'shep', 'shep', 'mama_hen', 'prize_pig', 'sig_rusty', 'sig_aaron', 'goat_stampede', 'ddg'],
+    cards: ['barn_cat', 'barn_cat', 'billy_goat', 'billy_goat', 'shep', 'mama_hen', 'prize_pig', 'sig_rusty', 'sig_aaron', 'goat_stampede', 'ddg', 'nutmeg'],
     blurb: 'Go wide. The farm fights together.' },
   speed_demons: {
     id: 'speed_demons', name: 'Speed Demons', emoji: '⚡',

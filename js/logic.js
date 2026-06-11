@@ -8,7 +8,7 @@ import { CARDS, TOKENS } from './cards.js';
 export const HAND_CAP = 7;
 export const BOARD_CAP = 4;
 export const ENERGY_CAP = 5;
-export const BEDTIME_TURN = 30;
+export const BEDTIME_TURN = 22; // anti-stall: recycling decks never run dry, so bedtime is what guarantees games end
 
 // ---- seeded rng (mulberry32) ----
 function rand(state) {
@@ -63,7 +63,7 @@ export function newGame({ deckA, deckB, heroA, heroB, seed = 42, first = 0 }) {
 function mkPlayer(hero, deck) {
   return {
     hero: { name: hero.name, emoji: hero.emoji, hp: hero.hp, maxHp: hero.hp },
-    deck: [...deck], hand: [], board: [],
+    deck: [...deck], hand: [], board: [], discard: [],
     energy: 0, turnsTaken: 0, flags: { tempAtk: 0, ignoreGuard: false },
   };
 }
@@ -78,6 +78,13 @@ function shuffle(state, arr) {
 function drawN(state, p, n, events) {
   const pl = state.players[p];
   for (let i = 0; i < n; i++) {
+    if (pl.deck.length === 0 && pl.discard.length > 0) {
+      // recycle: played tricks + fallen critters shuffle back in — you never run dry
+      pl.deck = [...pl.discard];
+      pl.discard = [];
+      shuffle(state, pl.deck);
+      events.push({ t: 'recycle', p, count: pl.deck.length });
+    }
     if (pl.deck.length === 0) { events.push({ t: 'deckEmpty', p }); return; }
     if (pl.hand.length >= HAND_CAP) { events.push({ t: 'handFull', p }); return; }
     const cardId = pl.deck.shift();
@@ -135,7 +142,10 @@ function reap(state, events) {
     const dead = pl.board.filter(c => c.hp <= 0);
     if (dead.length) {
       pl.board = pl.board.filter(c => c.hp > 0);
-      for (const c of dead) events.push({ t: 'death', side: p, iid: c.iid, cardId: c.cardId });
+      for (const c of dead) {
+        events.push({ t: 'death', side: p, iid: c.iid, cardId: c.cardId });
+        if (!cardDef(c.cardId).token) pl.discard.push(c.cardId); // fallen critters recycle
+      }
     }
   }
 }
@@ -288,6 +298,7 @@ function resolveEffect(state, p, spec, target, events, srcCardId) {
           } else if (tp.hand.length >= HAND_CAP) {
             events.push({ t: 'death', side: target.p, iid: c.iid, cardId: c.cardId });
             events.push({ t: 'fizzle', reason: 'hand-full-poof' });
+            tp.discard.push(c.cardId); // no room — it heads for the recycle pile instead
           } else {
             tp.hand.push(c.cardId);
             events.push({ t: 'bounce', side: target.p, iid: c.iid, cardId: c.cardId });
@@ -334,7 +345,8 @@ export function act(stateIn, action) {
       events.push({ t: 'play', p, cardId, iid: inst.iid });
       if (d.bc) resolveEffect(state, p, d.bc, action.target || null, events, cardId);
     } else {
-      events.push({ t: 'trick', p, cardId });
+      events.push({ t: 'trick', p, cardId, target: action.target || null });
+      pl.discard.push(cardId); // tricks recycle (discarded before resolving, so draw-tricks can even reshuffle themselves)
       resolveEffect(state, p, d.fx, action.target || null, events, cardId);
     }
     reap(state, events);

@@ -142,9 +142,32 @@ button:disabled { opacity: .45; pointer-events: none; }
 .handcard.selected { transform: translateY(-16px) scale(1.12); outline: 4px solid var(--gold); z-index: 5; }
 .handcard.legendary { background: linear-gradient(160deg, #fff9e3, #ffe9b3); border-color: #9a7b1c; }
 
-.opp-hand { display: flex; gap: 4px; justify-content: center; min-height: 16px; }
-.opp-hand .back { width: 26px; height: 36px; background: var(--barn); border: 2px solid var(--ink); border-radius: 5px; margin-top: -22px; }
-.opp-hand .back.golden { background: linear-gradient(160deg, var(--gold), #b8860b); }
+.opp-hand { display: flex; justify-content: center; align-items: center; min-height: 20px; }
+.opp-hand .back {
+  width: 30px; height: 42px; margin: -24px 0 0 -10px;
+  background: var(--barn) linear-gradient(135deg, rgba(255,255,255,.12) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.12) 50%, rgba(255,255,255,.12) 75%, transparent 75%);
+  background-size: 9px 9px;
+  border: 2.5px solid var(--ink); border-radius: 6px;
+  display: grid; place-items: center; color: rgba(255, 240, 220, .85); font-size: 13px;
+  box-shadow: 0 2px 0 rgba(59,47,47,.25);
+}
+.opp-hand .back:first-child { margin-left: 0; }
+.opp-hand .backcount { font-size: 12px; font-weight: 700; margin: -20px 0 0 8px; background: var(--cream); border: 2px solid var(--ink); border-radius: 999px; padding: 2px 8px; }
+
+/* targeting telegraphs */
+.aim { outline: 4px solid #e74c3c !important; outline-offset: 2px; border-radius: 12px; }
+.aim-from { outline: 4px solid var(--gold) !important; outline-offset: 2px; }
+.energychip { font-size: 13px; background: #e8f4fb; border: 2px solid var(--sky-deep); color: #20618a; border-radius: 999px; padding: 3px 9px; font-weight: 700; white-space: nowrap; }
+
+/* AI card play preview */
+.showcard { position: fixed; inset: 0; display: grid; place-items: center; z-index: 70; pointer-events: none; }
+.showcard .handcard { width: 128px; height: 184px; animation: showcardin .85s ease forwards; box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+.showcard .handcard .art { font-size: 46px; margin-top: 12px; }
+.showcard .handcard .cnm { font-size: 14px; }
+.showcard .handcard .ctx { font-size: 11px; }
+.showcard .handcard .stats { font-size: 17px; }
+.showcard .handcard .cost { width: 32px; height: 32px; font-size: 17px; }
+@keyframes showcardin { 0% { transform: scale(.4) rotate(-6deg); opacity: 0; } 16% { transform: scale(1.05) rotate(1deg); opacity: 1; } 28% { transform: scale(1); } 82% { transform: scale(1); opacity: 1; } 100% { transform: scale(.92) translateY(-16px); opacity: 0; } }
 
 /* floating combat text */
 .float { position: fixed; font-size: 24px; font-weight: 700; pointer-events: none; z-index: 50; animation: floatup .85s ease forwards; text-shadow: 0 2px 0 rgba(0,0,0,.2); }

@@ -176,8 +176,10 @@ function bestPlay(state, persona) {
       }
       case 'ignoreGuard': {
         const guards = po.board.filter(c => c.guard && c.hp > 0).length;
-        const ready = pl.board.filter(c => c.canAttack && !c.sick).length;
-        s = guards && ready ? 4 : 0;
+        const readyAtk = pl.board.filter(c => c.canAttack && !c.sick)
+          .reduce((sum, c) => sum + effAtk(state, p, c), 0);
+        // only worth it when there's real damage to sneak through
+        s = guards && readyAtk >= 4 ? 4 + Math.min(readyAtk, 10) * 0.3 : 0;
         break;
       }
     }
@@ -220,6 +222,8 @@ function bestAttack(state, persona) {
       let v;
       if (t.kind === 'hero') {
         v = 1 + persona.aggression * 3.5 + (po.hero.hp <= 10 ? 2 : 0);
+        // ignoreGuard is live for one turn only — that's exactly what it's FOR
+        if (state.players[p].flags.ignoreGuard && po.board.some(c => c.guard && c.hp > 0)) v += 5;
       } else {
         const def = findCritter(state, opp, t.iid);
         const defAtk = effAtk(state, opp, def);
