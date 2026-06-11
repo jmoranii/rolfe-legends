@@ -1,0 +1,124 @@
+# Rolfe Legends — Locked Design v1
+
+*The taste document. Every number here is a starting point that selfplay + playtesting may tune, but the SHAPE is locked.*
+
+## Core rules (Hearthstone-lite, tuned for a 10-year-old first-timer)
+
+- Two heroes face off. **Hero HP: 20** (Rusty 12, Grandma Rocky 25).
+- **Energy ⚡:** you start your turn with energy = number of your turns so far, **capped at 5** (1, 2, 3, 4, 5, 5, …). Spend it to play cards; unspent energy is lost. The math of "what can I afford" is the first strategy layer.
+- **Decks: exactly 12 cards**, max 2 copies of a card (Legendary cards max 1). Start of game: player going first draws 4, second draws 5. **Draw 1/turn.** Hand cap 7 (draw skipped with a "Hand full!" toast — no card burning, gentle). Empty deck = no draw, no damage.
+- **Board: max 4 critters per side.**
+- **Two card types only:**
+  - **Critter** — has Attack/Health, sits on the board, fights.
+  - **Trick** — one-shot effect (the word doubles as magic-trick flavor).
+- **Summoning sickness:** critters sleep (💤) the turn they're played, attack from next turn. Keyword **Fast** ignores this.
+- Keyword **Guard 🛡️:** enemies must attack Guards first. (Protect your squishy pieces; teaches focus-fire.)
+- **Attacking:** tap a ready critter → tap target. Attacking a critter = **simultaneous damage both ways** (trading math!). Attacking a hero = hero takes damage, attacker takes none.
+- **Threat meter (the intuitiveness keystone):** always-visible "⚔️ Incoming next turn: N" = total attack of enemy board, plus the enemy's next-turn energy. Every turn is a solvable puzzle: block, Guard, heal, remove, or race.
+- **Win:** enemy hero at 0 HP. Frictionless instant rematch on loss + a targeted Coach tip about what killed you.
+- **Anti-stall:** from turn 30, both heroes take growing damage at turn start ("Past bedtime!" 1, 2, 3…). Keeps PvP finite, never seen in normal play.
+- No mulligans, no fatigue damage, no hand-burning, ≤2-line card text, numbers 0–7. If a rule needs a paragraph, it's out.
+
+## Effect vocabulary (everything in the game is built from these)
+
+damage (pick critter / any target / all enemy critters / enemy hero), heal (your hero / pick ally), draw N, buff (+A/+H, pick ally / all allies / random ally / other allies), temp-turn flags (your critters +1 atk this turn; your attacks ignore Guard this turn), summon tokens, bounce (return enemy critter to its owner's hand), debuff (all enemy critters −1 atk, min 0), aura (other allies +1 atk while this lives), start-of-turn trigger (random ally +1/+1), battlecry = "When played:".
+
+## The boss ladder — each fight teaches ONE thing
+
+| # | Boss | HP | Deck archetype | The lesson | Coach's pre-fight tip (voice: warm, brief) |
+|---|------|----|----------------|------------|--------------------------------------------|
+| 1 | **Rusty** 🐕 | 12 | Puppy Pack (vanilla 1/1s, 2/2s — cannot really win) | Play critters, attack, win | "Drag a critter onto the field, then tap it to attack. Rusty mostly wants belly rubs." |
+| 2 | **Aaron** 🦆 | 20 | **Swarm** — cheap ducks, token floods | Wide boards need wide answers (AoE) | "Little brothers come in waves. Duck, Duck, GOOSE! hits ALL his critters at once." |
+| 3 | **Jacob** 🔧 | 20 | **The Wall** — Guards + buffs | Breaking through defenses | "Your dad guards everything. Nutmeg slips right past Guards — very soccer, very sneaky." |
+| 4 | **Tory** 💪 | 20 | **Buffs/support** — makes her team huge | Kill the support first (priority targets) | "Your mom makes everyone around her stronger. Take out the helpers before the muscle." |
+| 5 | **Uncle Brody** 🔥 | 20 | **Aggro burn** — Fast critters, face damage | Racing vs healing; when to defend | "Brody goes FAST and loud. Heal up, put up Guards, survive the storm — then win." |
+| 6 | **Aunt Chelsea** 💖 | 20 | **Heal/control** — removal + heals, outlasts you | Burst damage; don't overextend into removal | "Chelsea heals everything. Little pokes won't cut it — save up for one BIG turn." |
+| 7 | **Grampa Flaj** 🚜 | 20 | **Big tanks** — slow giants | Answer big threats (or race them) | "Grampa's slow but his critters are TOUGH as old boots. Hit fast, or pack a vanishing act." |
+| 8 | **Grandma Rocky** 👑 | 25 | **Everything** — smart mixed deck, best AI | The final exam | "Grandma Rocky's seen every trick in this game — most of them are hers. Use EVERYTHING you've learned." |
+
+Boss AI personalities: per-boss heuristic weights (aggression, trade-care, heal threshold, curve priority). All bosses lethal-check except Rusty. Rocky additionally prioritizes killing your aura/snowball pieces and holds AoE for value.
+
+**Difficulty intent (selfplay-verified):** Rusty ~unloseable → Aaron easy → mid bosses occasionally need a retry → Rocky typically takes 2–3 attempts with a tuned deck. Losing is part of the strategy lesson; rematch is instant.
+
+## The campaign arc — the 10th Legend
+
+Map = a farm path with 8 portrait nodes + a crown. Beat a boss → **win their signature card** (pack-opening reveal moment) + scheduled unlocks. Beat Grandma Rocky → crown screen: **"WYATT — THE 10TH LEGEND OF ROLFE"** — 9 legends came before (the 8 bosses + Coach James); on his 10th birthday he completes the ten. Confetti, golden card back unlocked, signed *"Happy 10th Birthday, Wyatt — love, Uncle James."*
+
+## Unlock schedule
+
+| After beating | New cards | Other unlocks |
+|---|---|---|
+| Rusty | **Rusty** (sig), The Sprinter | — |
+| Aaron | **Aaron, Lil Tornado** (sig), Goat Stampede | **Deck Builder** + preset *Farm Friends* |
+| Jacob | **Farmer Jacob** (sig), Nutmeg, Math Whiz | — |
+| Tory | **Mama Tory** (sig), Magic Vanish | — |
+| Brody | **Uncle Brody** (sig), The Trickster | preset *Speed Demons*, *Magic Show* |
+| Chelsea | **Aunt Chelsea** (sig), Piano Maestro, **THE ONE LLAMA** | — |
+| Grampa Flaj | **Grampa Flaj** (sig) | preset *Big Barn Energy* |
+| Grandma Rocky | **Grandma Rocky** (sig) | Crown, golden card back, Dog Man hint |
+| 🤫 Secret | **Dog Man** | Tap the llama on the title screen 3× |
+
+Boss decks become playable in **VS Mode** once beaten (replay value + "play AS mom").
+
+## Wyatt's card pool
+
+### Starter deck (12) — teaches every basic, multi-archetype seeds
+| Card | Cost | Stats | Text | Flavor |
+|---|---|---|---|---|
+| Barn Cat ×2 | 1 | 2/1 | — | "Employee of the month, every month." |
+| Billy the Goat ×2 | 2 | 3/2 | — | "Will eat your homework AND your fence." |
+| Shep the Sheepdog | 2 | 2/3 | Guard | "Nobody gets past Shep." |
+| Soccer Striker ×2 | 3 | 3/2 | Fast | "Top corner. Every time." |
+| Mama Hen | 3 | 2/4 | When played: summon a 1/1 Chick | "Everyone counts as her chick." |
+| Prize Pig | 4 | 4/4 | — | "Blue ribbon. Knows it." |
+| Slide Tackle | 2 | Trick | Deal 3 to a critter | "Clean. Mostly." |
+| Duck, Duck, GOOSE! | 3 | Trick | Deal 1 to all enemy critters | "The goose chooses violence." |
+| Blessing | 1 | Trick | Heal your hero 4 | "A little grace goes a long way." |
+
+### Unlockables
+| Card | Cost | Stats | Text | Flavor |
+|---|---|---|---|---|
+| The Sprinter | 1 | 2/1 | Fast | "Started running and simply did not stop." |
+| Goat Stampede | 4 | Trick | Deal 2 to all enemy critters | "You hear them before you see them." |
+| Nutmeg | 1 | Trick | Your attacks ignore Guard this turn | "Right between the legs. GOAL." |
+| Math Whiz | 2 | 1/3 | When played: draw a card | "Already calculated how this ends." |
+| Magic Vanish | 2 | Trick | Return an enemy critter to its owner's hand | "Nothing up my sleeve…" |
+| The Trickster | 3 | 3/3 | When played: draw a card | "Pulls one from his sleeve. Don't ask which sleeve." |
+| Piano Maestro | 4 | 2/5 | At the start of your turn, a random ally gets +1/+1 | "Every turn, the song builds." |
+| **THE ONE LLAMA** 🦙 | 5 | 6/6 | Legendary. When played: all enemy critters get −1 Attack | "The Llama says nothing. The Llama knows." |
+| **Dog Man** 🤫 | 3 | 3/3 | Legendary, secret. Guard, Fast | "Part dog. Part man. All hero." |
+
+### Boss signature cards (Legendary, won on victory)
+| Card | Cost | Stats | Text | Flavor |
+|---|---|---|---|---|
+| Rusty | 2 | 2/3 | Guard | "Good boy. GREAT boy." |
+| Aaron, Lil Tornado | 2 | 2/2 | When played: summon a 1/1 Duckling | "Has never once sat still." |
+| Farmer Jacob | 3 | 2/4 | Guard. When played: give another ally +1/+1 | "Can fix anything with zip ties." |
+| Mama Tory | 4 | 3/4 | Your other critters have +1 Attack | "Says 'be careful!' Makes you stronger anyway." |
+| Uncle Brody | 4 | 5/2 | Fast | "REAL TALK." |
+| Aunt Chelsea | 3 | 2/3 | When played: heal your hero 4 | "Hugs that heal." |
+| Grampa Flaj | 5 | 5/6 | When played: your other critters get +0/+2 | "Tough as old boots." |
+| Grandma Rocky | 5 | 4/5 | When played: deal 2 to all enemy critters | "Final boss energy. Bakes cookies." |
+
+### Preset decks (Coach's Picks — one-tap good decks, freeform builder for when he's ready)
+- **Farm Friends** (post-Aaron): go-wide farm core — Barn Cat ×2, Billy ×2, Shep, Mama Hen ×2, Prize Pig, Rusty, Aaron Lil Tornado, Goat Stampede, Duck Duck GOOSE!
+- **Speed Demons** (post-Brody): Sprinter ×2, Barn Cat ×2, Striker ×2, Billy ×2, Uncle Brody, Nutmeg, Slide Tackle, Blessing
+- **Magic Show** (post-Brody): Math Whiz ×2, Trickster ×2, Magic Vanish ×2, Nutmeg, Slide Tackle, Shep ×2, Mama Tory, Prize Pig
+- **Big Barn Energy** (post-Flaj): Prize Pig ×2, Grampa Flaj, The One Llama, Mama Hen ×2, Shep ×2, Billy ×2, Blessing, Slide Tackle
+
+## Modes
+
+- **Campaign** — the 8-boss ladder, Coach James tips, unlocks, the crown.
+- **Couch Battle (VS)** — pass-and-play on one tablet, two humans (built for Aaron). Pick any two unlocked decks (incl. beaten boss decks). "Pass to Player 2!" hand-hide between turns. No netcode ever.
+
+## Screens
+
+Title (wooden sign "ROLFE LEGENDS", farm sunset, llama 👀, "Made for Wyatt's 10th Birthday ❤") → Map (farm path) → Pre-fight (boss intro + tip) → Battle → Victory (card reveal) → Collection / Deck Builder → VS setup → Settings (sound, reset, credits "Made with love by Uncle James").
+
+## Look & feel
+
+Warm farm palette (barn red `#b5413a`, hay gold `#e8b94e`, sky `#8ecae6`, grass `#5a8f4f`, cream `#fdf6e3`), chunky rounded cards with cost gem (top-left) and ATK/HP badges (bottom corners), big friendly display font (Fredoka / Baloo 2 via Google Fonts with system fallback), emoji art v1 → GPT-image stylized cartoon art later (drop-in via `assets/cards/<id>.png`). Juice: drag-lift + shadow, hit shake, floating damage numbers, death poof, victory confetti, WebAudio synth SFX (whoosh, thock, chime, poof, fanfare, and a square-wave QUACK).
+
+## Art pipeline (for James + GPT-image, later)
+
+One style bible prompt + per-card pose notes will live in `assets/PROMPTS.md` (generated when core is approved). Reference photo → stylized cartoon, consistent across all family cards. Falls back to emoji if a PNG is missing — art can land incrementally.
