@@ -130,6 +130,10 @@ Title (wooden sign "ROLFE LEGENDS", farm sunset, llama 👀, "Made for Wyatt's 1
 
 Warm farm palette (barn red `#b5413a`, hay gold `#e8b94e`, sky `#8ecae6`, grass `#5a8f4f`, cream `#fdf6e3`), chunky rounded cards with cost gem (top-left) and ATK/HP badges (bottom corners), big friendly display font (Fredoka / Baloo 2 via Google Fonts with system fallback), emoji art v1 → GPT-image stylized cartoon art later (drop-in via `assets/cards/<id>.png`). Juice: drag-lift + shadow, hit shake, floating damage numbers, death poof, victory confetti, WebAudio synth SFX (whoosh, thock, chime, poof, fanfare, and a square-wave QUACK).
 
-## Art pipeline (for James + GPT-image, later)
+## Art direction (locked Thu 2026-06-11)
 
-One style bible prompt + per-card pose notes will live in `assets/PROMPTS.md` (generated when core is approved). Reference photo → stylized cartoon, consistent across all family cards. Falls back to emoji if a PNG is missing — art can land incrementally.
+**Two-tier art system: "Legends get portraits; commons stay emoji."** Painted art goes only to the named/legendary cards (family sigs, the four pets, the llama, Dog Man), hero portraits, the coach, and the title screen — ~17 images. Commons keep emoji deliberately: it makes legendaries feel legendary, keeps the matched-series consistency problem small, and the emoji look is charming and tested.
+
+**Style: "Storybook Gouache Trading Card."** Warm hand-painted storybook gouache, friendly caricature (gently exaggerated proportions, expressive faces), bold silhouettes, golden-hour farm light with warm rim light, simple painterly farm-vignette backgrounds, matched-series consistency, no text/frames in the art (the game draws its own frames). Chosen over photoreal (uncanny, inconsistent), flat vector (cold next to the cream/barn-red UI), and 3D (hardest to keep consistent). Generated from real reference photos via ChatGPT Images 2.0 (exact ratios supported; cards 1:1 1024×1024, title 2:3 1024×1536).
+
+**Pipeline:** the full copy-paste prompt kit lives in [`assets/PROMPTS.md`](assets/PROMPTS.md) — style block, per-image prompts with pose/personality notes, reference-photo shot list, exact filenames, QA checklist. Files drop into `assets/cards/<cardId>.png` + `assets/ui/` and are picked up automatically with emoji fallback (zero code changes; incremental landing). Note: some filenames are internal ids (Lily = `guard_cat.png`, Smidgen = `grand_finale.png`) — the kit's table is the source of truth. Test trio first: Rockie, Smidgen, title bg.

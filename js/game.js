@@ -62,6 +62,22 @@ function centerOf(elem) {
   return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
 }
 
+// ---------------- art (drop-in PNGs with emoji fallback) ----------------
+// Legends get painted portraits (assets/cards/<id>.png, assets/ui/*.png); everything
+// missing falls back to its emoji — art can land incrementally with zero code changes.
+const artCache = new Map(); // path -> true|false
+function artImg(path, fallbackEmoji, cls = 'art') {
+  const wrap = el('div', cls);
+  if (artCache.get(path) === false) { wrap.textContent = fallbackEmoji; return wrap; }
+  const img = document.createElement('img');
+  img.src = path; img.alt = '';
+  img.onload = () => artCache.set(path, true);
+  img.onerror = () => { artCache.set(path, false); img.remove(); wrap.textContent = fallbackEmoji; };
+  wrap.appendChild(img);
+  return wrap;
+}
+const cardArt = (cardId, cls = 'art') => artImg(`assets/cards/${cardId}.png`, cardDef(cardId).emoji, cls);
+
 // ---------------- card text (generated from data — text always matches behavior) ----------------
 function fxText(spec) {
   switch (spec.kind) {
@@ -103,7 +119,7 @@ function handCardEl(cardId, opts = {}) {
   const d = cardDef(cardId);
   const c = el('div', 'handcard' + (d.legendary ? ' legendary' : ''));
   c.appendChild(el('div', 'cost', d.cost));
-  c.appendChild(el('div', 'art', d.emoji));
+  c.appendChild(cardArt(cardId));
   c.appendChild(el('div', 'cnm', d.name));
   c.appendChild(el('div', 'ctx', cardText(d) || `<i>${d.flavor}</i>`));
   if (d.type === 'critter') {
@@ -118,7 +134,7 @@ function critterEl(state, p, inst) {
   const c = el('div', 'critter');
   c.dataset.iid = inst.iid;
   const a = effAtk(state, p, inst);
-  c.appendChild(el('div', 'art', d.emoji));
+  c.appendChild(cardArt(inst.cardId));
   c.appendChild(el('div', 'cnm', d.name));
   c.appendChild(el('div', 'stats',
     `<span class="a">⚔️${a}${a > inst.atk ? '✨' : ''}</span><span class="h">❤${inst.hp}</span>`));
@@ -132,7 +148,7 @@ function critterEl(state, p, inst) {
 function coachSay(text, sticky = false) {
   document.querySelectorAll('.coach').forEach(n => n.remove());
   const c = el('div', 'coach' + (document.querySelector('.battle') ? ' high' : ''));
-  c.appendChild(el('div', 'cap', COACH.emoji));
+  c.appendChild(artImg('assets/ui/portrait_coach.png', COACH.emoji, 'cap'));
   c.appendChild(el('div', 'say', `<span class="who">${COACH.name}</span>${text}`));
   c.onclick = () => c.remove();
   document.body.appendChild(c);
@@ -204,7 +220,7 @@ function mapScreen() {
   const path = el('div', 'map-path');
   BOSSES.forEach((b, i) => {
     const n = el('div', 'map-node');
-    n.appendChild(el('div', 'face', b.emoji));
+    n.appendChild(artImg(`assets/cards/sig_${b.id}.png`, b.emoji, 'face'));
     const who = el('div', 'who');
     who.appendChild(el('div', 'nm', b.name));
     who.appendChild(el('div', 'tt', b.title));
@@ -253,7 +269,7 @@ function prefightScreen(bossIdx) {
   const s = el('div', 'screen');
   s.appendChild(el('h2', '', `Fight ${bossIdx + 1} of ${BOSSES.length}`));
   const panel = el('div', 'panel');
-  panel.appendChild(el('div', 'big-emoji', b.emoji));
+  panel.appendChild(artImg(`assets/cards/sig_${b.id}.png`, b.emoji, 'big-art'));
   panel.appendChild(el('h2', '', `${b.name}`));
   panel.appendChild(el('div', '', `<i>${b.title} · ${b.hp} ❤</i>`));
   panel.appendChild(el('p', '', `<br>${b.intro}<br><br>`));
@@ -330,7 +346,9 @@ function renderBattle() {
   // foe hero bar + their hand as backs
   const fbar = el('div', 'hero-bar foe');
   fbar.dataset.hero = foe;
-  fbar.appendChild(el('div', 'face', pf.hero.emoji));
+  fbar.appendChild(B.mode === 'campaign'
+    ? artImg(`assets/cards/sig_${B.boss.id}.png`, pf.hero.emoji, 'face')
+    : el('div', 'face', pf.hero.emoji));
   const fnm = el('div', 'nm', `${pf.hero.name}${B.mode === 'campaign' ? `<span class="sub">${B.boss.title}</span>` : ''}`);
   fbar.appendChild(fnm);
   const th = threat(state, me);
@@ -384,7 +402,9 @@ function renderBattle() {
   // my hero bar
   const mbar = el('div', 'hero-bar me');
   mbar.dataset.hero = me;
-  mbar.appendChild(el('div', 'face', pm.hero.emoji));
+  mbar.appendChild(B.mode === 'campaign'
+    ? artImg('assets/ui/portrait_wyatt.png', pm.hero.emoji, 'face')
+    : el('div', 'face', pm.hero.emoji));
   mbar.appendChild(el('div', 'nm', pm.hero.name));
   mbar.appendChild(el('div', 'hp', `❤ ${Math.max(0, pm.hero.hp)}`));
   s.appendChild(mbar);
@@ -816,7 +836,7 @@ function revealRewards(boss, i, done) {
   const p = el('div', 'panel');
   p.appendChild(el('h2', '', i === 0 ? '🎁 NEW CARD WON!' : '🎁 BONUS CARD!'));
   const rc = el('div', 'reveal-card');
-  rc.appendChild(el('div', 'art', d.emoji));
+  rc.appendChild(cardArt(cardId));
   rc.appendChild(el('div', 'cnm', d.name));
   rc.appendChild(el('div', 'ctx', cardText(d)));
   rc.appendChild(el('div', 'ctx', `<i>${d.flavor}</i>`));
