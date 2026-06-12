@@ -74,16 +74,16 @@ def({ id: 'sunday_dinner', name: 'Sunday Dinner', type: 'trick',   cost: 4, fx: 
 def({ id: 'wild_card',    name: 'Wild Card',    type: 'critter', cost: 1, atk: 2, hp: 1, emoji: '🃏', flavor: 'Nobody knows. Not even him.' });
 def({ id: 'real_talk',    name: 'REAL TALK',    type: 'trick',   cost: 2, fx: { kind: 'damage', n: 3, target: 'any-enemy' }, emoji: '💥', flavor: 'Delivered at full volume.' });
 def({ id: 'rune_sword',   name: 'Rune Sword',   type: 'trick',   cost: 2, fx: { kind: 'buff', a: 2, h: 0, target: 'pick-ally' }, emoji: '⚔️', flavor: 'Earned through hard work. In a video game.' });
-def({ id: 'speed_demon',  name: 'Speed Demon',  type: 'critter', cost: 3, atk: 3, hp: 2, fast: true, emoji: '🏍️', flavor: 'Heard the speed limit. Disagreed.' });
+def({ id: 'speed_demon',  name: 'Ruby',         type: 'critter', cost: 3, atk: 3, hp: 2, fast: true, emoji: '🐩', flavor: "Brody's labradoodle. Zoomies at maximum volume." });
 def({ id: 'loud_music',   name: 'Loud Music',   type: 'trick',   cost: 3, fx: { kind: 'damage', n: 2, target: 'enemy-hero', draw: 1 }, emoji: '🔊', flavor: 'You feel it in your teeth.' });
-def({ id: 'big_rig',      name: 'Big Rig',      type: 'critter', cost: 4, atk: 4, hp: 3, fast: true, emoji: '🛻', flavor: 'Has never once parked between the lines.' });
+def({ id: 'big_rig',      name: 'Monster Truck', type: 'critter', cost: 4, atk: 4, hp: 3, fast: true, emoji: '🛻', flavor: 'Has never once parked between the lines.' });
 // Chelsea
 def({ id: 'tea_time',     name: 'Tea Time',     type: 'trick',   cost: 1, fx: { kind: 'heal', n: 2, target: 'self-hero', draw: 1 }, emoji: '🍵', flavor: 'Sit. Breathe. Sip.' });
 def({ id: 'cozy_blanket', name: 'Cozy Blanket', type: 'trick',   cost: 2, fx: { kind: 'heal', n: 4, target: 'self-hero' }, emoji: '🧶', flavor: 'Handmade. Weaponized comfort.' });
 def({ id: 'gentle_goat',  name: 'Gentle Goat',  type: 'critter', cost: 2, atk: 1, hp: 4, guard: true, emoji: '🐐', flavor: 'The one goat that never headbutts.' });
 def({ id: 'time_out',     name: 'Time Out',     type: 'trick',   cost: 3, fx: { kind: 'bounce', target: 'pick-critter-enemy' }, emoji: '⏰', flavor: 'Go think about what you did.' });
-def({ id: 'guard_cat',    name: 'Guard Cat',    type: 'critter', cost: 3, atk: 2, hp: 5, guard: true, emoji: '🐈‍⬛', flavor: 'Sees everything. Judges everything.' });
-def({ id: 'big_hug',      name: 'Big Hug',      type: 'critter', cost: 5, atk: 4, hp: 6, emoji: '🫂', flavor: 'Resistance is useless.' });
+def({ id: 'guard_cat',    name: 'Lily',         type: 'critter', cost: 3, atk: 2, hp: 5, guard: true, emoji: '🐈‍⬛', flavor: "Chelsea's cat. Sees everything. Judges everything." });
+def({ id: 'big_hug',      name: 'Rig',          type: 'critter', cost: 5, atk: 4, hp: 6, emoji: '🦮', flavor: "Chelsea's VERY big dog. Hugs you whether you like it or not." });
 // Grampa Flaj
 def({ id: 'barn_owl',      name: 'Barn Owl',      type: 'critter', cost: 1, atk: 1, hp: 2, emoji: '🦉', flavor: 'Saw you sneak that cookie.' });
 def({ id: 'haybale',       name: 'Haybale',       type: 'critter', cost: 2, atk: 0, hp: 4, guard: true, emoji: '🌾', flavor: 'Surprisingly hard to move.' });
