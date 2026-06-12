@@ -91,6 +91,12 @@ console.log('— data integrity —');
   ok(deckBuilderUnlocked(2) && !deckBuilderUnlocked(1), 'deck builder unlocks after boss 2');
   ok(!collectionFor(8).has('dog_man'), 'dog man not unlocked by campaign');
   ok(collectionFor(8, { dogMan: true }).has('dog_man'), 'dog man via secret');
+  // champion's reward: beating the campaign unlocks the whole pool
+  ok(!collectionFor(7).has('knitting_needles') && !collectionFor(7).has('fence'), 'boss-only cards locked before the crown');
+  ok(collectionFor(8).has('knitting_needles') && collectionFor(8).has('fence') && collectionFor(8).has('grand_finale') && collectionFor(8).has('big_hug'), 'crown unlocks every boss card');
+  const champDeck = ['fence', 'fence', 'real_talk', 'real_talk', 'knitting_needles', 'knitting_needles', 'speed_demon', 'speed_demon', 'guard_cat', 'guard_cat', 'big_hug', 'grand_finale'];
+  ok(validateDeck(champDeck, collectionFor(8)) === null, 'all-boss-card deck buildable after crown');
+  ok(validateDeck([...champDeck.slice(0, 11), 'grand_finale', 'grand_finale'], collectionFor(8)) !== null, 'smidgen respects legendary 1-copy cap');
   for (const [id, c] of Object.entries(CARDS)) {
     ok(c.type === 'critter' ? Number.isInteger(c.atk) && Number.isInteger(c.hp) : !!c.fx, `card coherent: ${id}`);
     ok(c.cost >= 0 && c.cost <= 5, `cost in range: ${id}`);

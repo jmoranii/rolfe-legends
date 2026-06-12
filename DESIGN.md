@@ -58,7 +58,7 @@ Map = a farm path with 8 portrait nodes + a crown. Beat a boss → **win their s
 | Brody | **Uncle Brody** (sig), The Trickster | preset *Speed Demons*, *Magic Show* |
 | Chelsea | **Aunt Chelsea** (sig), Piano Maestro, **THE ONE LLAMA** | — |
 | Grampa Flaj | **Grampa Flaj** (sig) | preset *Big Barn Energy* |
-| Grandma Rocky | **Grandma Rocky** (sig) | Crown, golden card back, Dog Man hint |
+| Grandma Rocky | **Grandma Rocky** (sig) | Crown, golden card back, Dog Man hint, **champion's reward: every card from every boss deck joins the collection** |
 | 🤫 Secret | **Dog Man** | Tap the llama on the title screen 3× |
 
 Boss decks become playable in **VS Mode** once beaten (replay value + "play AS mom").

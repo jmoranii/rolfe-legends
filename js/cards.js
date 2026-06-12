@@ -219,6 +219,10 @@ export function collectionFor(progress, secrets = {}) {
   for (let i = 0; i < progress && i < BOSSES.length; i++) {
     for (const c of BOSSES[i].reward) owned.add(c);
   }
+  if (progress >= BOSSES.length) {
+    // champion's reward: the WHOLE card pool — every card from every boss deck (except the secret)
+    for (const [id, c] of Object.entries(CARDS)) if (!c.secret) owned.add(id);
+  }
   if (secrets.dogMan) owned.add('dog_man');
   return owned;
 }

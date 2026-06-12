@@ -835,7 +835,7 @@ function afterVictory(bossIdx) {
     p.appendChild(el('h2', '', 'WYATT'));
     p.appendChild(el('h2', '', 'THE 10TH LEGEND OF ROLFE'));
     p.appendChild(el('p', '', `<br>Rusty. Aaron. Dad. Mom. Uncle Brody. Aunt Chelsea. Grampa Flaj. Grandma Rocky. Coach James.<br><br><b>Nine legends came before you — and on your 10th birthday, you beat them all.</b><br><br>🎂 Happy 10th Birthday, Wyatt.<br>Love, Uncle James ❤️`));
-    p.appendChild(el('div', 'golden-back-note', '✨ Golden card back unlocked · Boss decks unlocked in Couch Battle'));
+    p.appendChild(el('div', 'golden-back-note', '✨ Golden card back · 🃏 EVERY card from EVERY deck is now in your Deck Builder · 🛋️ boss decks playable in Couch Battle'));
     const btn = el('button', 'primary', '👑');
     btn.onclick = () => {
       ov.remove();
