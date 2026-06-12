@@ -1,5 +1,5 @@
 // Rolfe Legends — unit tests. Run: node test/test.mjs
-import { CARDS, TOKENS, STARTER_DECK, BOSSES, PRESETS, validateDeck, collectionFor, presetsFor, deckBuilderUnlocked } from '../js/cards.js';
+import { CARDS, TOKENS, STARTER_DECK, BOSSES, PRESETS, validateDeck, collectionFor, presetsFor, deckBuilderUnlocked, DECK_MIN, DECK_MAX, cardCategory, CATEGORIES, deckStats } from '../js/cards.js';
 import { newGame, act, legalActions, canPlay, playTargets, attackTargets, threat, effAtk, findCritter, HAND_CAP, BOARD_CAP, ENERGY_CAP, BEDTIME_TURN } from '../js/logic.js';
 import { chooseAction, aiTurn } from '../js/ai.js';
 
@@ -59,6 +59,35 @@ console.log('— data integrity —');
   ok(validateDeck(Array(12).fill('barn_cat'), collectionFor(0)) !== null, 'rejects >2 copies');
   ok(validateDeck(['llama', 'llama', ...STARTER_DECK.slice(0, 10)], collectionFor(8)) !== null, 'rejects 2x legendary');
   ok(validateDeck([...STARTER_DECK.slice(0, 11), 'llama'], collectionFor(0)) !== null, 'rejects unowned card');
+  // flexible deck sizes 12–24
+  const big = [...STARTER_DECK, 'sprinter', 'sprinter', 'goat_stampede', 'nutmeg', 'math_whiz', 'math_whiz', 'magic_vanish', 'trickster', 'trickster', 'maestro', 'llama', 'sig_rusty'];
+  eq(big.length, DECK_MAX, 'test deck is 24');
+  ok(validateDeck(big, collectionFor(8)) === null, '24-card deck is legal');
+  ok(validateDeck([...big, 'barn_cat'], collectionFor(8)) !== null, '25 cards rejected');
+  ok(validateDeck(STARTER_DECK.slice(0, 11), collectionFor(0)) !== null, '11 cards rejected');
+  ok(validateDeck([...STARTER_DECK, 'sprinter'], collectionFor(1)) === null, '13-card deck is legal');
+  // categories: every card lands on a shelf
+  for (const id of Object.keys(CARDS)) ok(CATEGORIES.some(c => c.id === cardCategory(id)), `category for ${id}`);
+  // deck stats: all 1–5, and the axes tell true stories
+  for (const [pid, p] of Object.entries(PRESETS)) {
+    const s = deckStats(p.cards);
+    ok([s.punch, s.tough, s.tricks].every(v => v >= 1 && v <= 5), `stats in range: ${pid}`);
+  }
+  for (const b of BOSSES) {
+    const s = deckStats(b.deck);
+    ok([s.punch, s.tough, s.tricks].every(v => v >= 1 && v <= 5), `stats in range: boss ${b.id}`);
+  }
+  ok(deckStats(BOSSES[2].deck).tough === 5, 'jacob reads as THE WALL');
+  ok(deckStats(BOSSES[4].deck).punch >= 4, 'brody reads as a cannon');
+  ok(deckStats(PRESETS.speed_demons.cards).punch >= 4, 'speed demons reads punchy');
+  // a 24-card deck plays a full AI game without issue
+  {
+    let s = newGame({ deckA: big, deckB: BOSSES[3].deck, heroA: { name: 'A', emoji: 'x', hp: 20 }, heroB: { name: 'B', emoji: 'y', hp: 20 }, seed: 4242 });
+    let steps = 0;
+    const KIDP = { aggression: 0.55, tradeCare: 0.6, healAt: 10, smart: 0, curve: 'mid' };
+    while (!s.over && steps < 2000) { const { state } = aiTurn(s, s.active === 0 ? KIDP : BOSSES[3].persona, act); s = state; steps++; }
+    ok(s.over, '24-card deck game terminates');
+  }
   ok(deckBuilderUnlocked(2) && !deckBuilderUnlocked(1), 'deck builder unlocks after boss 2');
   ok(!collectionFor(8).has('dog_man'), 'dog man not unlocked by campaign');
   ok(collectionFor(8, { dogMan: true }).has('dog_man'), 'dog man via secret');

@@ -2,6 +2,7 @@
 import {
   CARDS, TOKENS, STARTER_DECK, BOSSES, PRESETS, WYATT, COACH,
   collectionFor, presetsFor, deckBuilderUnlocked, validateDeck,
+  DECK_MIN, DECK_MAX, cardCategory, CATEGORIES, deckStats,
 } from './cards.js';
 import {
   newGame, act, canPlay, playTargets, attackTargets, threat, effAtk, findCritter,
@@ -251,7 +252,19 @@ function prefightScreen(bossIdx) {
   panel.appendChild(el('h2', '', `${b.name}`));
   panel.appendChild(el('div', '', `<i>${b.title} · ${b.hp} ❤</i>`));
   panel.appendChild(el('p', '', `<br>${b.intro}<br><br>`));
+  // scout report: the boss's style vs yours — pick your counter
   const deck = currentDeck();
+  const bs = deckStats(b.deck), ys = deckStats(deck.cards);
+  const scout = el('div', 'scout');
+  scout.innerHTML = `
+    <div class="scout-title">🔎 SCOUT REPORT</div>
+    <table>
+      <tr><th></th><th>${b.emoji} ${b.name}</th><th>🧒 You</th></tr>
+      <tr><td>💥 Punch</td><td class="strs">${stars(bs.punch)}</td><td class="strs">${stars(ys.punch)}</td></tr>
+      <tr><td>🛡️ Toughness</td><td class="strs">${stars(bs.tough)}</td><td class="strs">${stars(ys.tough)}</td></tr>
+      <tr><td>✨ Tricks</td><td class="strs">${stars(bs.tricks)}</td><td class="strs">${stars(ys.tricks)}</td></tr>
+    </table>`;
+  panel.appendChild(scout);
   const deckline = el('div', '', `Your deck: <b>${deck.emoji} ${deck.name}</b>`);
   panel.appendChild(deckline);
   if (deckBuilderUnlocked(save.progress)) {
@@ -283,7 +296,7 @@ function startCampaignBattle(bossIdx) {
     heroB: { name: boss.name, emoji: boss.emoji, hp: boss.hp },
     seed: (Date.now() & 0xffffff) ^ (bossIdx << 20),
   });
-  B = { mode: 'campaign', bossIdx, boss, state, sel: null, busy: false, names: ['Wyatt', boss.name] };
+  B = { mode: 'campaign', bossIdx, boss, state, sel: null, busy: false, names: {}, log: [], pnames: ['Wyatt', boss.name] };
   renderBattle();
   runEvents(state.bootEvents || [], () => { playerTurnBegins(); });
 }
@@ -295,7 +308,7 @@ function startVsBattle(deckA, deckB, nameA, nameB) {
     heroB: { name: nameB, emoji: '🧑', hp: 20 },
     seed: Date.now() & 0xffffff,
   });
-  B = { mode: 'vs', state, sel: null, busy: false, names: [nameA, nameB], passPending: true };
+  B = { mode: 'vs', state, sel: null, busy: false, names: {}, log: [], pnames: [nameA, nameB], passPending: true };
   renderBattle();
   showPassOverlay(() => runEvents(state.bootEvents || [], () => {}));
 }
@@ -392,7 +405,7 @@ function renderBattle() {
   if (!pm.hand.length) hand.appendChild(el('div', '', '<span style="opacity:.4;font-size:13px">— no cards —</span>'));
   s.appendChild(hand);
 
-  // quit button (small, top corner via map)
+  // quit + battle log buttons (small, top corners)
   const quit = el('button', 'quiet', '✕');
   quit.style.cssText = 'position:absolute;top:8px;left:8px;padding:4px 10px;font-size:13px;z-index:10;';
   quit.onclick = () => {
@@ -400,6 +413,10 @@ function renderBattle() {
     confirmPanel('Leave this battle?', () => { B = null; save.progress === 0 ? titleScreen() : mapScreen(); });
   };
   app.appendChild(quit);
+  const logBtn = el('button', 'quiet', '📜');
+  logBtn.style.cssText = 'position:absolute;top:8px;left:52px;padding:4px 10px;font-size:13px;z-index:10;';
+  logBtn.onclick = () => { sfx.tap(); showLogOverlay(); };
+  app.appendChild(logBtn);
   app.appendChild(s);
   applySelectionHighlights();
 }
@@ -571,37 +588,98 @@ function playerTurnBegins() {
 }
 
 const DUCKY = /duck|quack|goose|ddg/;
-// Big card preview when the AI plays something — "what did he just do?" solved.
-function showCardPreview(cardId, ms) {
-  const d = cardDef(cardId);
-  const wrap = el('div', 'showcard');
+// Big card preview when the AI plays something — stays up until tapped, so a
+// not-super-fast reader can actually read it. The game waits.
+function showCardPreview(cardId, onDone) {
+  const wrap = el('div', 'showcard blocking');
   wrap.appendChild(handCardEl(cardId));
+  wrap.appendChild(el('div', 'tapnote', '👆 tap to continue'));
+  let doneCalled = false;
+  const finish = () => { if (doneCalled) return; doneCalled = true; wrap.remove(); onDone(); };
+  wrap.onclick = finish;
   document.body.appendChild(wrap);
-  setTimeout(() => wrap.remove(), ms);
+  if (location.hash === '#autoplay') setTimeout(finish, 500); // attract mode has no reader
 }
 const foePlayed = (e) => B.mode === 'campaign' && e.p === 1;
+
+// ---------- battle log ----------
+const stars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+function logLine(txt) {
+  if (!B) return;
+  B.log.unshift(txt);
+  if (B.log.length > 120) B.log.pop();
+}
+function heroName(p) { return B.state.players[p].hero.name; }
+function cName(iid) { return (B.names && B.names[iid]) || 'a critter'; }
+function narrate(e) {
+  if (!B) return;
+  switch (e.t) {
+    case 'turnStart': logLine(`— ${heroName(e.p)}'s turn ${e.turnNo} · ⚡${e.energy} —`); break;
+    case 'draw': logLine(`🃏 ${heroName(e.p)} drew a card`); break;
+    case 'play': B.names[e.iid] = cardDef(e.cardId).name; logLine(`${cardDef(e.cardId).emoji} ${heroName(e.p)} played ${cardDef(e.cardId).name}`); break;
+    case 'summon': B.names[e.iid] = cardDef(e.cardId).name; logLine(`${cardDef(e.cardId).emoji} ${cName(e.iid)} joined ${heroName(e.p)}'s side`); break;
+    case 'trick': {
+      const tgt = e.target ? (e.target.kind === 'hero' ? heroName(e.target.p) : cName(e.target.iid)) : '';
+      logLine(`✨ ${heroName(e.p)} used ${cardDef(e.cardId).name}${tgt ? ' on ' + tgt : ''}`);
+      break;
+    }
+    case 'attack': {
+      const tgt = e.target.kind === 'hero' ? heroName(e.target.p) : cName(e.target.iid);
+      logLine(`⚔️ ${cName(e.fromIid)} attacked ${tgt}`);
+      break;
+    }
+    case 'dmg': logLine(`💥 ${e.n} damage to ${e.iid == null ? heroName(e.side) : cName(e.iid)} (${Math.max(0, e.hp)} ❤ left)`); break;
+    case 'death': logLine(`💀 ${cName(e.iid)} is out!`); break;
+    case 'heal': if (e.n > 0) logLine(`💚 ${heroName(e.side)} healed ${e.n} (${e.hp} ❤)`); break;
+    case 'buff': logLine(`💪 ${cName(e.iid)} got +${e.a}/+${e.h}`); break;
+    case 'debuff': logLine(`😵 ${cName(e.iid)} lost ${e.n} Attack`); break;
+    case 'bounce': logLine(`🎩 ${cName(e.iid)} got sent back to ${heroName(e.side)}'s hand`); break;
+    case 'recycle': logLine(`♻️ ${heroName(e.p)}'s deck reshuffled (${e.count} cards back)`); break;
+    case 'bedtime': logLine(`🌙 Past bedtime! ${e.n} damage to ${heroName(e.p)}`); break;
+    case 'handFull': logLine(`✋ ${heroName(e.p)}'s hand is full — draw skipped`); break;
+    case 'tempAtk': logLine(`📣 ${heroName(e.p)}'s critters get +${e.n} Attack this turn`); break;
+    case 'ignoreGuard': logLine(`🥎 ${heroName(e.p)}'s attacks ignore Guard this turn`); break;
+    case 'win': logLine(`🏆 ${heroName(e.p)} WINS!`); break;
+  }
+}
+function showLogOverlay() {
+  const ov = el('div', 'overlay');
+  const p = el('div', 'panel logpanel');
+  p.appendChild(el('h2', '', '📜 Battle Log'));
+  const list = el('div', 'loglist');
+  if (!B.log.length) list.appendChild(el('div', 'logline', '<i>Nothing has happened yet!</i>'));
+  for (const line of B.log) list.appendChild(el('div', 'logline', line));
+  p.appendChild(list);
+  const btn = el('button', 'primary', 'Back to battle');
+  btn.onclick = () => { sfx.tap(); ov.remove(); };
+  p.appendChild(btn);
+  ov.appendChild(p);
+  ov.onclick = (ev) => { if (ev.target === ov) ov.remove(); };
+  document.body.appendChild(ov);
+}
 
 function runEvents(events, done) {
   if (!events || !events.length) { done(); return; }
   const [e, ...rest] = events;
+  narrate(e);
   const next = (ms) => setTimeout(() => runEvents(rest, done), ms);
   switch (e.t) {
     case 'turnStart': { sfx.energy(); renderBattle(); next(380); break; }
     case 'play': {
       DUCKY.test(e.cardId) ? sfx.quack() : sfx.play();
-      if (foePlayed(e)) { showCardPreview(e.cardId, 850); renderBattle(); next(900); }
-      else { renderBattle(); next(300); }
+      renderBattle();
+      if (foePlayed(e)) showCardPreview(e.cardId, () => runEvents(rest, done)); // waits for the reader
+      else next(300);
       break;
     }
     case 'trick': {
       DUCKY.test(e.cardId) ? sfx.quack() : sfx.trick();
       const d = cardDef(e.cardId);
-      toast(`${d.emoji} ${d.name}!`);
       // ring the trick's target so you can see who it's aimed at
       if (e.target && e.target.kind === 'critter') document.querySelector(`.critter[data-iid="${e.target.iid}"]`)?.classList.add('aim');
       if (e.target && e.target.kind === 'hero') document.querySelector(`.hero-bar[data-hero="${e.target.p}"]`)?.classList.add('aim');
-      if (foePlayed(e)) { showCardPreview(e.cardId, 1000); next(1050); }
-      else next(480);
+      if (foePlayed(e)) showCardPreview(e.cardId, () => runEvents(rest, done)); // waits for the reader
+      else { toast(`${d.emoji} ${d.name}!`); next(480); }
       break;
     }
     case 'summon': { sfx.play(); renderBattle(); next(220); break; }
@@ -679,7 +757,7 @@ function endOfBattle() {
   const won = B.mode === 'campaign' ? B.state.winner === 0 : true;
   if (B.mode === 'vs') {
     sfx.win(); confetti(50);
-    const winnerName = B.names[B.state.winner];
+    const winnerName = B.pnames[B.state.winner];
     panelScreen(`🏆 ${winnerName} WINS!`, '🎉', `What a battle!`, [
       ['⚔️ Rematch', () => vsSetupScreen()],
       ['🏠 Home', () => titleScreen()],
@@ -795,7 +873,7 @@ function confirmPanel(q, yes) {
 }
 
 function showPassOverlay(then) {
-  const name = B.names[B.state.active];
+  const name = B.pnames[B.state.active];
   const ov = el('div', 'overlay');
   const p = el('div', 'panel');
   p.appendChild(el('div', 'big-emoji', '🤝'));
@@ -822,6 +900,8 @@ function builderScreen(onDone) {
     const pe = el('div', 'preset' + (save.deckId === dk.id ? ' active' : ''));
     pe.appendChild(el('div', 'pe', dk.emoji));
     pe.appendChild(el('div', 'pn', dk.name));
+    const ps = deckStats(dk.cards);
+    pe.appendChild(el('div', 'pstats', `💥${ps.punch} 🛡️${ps.tough} ✨${ps.tricks}`));
     pe.onclick = () => {
       sfx.tap();
       save.deckId = dk.id; persist();
@@ -835,15 +915,18 @@ function builderScreen(onDone) {
 
   let working = [...currentDeck().cards];
   const meta = el('div', 'deckmeta');
-  const grid = el('div', 'cardgrid');
+  const grid = el('div', 'shelves');
   w.appendChild(meta);
   w.appendChild(grid);
 
   function render() {
-    // meta
+    // meta: count + live scorecard + buttons
     meta.innerHTML = '';
-    const count = el('div', '', `<b>${working.length}/12</b> cards`);
-    meta.appendChild(count);
+    const okSize = working.length >= DECK_MIN && working.length <= DECK_MAX;
+    meta.appendChild(el('div', '', `<b style="${okSize ? '' : 'color:var(--bad)'}">${working.length}</b> cards <span style="opacity:.6;font-size:13px">(${DECK_MIN}–${DECK_MAX})</span>`));
+    const st = deckStats(working);
+    meta.appendChild(el('div', 'statrow',
+      `💥<span class="strs">${stars(st.punch)}</span> 🛡️<span class="strs">${stars(st.tough)}</span> ✨<span class="strs">${stars(st.tricks)}</span>`));
     const useBtn = el('button', 'primary', '✔ SAVE & USE');
     useBtn.onclick = () => {
       const err = validateDeck(working, owned);
@@ -862,31 +945,37 @@ function builderScreen(onDone) {
     back.onclick = () => { sfx.tap(); if (onDone) onDone(); else mapScreen(); };
     meta.appendChild(back);
 
-    // grid
+    // grid: organized into shelves — Attackers / Defenders / Tricks / Legends
     grid.innerHTML = '';
-    const ids = Object.keys(CARDS).filter(id => owned.has(id));
-    // sort: cost then name
-    ids.sort((a, b) => CARDS[a].cost - CARDS[b].cost || CARDS[a].name.localeCompare(CARDS[b].name));
-    for (const id of ids) {
-      const d = CARDS[id];
-      const c = handCardEl(id);
-      const n = working.filter(x => x === id).length;
-      const cap = d.legendary ? 1 : 2;
-      if (n > 0) { c.classList.add('indeck'); c.appendChild(el('div', 'count', `×${n}`)); }
-      c.onclick = () => {
-        sfx.tap();
-        if (n >= cap) { working = working.filter(x => x !== id); }           // cycle back to 0
-        else if (working.length >= 12) { toast('Deck is full — tap a card with ×2 to remove it.'); return; }
-        else { working.push(id); }
-        render();
-      };
-      grid.appendChild(c);
+    const ownedIds = Object.keys(CARDS).filter(id => owned.has(id));
+    for (const cat of CATEGORIES) {
+      const ids = ownedIds.filter(id => cardCategory(id) === cat.id);
+      if (!ids.length) continue;
+      ids.sort((a, b) => CARDS[a].cost - CARDS[b].cost || CARDS[a].name.localeCompare(CARDS[b].name));
+      grid.appendChild(el('div', 'cathead', `${cat.emoji} ${cat.name}`));
+      const row = el('div', 'cardgrid');
+      for (const id of ids) {
+        const d = CARDS[id];
+        const c = handCardEl(id);
+        const n = working.filter(x => x === id).length;
+        const cap = d.legendary ? 1 : 2;
+        if (n > 0) { c.classList.add('indeck'); c.appendChild(el('div', 'count', `×${n}`)); }
+        c.onclick = () => {
+          sfx.tap();
+          if (n >= cap) { working = working.filter(x => x !== id); }           // cycle back to 0
+          else if (working.length >= DECK_MAX) { toast(`That's the max (${DECK_MAX}) — tap a card with a ×number to remove it.`); return; }
+          else { working.push(id); }
+          render();
+        };
+        row.appendChild(c);
+      }
+      grid.appendChild(row);
     }
   }
   render();
   s.appendChild(w);
   app.appendChild(s);
-  if (!save.seenTips.t_builder) tipOnce('t_builder', 'Tap a card to add it (tap again for a 2nd copy — then once more to remove). <b>Exactly 12 cards.</b> Try mixing a strategy: go wide, go fast, or go BIG!');
+  if (!save.seenTips.t_builder) tipOnce('t_builder', 'Tap a card to add it (tap again for a 2nd copy — then once more to remove). <b>12 to 24 cards</b> — small decks are reliable, big decks are full of surprises. Watch your 💥🛡️✨ stars change as you build!');
 }
 
 // ---------------- VS setup ----------------
@@ -905,7 +994,11 @@ function vsSetupScreen() {
     side.appendChild(el('b', '', label));
     const nm = el('input'); nm.value = defName; nm.maxLength = 12;
     const sel = el('select');
-    decks.forEach((d, i) => { const o = el('option', '', `${d.emoji} ${d.name}`); o.value = i; sel.appendChild(o); });
+    decks.forEach((d, i) => {
+      const ds = deckStats(d.cards);
+      const o = el('option', '', `${d.emoji} ${d.name}  (💥${ds.punch} 🛡️${ds.tough} ✨${ds.tricks})`);
+      o.value = i; sel.appendChild(o);
+    });
     side.appendChild(nm); side.appendChild(sel);
     wrap.appendChild(side);
     return { nm, sel };

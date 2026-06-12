@@ -239,8 +239,11 @@ export const WYATT = { id: 'wyatt', name: 'Wyatt', title: 'The 10th Legend', emo
 export const COACH = { name: 'Coach James', emoji: '🧢' };
 
 // ---- Deck validation (player-constructed decks) -------------------------------
+export const DECK_MIN = 12, DECK_MAX = 24;
 export function validateDeck(cardIds, owned) {
-  if (cardIds.length !== 12) return `A deck needs exactly 12 cards (you have ${cardIds.length}).`;
+  if (cardIds.length < DECK_MIN || cardIds.length > DECK_MAX) {
+    return `A deck needs ${DECK_MIN}–${DECK_MAX} cards (you have ${cardIds.length}).`;
+  }
   const counts = {};
   for (const id of cardIds) {
     const c = CARDS[id];
@@ -251,4 +254,54 @@ export function validateDeck(cardIds, owned) {
     if (counts[id] > max) return `Max ${max} cop${max === 1 ? 'y' : 'ies'} of ${c.name}.`;
   }
   return null; // valid
+}
+
+// ---- Card categories (deck-builder shelves) -----------------------------------
+export function cardCategory(id) {
+  const c = CARDS[id];
+  if (c.legendary) return 'legends';
+  if (c.type === 'trick') return 'tricks';
+  if (c.guard || c.hp > c.atk) return 'defenders';
+  return 'attackers';
+}
+export const CATEGORIES = [
+  { id: 'attackers', name: 'Attackers', emoji: '⚔️' },
+  { id: 'defenders', name: 'Defenders', emoji: '🛡️' },
+  { id: 'tricks',    name: 'Tricks',    emoji: '✨' },
+  { id: 'legends',   name: 'Legends',   emoji: '🌟' },
+];
+
+// ---- Deck scorecard -------------------------------------------------------------
+// One stat language for everything: your deck, the presets, and every boss.
+// 💥 Punch = how hard it hits. 🛡️ Toughness = how well it survives. ✨ Tricks = how sneaky it is.
+// Raw scores are per-card densities; star thresholds calibrated against the preset + boss spread.
+export function deckStats(cardIds) {
+  let punch = 0, tough = 0, tricks = 0;
+  for (const id of cardIds) {
+    const c = CARDS[id];
+    if (!c) continue;
+    if (c.type === 'critter') {
+      punch += c.atk + (c.fast ? 1.5 : 0);
+      tough += c.hp + (c.guard ? 2.5 : 0);
+      if (c.bc || c.aura || c.sot) tricks += 1.2;
+      if (c.bc?.kind === 'heal') tough += c.bc.n * 0.8;
+      if (c.bc?.kind === 'damage') punch += c.bc.n * 0.8;
+    } else {
+      tricks += 2.0;
+      const fx = c.fx;
+      if (fx.kind === 'damage') punch += fx.n * (fx.target === 'all-enemy-critters' ? 1.1 : 0.5);
+      if (fx.kind === 'heal') tough += fx.n * 0.9;
+      if (fx.kind === 'buff') { punch += (fx.a || 0) * 0.7; tough += (fx.h || 0) * 0.7; }
+      if (fx.kind === 'tempAtkAll' || fx.kind === 'ignoreGuard') punch += 1.2;
+      if (fx.kind === 'bounce' || fx.kind === 'debuffAtkAll') tough += 1.2;
+      if (fx.kind === 'summon') tough += fx.count * 0.8;
+    }
+  }
+  const n = Math.max(1, cardIds.length);
+  const star = (raw, lo, hi) => Math.max(1, Math.min(5, Math.round(((raw / n) - lo) / (hi - lo) * 4) + 1));
+  return {
+    punch: star(punch, 1.1, 3.1),
+    tough: star(tough, 1.6, 4.2),
+    tricks: star(tricks, 0.1, 1.05),
+  };
 }

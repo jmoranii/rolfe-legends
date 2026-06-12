@@ -6,7 +6,8 @@
 
 - Two heroes face off. **Hero HP: 20** (Rusty 12, Grandma Rocky 25).
 - **Energy ⚡:** you start your turn with energy = number of your turns so far, **capped at 5** (1, 2, 3, 4, 5, 5, …). Spend it to play cards; unspent energy is lost. The math of "what can I afford" is the first strategy layer.
-- **Decks: exactly 12 cards**, max 2 copies of a card (Legendary cards max 1). Start of game: player going first draws 4, second draws 5. **Draw 1/turn.** Hand cap 7 (draw skipped with a "Hand full!" toast — no card burning, gentle). Empty deck = no draw, no damage.
+- **Decks: 12–24 cards** player-built (boss decks are 12), max 2 copies of a card (Legendary cards max 1). Small decks are reliable, big decks are surprising — a real strategy tradeoff. Start of game: player going first draws 4, second draws 5. **Draw 1/turn.** Hand cap 7 (draw skipped with a "Hand full!" toast — no card burning, gentle).
+- **Decks recycle:** played tricks and fallen critters go to a discard pile; when your deck runs dry it auto-reshuffles (♻️ toast). You never run out of cards. Tokens evaporate instead.
 - **Board: max 4 critters per side.**
 - **Two card types only:**
   - **Critter** — has Attack/Health, sits on the board, fights.
@@ -16,7 +17,7 @@
 - **Attacking:** tap a ready critter → tap target. Attacking a critter = **simultaneous damage both ways** (trading math!). Attacking a hero = hero takes damage, attacker takes none.
 - **Threat meter (the intuitiveness keystone):** always-visible "⚔️ Incoming next turn: N" = total attack of enemy board, plus the enemy's next-turn energy. Every turn is a solvable puzzle: block, Guard, heal, remove, or race.
 - **Win:** enemy hero at 0 HP. Frictionless instant rematch on loss + a targeted Coach tip about what killed you.
-- **Anti-stall:** from turn 30, both heroes take growing damage at turn start ("Past bedtime!" 1, 2, 3…). Keeps PvP finite, never seen in normal play.
+- **Anti-stall:** from turn 22, heroes take growing damage at their turn start ("Past bedtime!" 1, 2, 3…). With recycling decks this is what guarantees games end; keeps everything ≤~12 rounds average.
 - No mulligans, no fatigue damage, no hand-burning, ≤2-line card text, numbers 0–7. If a rule needs a paragraph, it's out.
 
 ## Effect vocabulary (everything in the game is built from these)
@@ -29,7 +30,7 @@ damage (pick critter / any target / all enemy critters / enemy hero), heal (your
 |---|------|----|----------------|------------|--------------------------------------------|
 | 1 | **Rusty** 🐕 | 12 | Puppy Pack (vanilla 1/1s, 2/2s — cannot really win) | Play critters, attack, win | "Drag a critter onto the field, then tap it to attack. Rusty mostly wants belly rubs." |
 | 2 | **Aaron** 🦆 | 20 | **Swarm** — cheap ducks, token floods | Wide boards need wide answers (AoE) | "Little brothers come in waves. Duck, Duck, GOOSE! hits ALL his critters at once." |
-| 3 | **Jacob** 🔧 | 20 | **The Wall** — Guards + buffs | Breaking through defenses | "Your dad guards everything. Nutmeg slips right past Guards — very soccer, very sneaky." |
+| 3 | **Jacob** 🔧 | 16 | **The Wall** — Guards + buffs | Breaking through defenses (HP 16: your early lead must be able to CLOSE against a recycling wall) | "Your dad guards everything. Nutmeg slips right past Guards — very soccer, very sneaky." |
 | 4 | **Tory** 💪 | 20 | **Buffs/support** — makes her team huge | Kill the support first (priority targets) | "Your mom makes everyone around her stronger. Take out the helpers before the muscle." |
 | 5 | **Uncle Brody** 🔥 | 20 | **Aggro burn** — Fast critters, face damage | Racing vs healing; when to defend | "Brody goes FAST and loud. Heal up, put up Guards, survive the storm — then win." |
 | 6 | **Aunt Chelsea** 💖 | 20 | **Heal/control** — removal + heals, outlasts you | Burst damage; don't overextend into removal | "Chelsea heals everything. Little pokes won't cut it — save up for one BIG turn." |
@@ -49,8 +50,10 @@ Map = a farm path with 8 portrait nodes + a crown. Beat a boss → **win their s
 | After beating | New cards | Other unlocks |
 |---|---|---|
 | Rusty | **Rusty** (sig), The Sprinter | — |
-| Aaron | **Aaron, Lil Tornado** (sig), Goat Stampede | **Deck Builder** + preset *Farm Friends* |
-| Jacob | **Farmer Jacob** (sig), Nutmeg, Math Whiz | — |
+| Aaron | **Aaron, Lil Tornado** (sig), Goat Stampede, **Nutmeg** | **Deck Builder** + preset *Farm Friends* |
+| Jacob | **Farmer Jacob** (sig), Math Whiz | — |
+
+*(Nutmeg deliberately precedes Jacob — Coach's wall-fight tip references it; the tool must come before the lesson.)*
 | Tory | **Mama Tory** (sig), Magic Vanish | — |
 | Brody | **Uncle Brody** (sig), The Trickster | preset *Speed Demons*, *Magic Show* |
 | Chelsea | **Aunt Chelsea** (sig), Piano Maestro, **THE ONE LLAMA** | — |
@@ -105,6 +108,14 @@ Boss decks become playable in **VS Mode** once beaten (replay value + "play AS m
 - **Speed Demons** (post-Brody): Sprinter ×2, Barn Cat ×2, Striker ×2, Billy ×2, Uncle Brody, Nutmeg, Slide Tackle, Blessing
 - **Magic Show** (post-Brody): Math Whiz ×2, Trickster ×2, Magic Vanish ×2, Nutmeg, Slide Tackle, Shep ×2, Mama Tory, Prize Pig
 - **Big Barn Energy** (post-Flaj): Prize Pig ×2, Grampa Flaj, The One Llama, Mama Hen ×2, Shep ×2, Billy ×2, Blessing, Slide Tackle
+
+## Readability layer (playtest rounds 1–2, Jun 10–11)
+
+- **AI plays pause the game:** the boss's card appears big, center-screen, until tapped ("👆 tap to continue") — paced for a reader, not a speedrunner. (`#autoplay` auto-dismisses.)
+- **Battle log:** 📜 button in battle opens a full play-by-play (newest first), narrated kid-plain ("⚔️ Puppy attacked Wyatt", "♻️ deck reshuffled"). Catch up anytime.
+- **Attack lunges + telegraphs:** attackers slide at their target; AI attacks pre-announce (gold ring attacker / red ring victim).
+- **One scorecard language everywhere:** 💥 Punch / 🛡️ Toughness / ✨ Tricks (1–5 stars, computed from deck composition — `deckStats()`). Live in the deck builder as you build; **prefight Scout Report** shows boss stars vs yours (counter-building teaches itself); preset chips + VS picker show mini-stats.
+- **Builder shelves:** collection grouped ⚔️ Attackers / 🛡️ Defenders / ✨ Tricks / 🌟 Legends.
 
 ## Modes
 
