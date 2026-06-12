@@ -18,7 +18,7 @@ A kid who has never played a card game picks up a tablet, and within 60 seconds 
 
 - **Wyatt** (10) — the player. The campaign crowns him the **10th Legend of Rolfe** (9 family legends precede him; he completes the ten on his 10th birthday).
 - **Coach James** (Uncle James) — in-game mentor. Tips between fights, tutorial voice. NOT a boss.
-- Boss ladder (in order): **Rusty** (dog, tutorial) → **Aaron** (little brother, 8) → **Jacob** (dad) → **Tory** (mom) → **Uncle Brody** → **Aunt Chelsea** → **Grampa Flaj** (Sean Moran, maternal grandpa) → **Grandma Rocky** (Kim Moran, maternal grandma, final boss).
+- Boss ladder (in order): **Rusty** (dog, tutorial) → **Aaron** (little brother, 8) → **Jacob** (dad) → **Tory** (mom) → **Uncle Brody** → **Aunt Chelsea** → **Grampa Flaj** (Sean Moran, maternal grandpa) → **Grandma Rockie** (Kim Moran, maternal grandma, final boss).
 - First names / family nicknames ONLY in game copy. Never surnames, never birthdates beyond "10th birthday."
 
 ## Privacy & publishing

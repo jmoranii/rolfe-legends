@@ -4,7 +4,7 @@
 
 ## Core rules (Hearthstone-lite, tuned for a 10-year-old first-timer)
 
-- Two heroes face off. **Hero HP: 20** (Rusty 12, Grandma Rocky 25).
+- Two heroes face off. **Hero HP: 20** (Rusty 12, Grandma Rockie 25).
 - **Energy ⚡:** you start your turn with energy = number of your turns so far, **capped at 5** (1, 2, 3, 4, 5, 5, …). Spend it to play cards; unspent energy is lost. The math of "what can I afford" is the first strategy layer.
 - **Decks: 12–24 cards** player-built (boss decks are 12), max 2 copies of a card (Legendary cards max 1). Small decks are reliable, big decks are surprising — a real strategy tradeoff. Start of game: player going first draws 4, second draws 5. **Draw 1/turn.** Hand cap 7 (draw skipped with a "Hand full!" toast — no card burning, gentle).
 - **Decks recycle:** played tricks and fallen critters go to a discard pile; when your deck runs dry it auto-reshuffles (♻️ toast). You never run out of cards. Tokens evaporate instead.
@@ -35,15 +35,15 @@ damage (pick critter / any target / all enemy critters / enemy hero), heal (your
 | 5 | **Uncle Brody** 🔥 | 20 | **Aggro burn** — Fast critters, face damage | Racing vs healing; when to defend | "Brody goes FAST and loud. Heal up, put up Guards, survive the storm — then win." |
 | 6 | **Aunt Chelsea** 💖 | 20 | **Heal/control** — removal + heals, outlasts you | Burst damage; don't overextend into removal | "Chelsea heals everything. Little pokes won't cut it — save up for one BIG turn." |
 | 7 | **Grampa Flaj** 🚜 | 20 | **Big tanks** — slow giants | Answer big threats (or race them) | "Grampa's slow but his critters are TOUGH as old boots. Hit fast, or pack a vanishing act." |
-| 8 | **Grandma Rocky** 👑 | 25 | **Everything** — smart mixed deck, best AI | The final exam | "Grandma Rocky's seen every trick in this game — most of them are hers. Use EVERYTHING you've learned." |
+| 8 | **Grandma Rockie** 👑 | 25 | **Everything** — smart mixed deck, best AI | The final exam | "Grandma Rockie's seen every trick in this game — most of them are hers. Use EVERYTHING you've learned." |
 
-Boss AI personalities: per-boss heuristic weights (aggression, trade-care, heal threshold, curve priority). All bosses lethal-check except Rusty. Rocky additionally prioritizes killing your aura/snowball pieces and holds AoE for value.
+Boss AI personalities: per-boss heuristic weights (aggression, trade-care, heal threshold, curve priority). All bosses lethal-check except Rusty. Rockie additionally prioritizes killing your aura/snowball pieces and holds AoE for value.
 
-**Difficulty intent (selfplay-verified):** Rusty ~unloseable → Aaron easy → mid bosses occasionally need a retry → Rocky typically takes 2–3 attempts with a tuned deck. Losing is part of the strategy lesson; rematch is instant.
+**Difficulty intent (selfplay-verified):** Rusty ~unloseable → Aaron easy → mid bosses occasionally need a retry → Rockie typically takes 2–3 attempts with a tuned deck. Losing is part of the strategy lesson; rematch is instant.
 
 ## The campaign arc — the 10th Legend
 
-Map = a farm path with 8 portrait nodes + a crown. Beat a boss → **win their signature card** (pack-opening reveal moment) + scheduled unlocks. Beat Grandma Rocky → crown screen: **"WYATT — THE 10TH LEGEND OF ROLFE"** — 9 legends came before (the 8 bosses + Coach James); on his 10th birthday he completes the ten. Confetti, golden card back unlocked, signed *"Happy 10th Birthday, Wyatt — love, Uncle James."*
+Map = a farm path with 8 portrait nodes + a crown. Beat a boss → **win their signature card** (pack-opening reveal moment) + scheduled unlocks. Beat Grandma Rockie → crown screen: **"WYATT — THE 10TH LEGEND OF ROLFE"** — 9 legends came before (the 8 bosses + Coach James); on his 10th birthday he completes the ten. Confetti, golden card back unlocked, signed *"Happy 10th Birthday, Wyatt — love, Uncle James."*
 
 ## Unlock schedule
 
@@ -58,7 +58,7 @@ Map = a farm path with 8 portrait nodes + a crown. Beat a boss → **win their s
 | Brody | **Uncle Brody** (sig), The Trickster | preset *Speed Demons*, *Magic Show* |
 | Chelsea | **Aunt Chelsea** (sig), Piano Maestro, **THE ONE LLAMA** | — |
 | Grampa Flaj | **Grampa Flaj** (sig) | preset *Big Barn Energy* |
-| Grandma Rocky | **Grandma Rocky** (sig) | Crown, golden card back, Dog Man hint, **champion's reward: every card from every boss deck joins the collection** |
+| Grandma Rockie | **Grandma Rockie** (sig) | Crown, golden card back, Dog Man hint, **champion's reward: every card from every boss deck joins the collection** |
 | 🤫 Secret | **Dog Man** | Tap the llama on the title screen 3× |
 
 Boss decks become playable in **VS Mode** once beaten (replay value + "play AS mom").
@@ -101,7 +101,7 @@ Boss decks become playable in **VS Mode** once beaten (replay value + "play AS m
 | Uncle Brody | 4 | 5/2 | Fast | "REAL TALK." |
 | Aunt Chelsea | 3 | 2/3 | When played: heal your hero 4 | "Hugs that heal." |
 | Grampa Flaj | 5 | 5/6 | When played: your other critters get +0/+2 | "Tough as old boots." |
-| Grandma Rocky | 5 | 4/5 | When played: deal 2 to all enemy critters | "Final boss energy. Bakes cookies." |
+| Grandma Rockie | 5 | 4/5 | When played: deal 2 to all enemy critters | "Final boss energy. Bakes cookies." |
 
 ### Preset decks (Coach's Picks — one-tap good decks, freeform builder for when he's ready)
 - **Farm Friends** (post-Aaron): go-wide farm core — Barn Cat ×2, Billy ×2, Shep, Mama Hen ×2, Prize Pig, Rusty, Aaron Lil Tornado, Goat Stampede, Duck Duck GOOSE!

@@ -17,7 +17,10 @@ const cardDef = (id) => CARDS[id] || TOKENS[id];
 const SAVE_KEY = 'rolfeLegends.v1';
 let save;
 try { save = JSON.parse(localStorage.getItem(SAVE_KEY)) || null; } catch { save = null; }
-if (!save || save.v !== 1) save = { v: 1, progress: 0, secrets: {}, custom: null, deckId: 'starter', sound: true, crowned: false, seenTips: {} };
+if (!save || save.v !== 1) save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: true, crowned: false, seenTips: {} };
+// migrate old single-custom saves to the two-slot model (one slot per couch-battler)
+if (!save.customs) { save.customs = save.custom ? [[...save.custom], null] : [null, null]; delete save.custom; }
+if (save.deckId === 'custom') save.deckId = 'custom1';
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* private mode */ } }
 sfx.setEnabled(save.sound);
 
@@ -233,7 +236,9 @@ function mapScreen() {
 function ownedSet() { return collectionFor(save.progress, save.secrets); }
 function availableDecks() {
   const list = presetsFor(save.progress).map(id => ({ id, name: PRESETS[id].name, emoji: PRESETS[id].emoji, cards: PRESETS[id].cards }));
-  if (save.custom) list.push({ id: 'custom', name: 'My Custom Deck', emoji: '✏️', cards: save.custom });
+  save.customs.forEach((c, i) => {
+    if (c) list.push({ id: 'custom' + (i + 1), name: `My Deck ${i + 1}`, emoji: i ? '📝' : '✏️', cards: c });
+  });
   return list;
 }
 function currentDeck() {
@@ -834,7 +839,7 @@ function afterVictory(bossIdx) {
     p.appendChild(el('div', 'big-emoji', '👑'));
     p.appendChild(el('h2', '', 'WYATT'));
     p.appendChild(el('h2', '', 'THE 10TH LEGEND OF ROLFE'));
-    p.appendChild(el('p', '', `<br>Rusty. Aaron. Dad. Mom. Uncle Brody. Aunt Chelsea. Grampa Flaj. Grandma Rocky. Coach James.<br><br><b>Nine legends came before you — and on your 10th birthday, you beat them all.</b><br><br>🎂 Happy 10th Birthday, Wyatt.<br>Love, Uncle James ❤️`));
+    p.appendChild(el('p', '', `<br>Rusty. Aaron. Dad. Mom. Uncle Brody. Aunt Chelsea. Grampa Flaj. Grandma Rockie. Coach James.<br><br><b>Nine legends came before you — and on your 10th birthday, you beat them all.</b><br><br>🎂 Happy 10th Birthday, Wyatt.<br>Love, Uncle James ❤️`));
     p.appendChild(el('div', 'golden-back-note', '✨ Golden card back · 🃏 EVERY card from EVERY deck is now in your Deck Builder · 🛋️ boss decks playable in Couch Battle'));
     const btn = el('button', 'primary', '👑');
     btn.onclick = () => {
@@ -927,18 +932,26 @@ function builderScreen(onDone) {
     const st = deckStats(working);
     meta.appendChild(el('div', 'statrow',
       `💥<span class="strs">${stars(st.punch)}</span> 🛡️<span class="strs">${stars(st.tough)}</span> ✨<span class="strs">${stars(st.tricks)}</span>`));
+    const saveSlot = (i) => {
+      save.customs[i] = [...working];
+      save.deckId = 'custom' + (i + 1);
+      persist(); sfx.unlock();
+      toast(`✅ Saved to My Deck ${i + 1}!`);
+      if (onDone) onDone(); else mapScreen();
+    };
     const useBtn = el('button', 'primary', '✔ SAVE & USE');
     useBtn.onclick = () => {
       const err = validateDeck(working, owned);
       if (err) { toast('🚫 ' + err); return; }
-      sfx.unlock();
-      // if it matches a preset exactly use that id, else custom
-      const match = availableDecks().find(d => d.id !== 'custom' && JSON.stringify([...d.cards].sort()) === JSON.stringify([...working].sort()));
-      if (match) { save.deckId = match.id; }
-      else { save.custom = [...working]; save.deckId = 'custom'; }
-      persist();
-      toast('✅ Deck saved!');
-      if (onDone) onDone(); else mapScreen();
+      // if it matches a preset exactly, just use that
+      const match = availableDecks().find(d => !d.id.startsWith('custom') && JSON.stringify([...d.cards].sort()) === JSON.stringify([...working].sort()));
+      if (match) { save.deckId = match.id; persist(); sfx.unlock(); toast(`✅ Using ${match.name}!`); if (onDone) onDone(); else mapScreen(); return; }
+      // two slots — one each for couch battlers
+      panelScreen('Save your deck', '💾', 'Two slots, so two people can each keep a custom deck for Couch Battle!', [
+        [`✏️ My Deck 1${save.customs[0] ? ' (replace)' : ''}`, () => saveSlot(0)],
+        [`📝 My Deck 2${save.customs[1] ? ' (replace)' : ''}`, () => saveSlot(1)],
+        ['Cancel', () => {}],
+      ]);
     };
     meta.appendChild(useBtn);
     const back = el('button', 'quiet', '← Back');
@@ -1031,7 +1044,7 @@ function settingsScreen() {
   p.appendChild(el('div', '', '<br>'));
   const reset = el('button', 'quiet', '🗑️ Start campaign over');
   reset.onclick = () => confirmPanel('Really erase ALL progress?', () => {
-    save = { v: 1, progress: 0, secrets: {}, custom: null, deckId: 'starter', sound: save.sound, crowned: false, seenTips: {} };
+    save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: save.sound, crowned: false, seenTips: {} };
     persist(); toast('Fresh start!'); titleScreen();
   });
   p.appendChild(reset);

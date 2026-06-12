@@ -46,7 +46,7 @@ def({ id: 'sig_tory',    name: 'Mama Tory',         type: 'critter', cost: 4, at
 def({ id: 'sig_brody',   name: 'Uncle Brody',       type: 'critter', cost: 4, atk: 5, hp: 2, legendary: true, fast: true, emoji: '🤠', flavor: 'REAL TALK.' });
 def({ id: 'sig_chelsea', name: 'Aunt Chelsea',      type: 'critter', cost: 3, atk: 2, hp: 3, legendary: true, bc: { kind: 'heal', n: 4, target: 'self-hero' }, emoji: '🤗', flavor: 'Hugs that heal.' });
 def({ id: 'sig_flaj',    name: 'Grampa Flaj',       type: 'critter', cost: 5, atk: 5, hp: 6, legendary: true, bc: { kind: 'buff', a: 0, h: 2, target: 'other-allies' }, emoji: '👴', flavor: 'Tough as old boots.' });
-def({ id: 'sig_rocky',   name: 'Grandma Rocky',     type: 'critter', cost: 5, atk: 4, hp: 5, legendary: true, bc: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '👵', flavor: 'Final boss energy. Bakes cookies.' });
+def({ id: 'sig_rocky',   name: 'Grandma Rockie',     type: 'critter', cost: 5, atk: 4, hp: 5, legendary: true, bc: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '👵', flavor: 'Final boss energy. Bakes cookies.' });
 
 // ---- Boss-only cards -------------------------------------------------------
 // Rusty
@@ -91,7 +91,7 @@ def({ id: 'stubborn_mule', name: 'Stubborn Mule', type: 'critter', cost: 3, atk:
 def({ id: 'iron_skillet',  name: 'Iron Skillet',  type: 'trick',   cost: 2, fx: { kind: 'buff', a: 0, h: 3, target: 'pick-ally' }, emoji: '🍳', flavor: 'Older than your parents. Works better too.' });
 def({ id: 'prize_bull',    name: 'Prize Bull',    type: 'critter', cost: 4, atk: 5, hp: 4, emoji: '🐂', flavor: 'The fence is a suggestion.' });
 def({ id: 'old_tractor',   name: 'Old Tractor',   type: 'critter', cost: 5, atk: 4, hp: 7, emoji: '🚜', flavor: 'Starts on the third try. Every time. For 40 years.' });
-// Grandma Rocky
+// Grandma Rockie
 def({ id: 'knitting_needles', name: 'Knitting Needles', type: 'trick',   cost: 1, fx: { kind: 'damage', n: 2, target: 'pick-critter-enemy' }, emoji: '🪡', flavor: 'Click. Click. Doom.' });
 def({ id: 'yarn_beast',       name: 'Yarn Beast',       type: 'critter', cost: 4, atk: 4, hp: 4, emoji: '🧶', flavor: 'It was a sweater. It evolved.' });
 def({ id: 'garden_gnome',     name: 'Garden Gnome',     type: 'critter', cost: 2, atk: 2, hp: 3, emoji: '🧙', flavor: 'Moves when you blink.' });
@@ -100,7 +100,7 @@ def({ id: 'cookie_batch',     name: 'Cookie Batch',     type: 'trick',   cost: 2
 def({ id: 'secret_recipe',    name: 'Secret Recipe',    type: 'trick',   cost: 3, fx: { kind: 'buff', a: 1, h: 1, target: 'all-allies' }, emoji: '📜', flavor: 'Written nowhere. Remembered perfectly.' });
 def({ id: 'watch_dog',        name: 'Watch Dog',        type: 'critter', cost: 3, atk: 3, hp: 3, guard: true, emoji: '🐕‍🦺', flavor: 'Grandma trained him. Be afraid.' });
 def({ id: 'rolling_pin',      name: 'Rolling Pin',      type: 'trick',   cost: 4, fx: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '🥖', flavor: 'For dough. Mostly.' });
-def({ id: 'grand_finale',     name: 'Smidgen',          type: 'critter', cost: 5, atk: 5, hp: 5, fast: true, legendary: true, emoji: '🐾', flavor: "Rocky's little white lap dog. Six pounds of pure doom." });
+def({ id: 'grand_finale',     name: 'Smidgen',          type: 'critter', cost: 5, atk: 5, hp: 5, fast: true, legendary: true, emoji: '🐾', flavor: "Rockie's little white lap dog. Six pounds of pure doom." });
 
 export const CARDS = C;
 
@@ -179,11 +179,11 @@ export const BOSSES = [
     unlocks: { presets: ['big_barn'] },
   },
   {
-    id: 'rocky', name: 'Grandma Rocky', title: 'The Legend', emoji: '👵', hp: 25,
+    id: 'rocky', name: 'Grandma Rockie', title: 'The Legend', emoji: '👵', hp: 25,
     deck: ['knitting_needles', 'knitting_needles', 'garden_gnome', 'garden_gnome', 'watch_dog', 'watch_dog', 'yarn_beast', 'yarn_beast', 'cookie_batch', 'rolling_pin', 'grand_finale', 'sig_rocky'],
     persona: { aggression: 0.6, tradeCare: 0.9, healAt: 10, smart: 1, curve: 'mid' },
-    intro: 'Grandma Rocky sets down her knitting. "Oh sweetheart. I INVENTED this game."',
-    tip: 'Grandma Rocky\'s seen every trick in this game — most of them are hers. Use EVERYTHING you\'ve learned.',
+    intro: 'Grandma Rockie sets down her knitting. "Oh sweetheart. I INVENTED this game."',
+    tip: 'Grandma Rockie\'s seen every trick in this game — most of them are hers. Use EVERYTHING you\'ve learned.',
     lossTip: 'She punishes greed. Don\'t overfill the field into her Rolling Pin — and whatever you do, do NOT ignore the little white dog.',
     reward: ['sig_rocky'],
     unlocks: { crown: true, goldenBack: true },
