@@ -19,15 +19,16 @@ const KID = { aggression: 0.55, tradeCare: 0.6, healAt: 10, smart: 0, curve: 'mi
 
 function playGame(deckA, deckB, personaA, personaB, hpA, hpB, seed) {
   let s = newGame({ deckA, deckB, heroA: { name: 'A', emoji: 'a', hp: hpA }, heroB: { name: 'B', emoji: 'b', hp: hpB }, seed });
-  let steps = 0;
+  let steps = 0, recycles = 0;
   while (!s.over && steps < 3000) {
     const persona = s.active === 0 ? personaA : personaB;
-    const { state } = aiTurn(s, persona, act);
+    const { state, events } = aiTurn(s, persona, act);
+    for (const e of events) if (e.t === 'recycle') recycles++;
     s = state; steps++;
     if (steps >= 3000) throw new Error('Game did not terminate');
   }
   const rounds = Math.max(s.players[0].turnsTaken, s.players[1].turnsTaken);
-  return { winner: s.winner, rounds };
+  return { winner: s.winner, rounds, recycles };
 }
 
 // ---------- 1. FUZZ ----------
@@ -70,15 +71,16 @@ const KID_DECKS = {
 const N = 80;
 const curve = [];
 for (const boss of BOSSES) {
-  let wins = 0, totalRounds = 0;
+  let wins = 0, totalRounds = 0, totalRecycles = 0;
   for (let i = 0; i < N; i++) {
     const r = playGame(KID_DECKS[boss.id], boss.deck, KID, boss.persona, WYATT.hp, boss.hp, 5000 + i * 7);
     if (r.winner === 0) wins++;
     totalRounds += r.rounds;
+    totalRecycles += r.recycles;
   }
   const pct = Math.round((wins / N) * 100);
-  curve.push({ boss: boss.id, winPct: pct, avgRounds: (totalRounds / N).toFixed(1) });
-  console.log(`  ${boss.id.padEnd(8)} kid wins ${String(pct).padStart(3)}%   avg rounds ${(totalRounds / N).toFixed(1)}`);
+  curve.push({ boss: boss.id, winPct: pct, avgRounds: (totalRounds / N).toFixed(1), recycles: totalRecycles });
+  console.log(`  ${boss.id.padEnd(8)} kid wins ${String(pct).padStart(3)}%   avg rounds ${(totalRounds / N).toFixed(1)}   ♻️/game ${(totalRecycles / N).toFixed(2)}`);
 }
 
 // ---------- 3. VS MATRIX (preset vs preset, both seats) ----------
@@ -113,6 +115,8 @@ expect(c.rusty >= 92, `Rusty is nearly unloseable (${c.rusty}%)`);
 expect(c.aaron >= 55, `Aaron is friendly (${c.aaron}%)`);
 expect(c.rocky <= 75, `Rocky puts up a real fight (${c.rocky}%)`);
 expect(curve.every(x => Number(x.avgRounds) <= 20), 'games stay snappy (≤20 rounds avg)');
+// recycling must never appear before the deck builder unlocks — tutorial fights stay conceptually clean
+expect(curve[0].recycles === 0 && curve[1].recycles === 0, 'no recycling in the Rusty/Aaron tutorial fights');
 // Presets are a PROGRESSION ladder (later unlocks should beat earlier ones),
 // not a flat meta. Assert: same-gate pairs are close, later beats earlier,
 // and no matchup is hopeless.
