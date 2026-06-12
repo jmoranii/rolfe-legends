@@ -8,7 +8,7 @@ import { CARDS, TOKENS } from './cards.js';
 export const HAND_CAP = 7;
 export const BOARD_CAP = 4;
 export const ENERGY_CAP = 5;
-export const BEDTIME_TURN = 22; // anti-stall: recycling decks never run dry, so bedtime is what guarantees games end
+export const BEDTIME_TURN = 16; // anti-stall: recycling decks never run dry, so bedtime is what guarantees games end (human playtest: games ran too many deck rotations at 22)
 
 // ---- seeded rng (mulberry32) ----
 function rand(state) {

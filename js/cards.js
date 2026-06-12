@@ -74,7 +74,7 @@ def({ id: 'sunday_dinner', name: 'Sunday Dinner', type: 'trick',   cost: 4, fx: 
 def({ id: 'wild_card',    name: 'Wild Card',    type: 'critter', cost: 1, atk: 2, hp: 1, emoji: '🃏', flavor: 'Nobody knows. Not even him.' });
 def({ id: 'real_talk',    name: 'REAL TALK',    type: 'trick',   cost: 2, fx: { kind: 'damage', n: 3, target: 'any-enemy' }, emoji: '💥', flavor: 'Delivered at full volume.' });
 def({ id: 'rune_sword',   name: 'Rune Sword',   type: 'trick',   cost: 2, fx: { kind: 'buff', a: 2, h: 0, target: 'pick-ally' }, emoji: '⚔️', flavor: 'Earned through hard work. In a video game.' });
-def({ id: 'speed_demon',  name: 'Ruby',         type: 'critter', cost: 3, atk: 3, hp: 2, fast: true, emoji: '🐩', flavor: "Brody's labradoodle. Zoomies at maximum volume." });
+def({ id: 'speed_demon',  name: 'Ruby',         type: 'critter', cost: 3, atk: 3, hp: 2, fast: true, emoji: '🐩', flavor: "Brody's goldendoodle. Zoomies at maximum volume." });
 def({ id: 'loud_music',   name: 'Loud Music',   type: 'trick',   cost: 3, fx: { kind: 'damage', n: 2, target: 'enemy-hero', draw: 1 }, emoji: '🔊', flavor: 'You feel it in your teeth.' });
 def({ id: 'big_rig',      name: 'Monster Truck', type: 'critter', cost: 4, atk: 4, hp: 3, fast: true, emoji: '🛻', flavor: 'Has never once parked between the lines.' });
 // Chelsea
@@ -100,7 +100,7 @@ def({ id: 'cookie_batch',     name: 'Cookie Batch',     type: 'trick',   cost: 2
 def({ id: 'secret_recipe',    name: 'Secret Recipe',    type: 'trick',   cost: 3, fx: { kind: 'buff', a: 1, h: 1, target: 'all-allies' }, emoji: '📜', flavor: 'Written nowhere. Remembered perfectly.' });
 def({ id: 'watch_dog',        name: 'Watch Dog',        type: 'critter', cost: 3, atk: 3, hp: 3, guard: true, emoji: '🐕‍🦺', flavor: 'Grandma trained him. Be afraid.' });
 def({ id: 'rolling_pin',      name: 'Rolling Pin',      type: 'trick',   cost: 4, fx: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '🥖', flavor: 'For dough. Mostly.' });
-def({ id: 'grand_finale',     name: 'Grand Finale',     type: 'critter', cost: 5, atk: 5, hp: 5, fast: true, emoji: '🎆', flavor: 'She saved the best for last.' });
+def({ id: 'grand_finale',     name: 'Smidgen',          type: 'critter', cost: 5, atk: 5, hp: 5, fast: true, legendary: true, emoji: '🐾', flavor: "Rocky's little white lap dog. Six pounds of pure doom." });
 
 export const CARDS = C;
 
@@ -184,7 +184,7 @@ export const BOSSES = [
     persona: { aggression: 0.6, tradeCare: 0.9, healAt: 10, smart: 1, curve: 'mid' },
     intro: 'Grandma Rocky sets down her knitting. "Oh sweetheart. I INVENTED this game."',
     tip: 'Grandma Rocky\'s seen every trick in this game — most of them are hers. Use EVERYTHING you\'ve learned.',
-    lossTip: 'She punishes greed. Don\'t overfill the field into her Rolling Pin — and save an answer for Grand Finale.',
+    lossTip: 'She punishes greed. Don\'t overfill the field into her Rolling Pin — and whatever you do, do NOT ignore the little white dog.',
     reward: ['sig_rocky'],
     unlocks: { crown: true, goldenBack: true },
   },
