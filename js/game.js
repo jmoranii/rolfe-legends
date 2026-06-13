@@ -93,7 +93,16 @@ const bgCache = new Map(); // path -> true | false
 function applyBattleBg(battleEl, bgId) {
   if (!bgId) return; // no stage for this fight → generic gradient shows through
   const path = `assets/backgrounds/bg_${bgId}.png`;
-  const show = () => { battleEl.style.setProperty('--battle-bg', `url("${path}")`); battleEl.classList.add('has-bg'); };
+  // Set the FULL background directly (scrim gradients over the painted stage). We do NOT route the
+  // url() through a CSS custom property in a `background` shorthand — that pattern fails to paint on
+  // iOS Safari. Direct style.background is universally supported. The scrim keeps the board legible.
+  const show = () => {
+    battleEl.style.background =
+      'radial-gradient(ellipse 82% 66% at 50% 47%, transparent 38%, rgba(12,9,7,0.55) 100%),'
+      + ' linear-gradient(rgba(16,12,9,0.42), rgba(16,12,9,0.42)),'
+      + ` url("${path}") center / cover no-repeat`;
+    battleEl.classList.add('has-bg');
+  };
   const cached = bgCache.get(path);
   if (cached === true) { show(); return; }   // already loaded — apply instantly, no flicker
   if (cached === false) return;              // known-missing — leave the generic gradient
@@ -112,12 +121,15 @@ function applyBattleBg(battleEl, bgId) {
 // that paints its own (the battle draws the scrimmed boss bg itself).
 const bossBgUrl = (id) => `assets/backgrounds/bg_${id}.png`;
 function setScreenBg(screenUrl, colUrl = screenUrl) {
-  if (!document.querySelector('.screen-backdrop')) {
-    document.body.insertBefore(el('div', 'screen-backdrop'), document.body.firstChild);
+  let backdrop = document.querySelector('.screen-backdrop');
+  if (!backdrop) {
+    backdrop = el('div', 'screen-backdrop');
+    document.body.insertBefore(backdrop, document.body.firstChild);
   }
-  const root = document.documentElement.style;
-  root.setProperty('--screen-bg', screenUrl ? `url("${screenUrl}")` : 'none'); // blurred margins
-  root.setProperty('--col-bg', colUrl ? `url("${colUrl}")` : 'none');           // sharp column
+  // Set background-image DIRECTLY on the elements. Routing url() through a CSS var() consumed in a
+  // `background` shorthand does not paint on iOS Safari — direct style.backgroundImage always works.
+  backdrop.style.backgroundImage = screenUrl ? `url("${screenUrl}")` : 'none'; // blurred margins
+  app.style.backgroundImage = colUrl ? `url("${colUrl}")` : 'none';            // sharp center column
 }
 
 // ---------------- card text (generated from data — text always matches behavior) ----------------
