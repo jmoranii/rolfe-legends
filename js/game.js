@@ -10,6 +10,7 @@ import {
 } from './logic.js';
 import { chooseAction } from './ai.js';
 import * as sfx from './sfx.js';
+import * as music from './music.js';
 
 const cardDef = (id) => CARDS[id] || TOKENS[id];
 
@@ -17,12 +18,16 @@ const cardDef = (id) => CARDS[id] || TOKENS[id];
 const SAVE_KEY = 'rolfeLegends.v1';
 let save;
 try { save = JSON.parse(localStorage.getItem(SAVE_KEY)) || null; } catch { save = null; }
-if (!save || save.v !== 1) save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: true, crowned: false, seenTips: {} };
+if (!save || save.v !== 1) save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: true, music: true, crowned: false, seenTips: {} };
 // migrate old single-custom saves to the two-slot model (one slot per couch-battler)
 if (!save.customs) { save.customs = save.custom ? [[...save.custom], null] : [null, null]; delete save.custom; }
 if (save.deckId === 'custom') save.deckId = 'custom1';
+if (save.music === undefined) save.music = true;
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* private mode */ } }
 sfx.setEnabled(save.sound);
+music.setEnabled(save.music);
+// browser autoplay policy: music can only start after a user gesture
+window.addEventListener('pointerdown', () => music.unlock(), { once: true });
 
 // ---------------- tiny DOM helpers ----------------
 const app = document.getElementById('app');
@@ -166,6 +171,7 @@ function tipOnce(key, text) {
 // ---------------- title ----------------
 function titleScreen() {
   clear();
+  music.play('title');
   const s = el('div', 'screen title-screen');
   const sign = el('div', 'game-sign');
   sign.appendChild(el('div', 't1', 'ROLFE<br>LEGENDS'));
@@ -214,6 +220,7 @@ function titleScreen() {
 // ---------------- map ----------------
 function mapScreen() {
   clear();
+  music.play('title');
   const s = el('div', 'screen');
   s.appendChild(el('h2', '', '🗺️ The Road to Legend'));
   const crown = el('div', 'map-crown' + (save.crowned ? ' earned' : ''), '👑');
@@ -318,6 +325,7 @@ function startCampaignBattle(bossIdx) {
     seed: (Date.now() & 0xffffff) ^ (bossIdx << 20),
   });
   B = { mode: 'campaign', bossIdx, boss, state, sel: null, busy: false, names: {}, log: [], pnames: ['Wyatt', boss.name] };
+  music.play(boss.id === 'rocky' ? 'boss' : 'battle');
   renderBattle();
   runEvents(state.bootEvents || [], () => { playerTurnBegins(); });
 }
@@ -330,6 +338,7 @@ function startVsBattle(deckA, deckB, nameA, nameB) {
     seed: Date.now() & 0xffffff,
   });
   B = { mode: 'vs', state, sel: null, busy: false, names: {}, log: [], pnames: [nameA, nameB], passPending: true };
+  music.play('battle');
   renderBattle();
   showPassOverlay(() => runEvents(state.bootEvents || [], () => {}));
 }
@@ -854,6 +863,7 @@ function afterVictory(bossIdx) {
     // THE CROWN
     save.crowned = true; persist();
     sfx.fanfare(); confetti(140);
+    music.play('anthem'); // Wyatt's birthday song over the crown
     const ov = el('div', 'overlay');
     const p = el('div', 'panel');
     p.appendChild(el('div', 'big-emoji', '👑'));
@@ -914,6 +924,7 @@ function showPassOverlay(then) {
 // ---------------- deck builder ----------------
 function builderScreen(onDone) {
   clear();
+  music.play('deckbuild');
   const owned = ownedSet();
   const s = el('div', 'screen');
   const w = el('div', 'builder');
@@ -1062,9 +1073,13 @@ function settingsScreen() {
   snd.onclick = () => { save.sound = !save.sound; sfx.setEnabled(save.sound); persist(); snd.innerHTML = save.sound ? '🔊 Sound: ON' : '🔇 Sound: OFF'; sfx.tap(); };
   p.appendChild(snd);
   p.appendChild(el('div', '', '<br>'));
+  const mus = el('button', '', save.music ? '🎵 Music: ON' : '🎵 Music: OFF');
+  mus.onclick = () => { save.music = !save.music; music.setEnabled(save.music); if (save.music) music.unlock(); persist(); mus.innerHTML = save.music ? '🎵 Music: ON' : '🎵 Music: OFF'; sfx.tap(); };
+  p.appendChild(mus);
+  p.appendChild(el('div', '', '<br>'));
   const reset = el('button', 'quiet', '🗑️ Start campaign over');
   reset.onclick = () => confirmPanel('Really erase ALL progress?', () => {
-    save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: save.sound, crowned: false, seenTips: {} };
+    save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: save.sound, music: save.music, crowned: false, seenTips: {} };
     persist(); toast('Fresh start!'); titleScreen();
   });
   p.appendChild(reset);

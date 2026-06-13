@@ -1,0 +1,5 @@
+# Family reference photos — never committed (privacy; repo may go public someday)
+assets/ref-photos/*
+!assets/ref-photos/README.md
+
+.DS_Store
