@@ -41,8 +41,8 @@ def({ id: 'dog_man',       name: 'Dog Man',        type: 'critter', cost: 3, atk
 // ---- Boss signature cards (Legendary, won on victory) ----------------------
 def({ id: 'sig_rusty',   name: 'Rusty',             type: 'critter', cost: 2, atk: 2, hp: 3, legendary: true, guard: true, emoji: '🐕', flavor: 'Good boy. GREAT boy.' });
 def({ id: 'sig_aaron',   name: 'Aaron, Lil Tornado',type: 'critter', cost: 2, atk: 2, hp: 2, legendary: true, bc: { kind: 'summon', token: 'duckling', count: 1 }, emoji: '🌪️', flavor: 'Has never once sat still.' });
-def({ id: 'sig_jacob',   name: 'Farmer Jacob',      type: 'critter', cost: 3, atk: 2, hp: 4, legendary: true, guard: true, bc: { kind: 'buff', a: 1, h: 1, target: 'pick-ally-other' }, emoji: '🧑‍🌾', flavor: 'Can fix anything with zip ties.' });
-def({ id: 'sig_tory',    name: 'Mama Tory',         type: 'critter', cost: 4, atk: 3, hp: 4, legendary: true, aura: { a: 1 }, emoji: '👩‍🌾', flavor: "Says 'be careful!' Makes you stronger anyway." });
+def({ id: 'sig_jacob',   name: 'Dad',               type: 'critter', cost: 3, atk: 2, hp: 4, legendary: true, guard: true, bc: { kind: 'buff', a: 1, h: 1, target: 'pick-ally-other' }, emoji: '🧑‍🌾', flavor: 'Can fix anything with zip ties.' });
+def({ id: 'sig_tory',    name: 'Mom',               type: 'critter', cost: 4, atk: 3, hp: 4, legendary: true, aura: { a: 1 }, emoji: '👩‍🌾', flavor: "Says 'be careful!' Makes you stronger anyway." });
 def({ id: 'sig_brody',   name: 'Uncle Brody',       type: 'critter', cost: 4, atk: 5, hp: 2, legendary: true, fast: true, emoji: '🤠', flavor: 'REAL TALK.' });
 def({ id: 'sig_chelsea', name: 'Aunt Chelsea',      type: 'critter', cost: 3, atk: 2, hp: 3, legendary: true, bc: { kind: 'heal', n: 4, target: 'self-hero' }, emoji: '🤗', flavor: 'Hugs that heal.' });
 def({ id: 'sig_flaj',    name: 'Grampa Flaj',       type: 'critter', cost: 5, atk: 5, hp: 6, legendary: true, bc: { kind: 'buff', a: 0, h: 2, target: 'other-allies' }, emoji: '👴', flavor: 'Tough as old boots.' });
@@ -132,7 +132,7 @@ export const BOSSES = [
     unlocks: { deckBuilder: true, presets: ['farm_friends'] },
   },
   {
-    id: 'jacob', name: 'Jacob', title: 'The Wall', emoji: '🧑‍🌾', hp: 16,
+    id: 'jacob', name: 'Dad', title: 'The Wall', emoji: '🧑‍🌾', hp: 16,
     deck: ['fence', 'fence', 'shep', 'shep', 'barn_door', 'zip_ties', 'old_reliable', 'old_reliable', 'garden_helper', 'garden_helper', 'prize_pig', 'sig_jacob'],
     persona: { aggression: 0.35, tradeCare: 0.7, healAt: 0, smart: 0, curve: 'mid' },
     intro: 'Dad nods once, and builds a wall of fences, doors, and pure patience.',
@@ -141,7 +141,7 @@ export const BOSSES = [
     reward: ['sig_jacob', 'math_whiz'],
   },
   {
-    id: 'tory', name: 'Tory', title: 'The Team Mom', emoji: '👩‍🌾', hp: 20,
+    id: 'tory', name: 'Mom', title: 'The Team Mom', emoji: '👩‍🌾', hp: 20,
     deck: ['garden_helper', 'garden_helper', 'pep_talk', 'pep_talk', 'lil_goat', 'lil_goat', 'mama_hen', 'mama_hen', 'sunday_dinner', 'sunday_dinner', 'prize_pig', 'sig_tory'],
     persona: { aggression: 0.5, tradeCare: 0.5, healAt: 8, smart: 0, curve: 'mid' },
     intro: 'Mom smiles sweetly. Her critters are doing push-ups.',

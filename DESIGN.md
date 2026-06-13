@@ -30,8 +30,8 @@ damage (pick critter / any target / all enemy critters / enemy hero), heal (your
 |---|------|----|----------------|------------|--------------------------------------------|
 | 1 | **Rusty** 🐕 | 12 | Puppy Pack (vanilla 1/1s, 2/2s — cannot really win) | Play critters, attack, win | "Drag a critter onto the field, then tap it to attack. Rusty mostly wants belly rubs." |
 | 2 | **Aaron** 🦆 | 20 | **Swarm** — cheap ducks, token floods | Wide boards need wide answers (AoE) | "Little brothers come in waves. Duck, Duck, GOOSE! hits ALL his critters at once." |
-| 3 | **Jacob** 🔧 | 16 | **The Wall** — Guards + buffs | Breaking through defenses (HP 16: your early lead must be able to CLOSE against a recycling wall) | "Your dad guards everything. Nutmeg slips right past Guards — very soccer, very sneaky." |
-| 4 | **Tory** 💪 | 20 | **Buffs/support** — makes her team huge | Kill the support first (priority targets) | "Your mom makes everyone around her stronger. Take out the helpers before the muscle." |
+| 3 | **Dad** (Jacob) 🔧 | 16 | **The Wall** — Guards + buffs | Breaking through defenses (HP 16: your early lead must be able to CLOSE against a recycling wall) | "Your dad guards everything. Nutmeg slips right past Guards — very soccer, very sneaky." |
+| 4 | **Mom** (Tory) 💪 | 20 | **Buffs/support** — makes her team huge | Kill the support first (priority targets) | "Your mom makes everyone around her stronger. Take out the helpers before the muscle." |
 | 5 | **Uncle Brody** 🔥 | 20 | **Aggro burn** — Fast critters, face damage | Racing vs healing; when to defend | "Brody goes FAST and loud. Heal up, put up Guards, survive the storm — then win." |
 | 6 | **Aunt Chelsea** 💖 | 20 | **Heal/control** — removal + heals, outlasts you | Burst damage; don't overextend into removal | "Chelsea heals everything. Little pokes won't cut it — save up for one BIG turn." |
 | 7 | **Grampa Flaj** 🚜 | 20 | **Big tanks** — slow giants | Answer big threats (or race them) | "Grampa's slow but his critters are TOUGH as old boots. Hit fast, or pack a vanishing act." |
@@ -51,10 +51,10 @@ Map = a farm path with 8 portrait nodes + a crown. Beat a boss → **win their s
 |---|---|---|
 | Rusty | **Rusty** (sig), The Sprinter | — |
 | Aaron | **Aaron, Lil Tornado** (sig), Goat Stampede, **Nutmeg** | **Deck Builder** + preset *Farm Friends* |
-| Jacob | **Farmer Jacob** (sig), Math Whiz | — |
+| Dad (Jacob) | **Dad** (sig), Math Whiz | — |
 
-*(Nutmeg deliberately precedes Jacob — Coach's wall-fight tip references it; the tool must come before the lesson.)*
-| Tory | **Mama Tory** (sig), Magic Vanish | — |
+*(Nutmeg deliberately precedes Dad — Coach's wall-fight tip references it; the tool must come before the lesson.)*
+| Mom (Tory) | **Mom** (sig), Magic Vanish | — |
 | Brody | **Uncle Brody** (sig), The Trickster | preset *Speed Demons*, *Magic Show* |
 | Chelsea | **Aunt Chelsea** (sig), Piano Maestro, **THE ONE LLAMA** | — |
 | Grampa Flaj | **Grampa Flaj** (sig) | preset *Big Barn Energy* |
@@ -96,8 +96,8 @@ Boss decks become playable in **VS Mode** once beaten (replay value + "play AS m
 |---|---|---|---|---|
 | Rusty | 2 | 2/3 | Guard | "Good boy. GREAT boy." |
 | Aaron, Lil Tornado | 2 | 2/2 | When played: summon a 1/1 Duckling | "Has never once sat still." |
-| Farmer Jacob | 3 | 2/4 | Guard. When played: give another ally +1/+1 | "Can fix anything with zip ties." |
-| Mama Tory | 4 | 3/4 | Your other critters have +1 Attack | "Says 'be careful!' Makes you stronger anyway." |
+| Dad | 3 | 2/4 | Guard. When played: give another ally +1/+1 | "Can fix anything with zip ties." |
+| Mom | 4 | 3/4 | Your other critters have +1 Attack | "Says 'be careful!' Makes you stronger anyway." |
 | Uncle Brody | 4 | 5/2 | Fast | "REAL TALK." |
 | Aunt Chelsea | 3 | 2/3 | When played: heal your hero 4 | "Hugs that heal." |
 | Grampa Flaj | 5 | 5/6 | When played: your other critters get +0/+2 | "Tough as old boots." |
@@ -106,7 +106,7 @@ Boss decks become playable in **VS Mode** once beaten (replay value + "play AS m
 ### Preset decks (Coach's Picks — one-tap good decks, freeform builder for when he's ready)
 - **Farm Friends** (post-Aaron): go-wide farm core — Barn Cat ×2, Billy ×2, Shep, Mama Hen ×2, Prize Pig, Rusty, Aaron Lil Tornado, Goat Stampede, Duck Duck GOOSE!
 - **Speed Demons** (post-Brody): Sprinter ×2, Barn Cat ×2, Striker ×2, Billy ×2, Uncle Brody, Nutmeg, Slide Tackle, Blessing
-- **Magic Show** (post-Brody): Math Whiz ×2, Trickster ×2, Magic Vanish ×2, Nutmeg, Slide Tackle, Shep ×2, Mama Tory, Prize Pig
+- **Magic Show** (post-Brody): Math Whiz ×2, Trickster ×2, Magic Vanish ×2, Nutmeg, Slide Tackle, Shep ×2, Mom, Prize Pig
 - **Big Barn Energy** (post-Flaj): Prize Pig ×2, Grampa Flaj, The One Llama, Mama Hen ×2, Shep ×2, Billy ×2, Blessing, Slide Tackle
 
 ## Readability layer (playtest rounds 1–2, Jun 10–11)

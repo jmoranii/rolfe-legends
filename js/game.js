@@ -162,9 +162,10 @@ function coachSay(text, sticky = false) {
   if (!sticky) setTimeout(() => c.remove(), 9000);
 }
 function tipOnce(key, text) {
-  if (save.seenTips[key]) return;
+  if (save.seenTips[key]) return false;
   save.seenTips[key] = true; persist();
   coachSay(text, true);
+  return true; // signals "a tip was shown this turn" to the one-per-turn gate
 }
 
 // ================= SCREENS =================
@@ -608,18 +609,25 @@ function aiLoop() {
 function playerTurnBegins() {
   if (B.mode !== 'campaign') return;
   const state = B.state, pl = state.players[0];
-  // contextual one-time tutorials
+  // One tutorial tip per turn, in priority order — coachSay replaces the previous
+  // bubble, so firing several in one turn means only the last is ever seen. Gate to
+  // the first unseen one so each tip actually gets read (and isn't marked seen unshown).
+  let shown = false;
+  const once = (key, text) => { if (!shown) shown = tipOnce(key, text); };
+
   if (B.bossIdx === 0) {
-    if (pl.turnsTaken === 1) tipOnce('t_play', 'Those are your <b>cards</b>! Tap a critter, then tap it again to send it onto the field. 🐾');
-    if (pl.turnsTaken === 2 && pl.board.length) tipOnce('t_attack', 'Your critter is ready! <b>Tap it</b>, then <b>tap Rusty</b> to attack. Get him to 0 ❤ to win!');
-    if (pl.turnsTaken === 3) tipOnce('t_threat', 'See "⚔️ incoming" up top? That\'s how hard Rusty can hit you next turn. Always check it before ending your turn!');
+    if (pl.turnsTaken === 1) once('t_play', 'Tap a card, then tap it again to put your critter on the field. New critters are 💤 <b>sleepy</b> the turn you play them — they wake up and can attack on your NEXT turn!');
+    // only fire the attack tip once there's a genuinely awake attacker — never call a sleeping critter "ready"
+    const hasReady = pl.board.some(c => c.canAttack && !c.sick && effAtk(state, 0, c) > 0 && attackTargets(state, c.iid).length);
+    if (hasReady) once('t_attack', 'Your critter woke up! ⚔️ <b>Tap it</b>, then <b>tap Rusty</b> to attack. Knock him to 0 ❤ to win!');
+    if (pl.turnsTaken >= 3) once('t_threat', 'See "⚔️ incoming" up top? That\'s how hard Rusty can hit you next turn. Always check it before ending your turn!');
   }
-  if (B.bossIdx === 1 && pl.hand.includes('ddg')) tipOnce('t_aoe', '<b>Duck, Duck, GOOSE!</b> hits ALL of Aaron\'s critters at once. Best when his field is crowded!');
-  if (pl.hand.some(c => cardDef(c).type === 'trick') && B.bossIdx <= 1) tipOnce('t_trick', '✨ <b>Tricks</b> are one-time magic — play one and it happens right away!');
+  if (B.bossIdx === 1 && pl.hand.includes('ddg')) once('t_aoe', '<b>Duck, Duck, GOOSE!</b> hits ALL of Aaron\'s critters at once. Best when his field is crowded!');
   // first time a Guard is in play (either side), explain it
   if (state.players.some(p2 => p2.board.some(c => c.guard)) || pl.hand.some(c => cardDef(c).guard)) {
-    tipOnce('t_guard', '🛡️ <b>Guard</b> critters protect their whole team — enemies MUST attack them first. Put one in front of your squishy friends!');
+    once('t_guard', '🛡️ <b>Guard</b> critters protect their whole team — enemies MUST attack them first. Put one in front of your squishy friends!');
   }
+  if (pl.hand.some(c => cardDef(c).type === 'trick') && B.bossIdx <= 1) once('t_trick', '✨ <b>Tricks</b> are one-time magic — play one and it happens right away!');
 }
 
 const DUCKY = /duck|quack|goose|ddg/;
