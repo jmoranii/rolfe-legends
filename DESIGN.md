@@ -117,6 +117,20 @@ Boss decks become playable in **VS Mode** once beaten (replay value + "play AS m
 - **One scorecard language everywhere:** 💥 Punch / 🛡️ Toughness / ✨ Tricks (1–5 stars, computed from deck composition — `deckStats()`). Live in the deck builder as you build; **prefight Scout Report** shows boss stars vs yours (counter-building teaches itself); preset chips + VS picker show mini-stats.
 - **Builder shelves:** collection grouped ⚔️ Attackers / 🛡️ Defenders / ✨ Tricks / 🌟 Legends.
 
+## Music (Suno, Fri 2026-06-13)
+
+Five looping tracks in `assets/audio/` (`js/music.js` — loop + 600ms crossfade on screen change, `--autoplay`-safe via first-tap unlock, music toggle in Settings separate from SFX). **First Suno variation of each used** (James's call). Drop-in like art: a missing track just no-ops.
+
+| Track | File | When | Style |
+|---|---|---|---|
+| Main theme | `title.mp3` | Title, Map, menus | warm Americana folk adventure (banjo/fiddle/whistle), instrumental |
+| Battle | `battle.mp3` | Bosses 1–7, Couch Battle | upbeat bluegrass hoedown, instrumental |
+| Final boss | `boss.mp3` | Grandma Rockie fight | music-box intro → epic orchestral folk menace, instrumental |
+| **Crown anthem** | `anthem.mp3` | Win/crown screen | **"The 10th Legend of Rolfe" — Wyatt's birthday song, custom lyrics, gang-vocal hoedown** |
+| Deck builder | `deckbuild.mp3` | Deck builder | relaxed porch bluegrass thinking music, instrumental |
+
+Full lyrics + clip IDs logged in [`media/songs/index.md`](../../second-brain/media/songs/index.md) (vault). SFX stay procedural WebAudio (`js/sfx.js`).
+
 ## Modes
 
 - **Campaign** — the 8-boss ladder, Coach James tips, unlocks, the crown.
