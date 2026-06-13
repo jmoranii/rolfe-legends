@@ -43,7 +43,7 @@ Boss AI personalities: per-boss heuristic weights (aggression, trade-care, heal 
 
 ## The campaign arc — the 10th Legend
 
-Map = a farm path with 8 portrait nodes + a crown. Beat a boss → **win their signature card** (pack-opening reveal moment) + scheduled unlocks. Beat Grandma Rockie → crown screen: **"WYATT — THE 10TH LEGEND OF ROLFE"** — 9 legends came before (the 8 bosses + Coach James); on his 10th birthday he completes the ten. Confetti, golden card back unlocked, signed *"Happy 10th Birthday, Wyatt — love, Uncle James."*
+Map = a farm path with 8 portrait nodes + a crown. **Bosses you haven't reached yet are a mystery** (`???` + ❓, no portrait/name) — you only find out who's next when you beat the one before them, so every rung is a reveal. Beaten + current bosses show their portrait/name. Beat a boss → **win their signature card** (pack-opening reveal moment) + scheduled unlocks. Beat Grandma Rockie → crown screen: **"WYATT — THE 10TH LEGEND OF ROLFE"** — 9 legends came before (the 8 bosses + Coach James); on his 10th birthday he completes the ten. Confetti, golden card back unlocked, signed *"Happy 10th Birthday, Wyatt — love, Uncle James."*
 
 ## Unlock schedule
 

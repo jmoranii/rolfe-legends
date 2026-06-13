@@ -150,9 +150,58 @@ Warm hand-painted storybook gouache illustration, rich saturated colors, soft go
 
 Scene: a beautiful small Iowa family farm at golden hour, painted storybook-style. A classic red barn with white trim, golden crop fields, a long dirt road leading toward a glowing sunset horizon, a windmill, scattered ducks and goats grazing — and in the middle distance, one llama standing perfectly still, watching. The upper third of the image is mostly warm open sky with soft clouds (a wooden sign will be overlaid there). Cozy, epic, like the cover of a beloved children's book."; }
 
+# --------------------------------------------------- battle backgrounds ---
+# Per-boss battlegrounds that echo each legend card's "place," painted as a
+# quiet muted stage to sit BEHIND the battle UI (calm lower-center, edge
+# vignette, unpopulated). Landscape 1536x1024. Output: assets/backgrounds/.
+# The backend session wires these in (see assets/BATTLEGROUNDS-KICKOFF.md).
+
+BG_STYLE='Warm hand-painted storybook gouache illustration in the same children'\''s trading-card art series, soft golden-hour light, rich but gently muted and slightly desaturated colors, soft-focus depth-of-field, an open and calm lower-center foreground (simple painterly ground where game UI will sit), visual detail kept to the upper area and edges, a soft darker vignette around all edges, painted to sit quietly BEHIND a game interface, an unpopulated scene with no people and no foreground animals, no text, no borders, no frames, no watermark.'
+
+run_bg_rusty() { gen bg_rusty assets/backgrounds/bg_rusty.png 1536x1024 - "Landscape image, 1536×1024.
+$BG_STYLE
+
+Scene: a sunny open golden farm field and pasture, a classic red barn soft-focus in the distance, tall grass and a weathered wooden fence line, warm and welcoming early-campaign light. The lower-center is calm open field."; }
+
+run_bg_aaron() { gen bg_aaron assets/backgrounds/bg_aaron.png 1536x1024 - "Landscape image, 1536×1024.
+$BG_STYLE
+
+Scene: a breezy autumn farmyard, a few golden leaves drifting through the air, a windmill and barn softly out of focus in the distance, scattered hay, playful warm light. The lower-center is calm open yard."; }
+
+run_bg_jacob() { gen bg_jacob assets/backgrounds/bg_jacob.png 1536x1024 - "Landscape image, 1536×1024.
+$BG_STYLE
+
+Scene: the yard in front of a sturdy weathered barn with big wooden doors, a workbench and hanging tools softly blurred off to one side, warm sawdust-gold light, a dependable workshop feel. The lower-center is calm open ground."; }
+
+run_bg_tory() { gen bg_tory assets/backgrounds/bg_tory.png 1536x1024 - "Landscape image, 1536×1024.
+$BG_STYLE
+
+Scene: a lush sunflower and vegetable garden at golden hour, rows of sunflowers soft-focus behind a low garden fence, a farmhouse hinted in the distance, warm proud light. The lower-center is calm open garden path."; }
+
+run_bg_brody() { gen bg_brody assets/backgrounds/bg_brody.png 1536x1024 - "Landscape image, 1536×1024.
+$BG_STYLE
+
+Scene: a wide dusty farm driveway and open field under a big open sky, a pickup truck softly blurred far in the background kicking faint dust, energetic warm late-afternoon light. The lower-center is calm open dirt drive."; }
+
+run_bg_chelsea() { gen bg_chelsea assets/backgrounds/bg_chelsea.png 1536x1024 - "Landscape image, 1536×1024.
+$BG_STYLE
+
+Scene: a cozy warm farmhouse interior, a knitted-blanket armchair and a softly glowing hearth out of focus, a steaming kettle hinted on a side table, gentle amber lamplight, the coziest fortress. The lower-center is calm open wooden floor."; }
+
+run_bg_flaj() { gen bg_flaj assets/backgrounds/bg_flaj.png 1536x1024 - "Landscape image, 1536×1024.
+$BG_STYLE
+
+Scene: an old red tractor and a weathered equipment shed in a golden evening field, soft-focus rolling farmland behind, sturdy and warm with long shadows. The lower-center is calm open ground."; }
+
+run_bg_rocky() { gen bg_rocky assets/backgrounds/bg_rocky.png 1536x1024 - "Landscape image, 1536×1024.
+$BG_STYLE
+
+Scene: a cozy farmhouse front porch at dramatic golden hour, a porch railing and rocking chair softly out of focus to one side, warm lamplight glowing from the windows, a faint golden shimmer in the air, the climactic final-showdown stage. The lower-center is calm open porch floorboards."; }
+
 # ------------------------------------------------------------------ driver ---
 
 ALL_IDS="sig_rocky sig_flaj sig_rusty sig_aaron sig_jacob sig_tory sig_brody sig_chelsea grand_finale guard_cat big_hug speed_demon llama dog_man portrait_wyatt portrait_coach title_bg"
+BG_IDS="bg_rusty bg_aaron bg_jacob bg_tory bg_brody bg_chelsea bg_flaj bg_rocky"
 TRIO="sig_rocky grand_finale title_bg"
 
 ref_for() {
@@ -190,10 +239,11 @@ case "${1:-list}" in
   list) list_cards ;;
   trio) for id in $TRIO; do "run_$id"; done ;;
   all)  for id in $ALL_IDS; do "run_$id"; done ;;
+  bg)   for id in $BG_IDS; do "run_$id"; done ;;
   *)    for id in "$@"; do
-          case " $ALL_IDS " in
+          case " $ALL_IDS $BG_IDS " in
             *" $id "*) "run_$id" ;;
-            *) echo "unknown card id: $id (try: ./generate-art.sh list)"; exit 2 ;;
+            *) echo "unknown id: $id (try: ./generate-art.sh list)"; exit 2 ;;
           esac
         done ;;
 esac

@@ -229,10 +229,11 @@ function mapScreen() {
   const path = el('div', 'map-path');
   BOSSES.forEach((b, i) => {
     const n = el('div', 'map-node');
-    n.appendChild(artImg(`assets/cards/sig_${b.id}.png`, b.emoji, 'face'));
+    const secret = i > save.progress; // who's coming is a mystery until you reach them
+    n.appendChild(secret ? el('div', 'face mystery', '❓') : artImg(`assets/cards/sig_${b.id}.png`, b.emoji, 'face'));
     const who = el('div', 'who');
-    who.appendChild(el('div', 'nm', b.name));
-    who.appendChild(el('div', 'tt', b.title));
+    who.appendChild(el('div', 'nm', secret ? '???' : b.name));
+    who.appendChild(el('div', 'tt', secret ? 'A mystery challenger…' : b.title));
     n.appendChild(who);
     if (i < save.progress) { n.classList.add('beaten'); n.appendChild(el('div', 'st', '✅')); n.onclick = () => { sfx.tap(); prefightScreen(i); }; n.style.cursor = 'pointer'; }
     else if (i === save.progress) { n.classList.add('current'); n.appendChild(el('div', 'st', '⚔️')); n.onclick = () => { sfx.tap(); prefightScreen(i); }; }
