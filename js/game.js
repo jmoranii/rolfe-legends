@@ -209,11 +209,19 @@ function coachSay(text, sticky = false) {
   sfx.coach();
   if (!sticky) setTimeout(() => c.remove(), 9000);
 }
-function tipOnce(key, text) {
+function tipOnce(key, text, onShow) {
   if (save.seenTips[key]) return false;
   save.seenTips[key] = true; persist();
   coachSay(text, true);
+  if (onShow) onShow();
   return true; // signals "a tip was shown this turn" to the one-per-turn gate
+}
+// draw the eye to the 📜 log button when the log tip fires
+function pulseLogBtn() {
+  const btn = document.querySelector('.logbtn');
+  if (!btn) return;
+  btn.classList.add('pulse-hint');
+  setTimeout(() => btn.classList.remove('pulse-hint'), 8000);
 }
 
 // ================= SCREENS =================
@@ -260,7 +268,7 @@ function titleScreen() {
         sfx.unlock(); confetti(40);
         toast('🤫 SECRET FOUND: DOG MAN joins your collection!');
       } else {
-        toast('🦙 The llama stares at you approvingly.');
+        toast('🦙 Goldie stares at you approvingly.');
       }
     }
   };
@@ -444,13 +452,23 @@ function renderBattle() {
   // my board
   const mb = el('div', 'boardrow mine');
   mb.dataset.mine = '1';
+  // tap the field to drop a selected creature (the natural instinct), alongside tap-card-twice
+  mb.onclick = (e) => {
+    if (e.target.closest('.critter')) return;          // a critter handles its own taps
+    if (B.busy || B.state.active !== meIdx() || !(B.sel && B.sel.kind === 'hand')) return;
+    const idx = B.sel.idx, d = cardDef(B.state.players[meIdx()].hand[idx]);
+    const targets = playTargets(B.state, idx);
+    if (d.type === 'critter' && (!targets || !targets.length) && canPlay(B.state, idx)) {
+      B.sel = null; sfx.tap(); doAction({ type: 'play', hand: idx });
+    }
+  };
   for (const inst of pm.board) {
     const c = critterEl(state, me, inst);
     if (!B.busy && state.active === me && inst.canAttack && !inst.sick && effAtk(state, me, inst) > 0 && attackTargets(state, inst.iid).length) c.classList.add('ready');
     c.onclick = () => onMyCritterTap(inst.iid);
     mb.appendChild(c);
   }
-  if (!pm.board.length) mb.appendChild(el('div', '', '<span style="opacity:.4;font-size:13px">— your field —</span>'));
+  if (!pm.board.length) mb.appendChild(el('div', '', '<span style="opacity:.4;font-size:13px">— tap here to place a critter —</span>'));
   s.appendChild(mb);
 
   // midbar: energy + end turn
@@ -505,7 +523,7 @@ function renderBattle() {
     confirmPanel('Leave this battle?', () => { B = null; save.progress === 0 ? titleScreen() : mapScreen(); });
   };
   app.appendChild(quit);
-  const logBtn = el('button', 'quiet', '📜');
+  const logBtn = el('button', 'quiet logbtn', '📜');
   logBtn.style.cssText = 'position:absolute;top:8px;left:52px;padding:4px 10px;font-size:13px;z-index:10;';
   logBtn.onclick = () => { sfx.tap(); showLogOverlay(); };
   app.appendChild(logBtn);
@@ -600,7 +618,7 @@ function applySelectionHighlights() {
       coachHint('hint_target', 'Now tap a glowing target! (or tap the card again to cancel)');
     } else {
       document.querySelector('.boardrow.mine')?.classList.add('playable-zone');
-      coachHint('hint_play', 'Tap the card again to play it!');
+      coachHint('hint_play', '<b>Tap your field</b> (or tap the card again) to play it!');
     }
   } else if (B.sel.kind === 'critter') {
     document.querySelector(`.critter[data-iid="${B.sel.iid}"]`)?.classList.add('selected');
@@ -669,21 +687,26 @@ function playerTurnBegins() {
   // bubble, so firing several in one turn means only the last is ever seen. Gate to
   // the first unseen one so each tip actually gets read (and isn't marked seen unshown).
   let shown = false;
-  const once = (key, text) => { if (!shown) shown = tipOnce(key, text); };
+  const once = (key, text, onShow) => { if (!shown) shown = tipOnce(key, text, onShow); };
 
+  // Basics, taught during the (unloseable) Rusty fight — one per turn, priority order.
   if (B.bossIdx === 0) {
     if (pl.turnsTaken === 1) once('t_play', 'Tap a card, then tap it again to put your critter on the field. New critters are 💤 <b>sleepy</b> the turn you play them — they wake up and can attack on your NEXT turn!');
     // only fire the attack tip once there's a genuinely awake attacker — never call a sleeping critter "ready"
     const hasReady = pl.board.some(c => c.canAttack && !c.sick && effAtk(state, 0, c) > 0 && attackTargets(state, c.iid).length);
-    if (hasReady) once('t_attack', 'Your critter woke up! ⚔️ <b>Tap it</b>, then <b>tap Rusty</b> to attack. Knock him to 0 ❤ to win!');
-    if (pl.turnsTaken >= 3) once('t_threat', 'See "⚔️ incoming" up top? That\'s how hard Rusty can hit you next turn. Always check it before ending your turn!');
+    if (hasReady) once('t_attack', 'Your critter woke up! ⚔️ <b>Tap it</b>, then tap a target — smash an enemy critter, OR hit the enemy hero directly. Knock Rusty to 0 ❤ to win!');
+    if (pl.turnsTaken >= 2) once('t_energy', 'Those ⚡ at the bottom are your <b>energy</b>. You get +1 every turn (up to 5), and each card costs energy to play (the number in its corner). Try to spend it all each turn!');
+    if (pl.turnsTaken >= 3) once('t_threat', 'See "⚔️ incoming" up top? That\'s how hard Rusty can hit you next turn. Always check it before you end your turn!');
+  }
+  // These span the first two fights, firing the first time each is relevant (after the basics).
+  if (B.bossIdx <= 1) {
+    if (state.players.some(p2 => p2.board.some(c => c.guard)) || pl.hand.some(c => cardDef(c).guard)) {
+      once('t_guard', '🛡️ <b>Guard</b> critters protect their whole team — enemies MUST attack them first. Put one in front of your squishy friends!');
+    }
+    once('t_log', '📜 See the <b>scroll button</b> in the top-left? Tap it anytime to read everything that\'s happened — every card, attack, and ouch!', pulseLogBtn);
+    if (pl.hand.some(c => cardDef(c).type === 'trick')) once('t_trick', '✨ <b>Tricks</b> are one-time magic — play one and it happens right away!');
   }
   if (B.bossIdx === 1 && pl.hand.includes('ddg')) once('t_aoe', '<b>Duck, Duck, GOOSE!</b> hits ALL of Aaron\'s critters at once. Best when his field is crowded!');
-  // first time a Guard is in play (either side), explain it
-  if (state.players.some(p2 => p2.board.some(c => c.guard)) || pl.hand.some(c => cardDef(c).guard)) {
-    once('t_guard', '🛡️ <b>Guard</b> critters protect their whole team — enemies MUST attack them first. Put one in front of your squishy friends!');
-  }
-  if (pl.hand.some(c => cardDef(c).type === 'trick') && B.bossIdx <= 1) once('t_trick', '✨ <b>Tricks</b> are one-time magic — play one and it happens right away!');
 }
 
 const DUCKY = /duck|quack|goose|ddg/;
@@ -939,7 +962,7 @@ function afterVictory(bossIdx) {
     const btn = el('button', 'primary', '👑');
     btn.onclick = () => {
       ov.remove();
-      coachSay('Psst — champions hear rumors. They say the <b>llama on the title screen</b> keeps a secret. Maybe… pet it three times? 🦙', true);
+      coachSay('Psst — champions hear rumors. They say <b>Goldie</b> (the llama on the title screen) keeps a secret. Maybe… tap her three times? 🦙', true);
       mapScreen();
     };
     p.appendChild(btn);
@@ -1151,7 +1174,7 @@ function settingsScreen() {
     persist(); toast('Fresh start!'); titleScreen();
   });
   p.appendChild(reset);
-  p.appendChild(el('p', '', `<br><br>🎂 <b>Rolfe Legends</b><br>Made with ❤️ by Uncle James<br>for Wyatt's 10th birthday<br>Rolfe, Iowa · 2026<br><br><span style="opacity:.6;font-size:12px">All critters are based on real farm employees.<br>The llama knows. 🦙</span>`));
+  p.appendChild(el('p', '', `<br><br>🎂 <b>Rolfe Legends</b><br>Made with ❤️ by Uncle James<br>for Wyatt's 10th birthday<br>Rolfe, Iowa · 2026<br><br><span style="opacity:.6;font-size:12px">All critters are based on real farm employees.<br>Goldie knows. 🦙</span>`));
   const back = el('button', '', '← Back');
   back.onclick = () => { sfx.tap(); titleScreen(); };
   p.appendChild(back);

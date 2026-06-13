@@ -117,6 +117,9 @@ button:disabled { opacity: .45; pointer-events: none; }
 .map-crown.earned { opacity: 1; animation: pulse 1.6s infinite; }
 .map-bar { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
 @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+/* tutorial attention-grabber (e.g. the 📜 log button when the log tip fires) */
+.pulse-hint { animation: hintpulse .8s ease-in-out infinite; outline: 3px solid var(--gold); border-radius: 12px; }
+@keyframes hintpulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.22); } }
 
 /* ---------- battle ---------- */
 .battle { flex: 1; display: flex; flex-direction: column; padding: 38px 8px calc(8px + env(safe-area-inset-bottom)); gap: 6px; min-height: 0; }
@@ -152,7 +155,7 @@ button:disabled { opacity: .45; pointer-events: none; }
 .critter .art { font-size: 30px; line-height: 1.15; }
 .critter .cnm { font-size: 9.5px; font-weight: 600; text-align: center; line-height: 1.05; }
 .critter .stats { display: flex; justify-content: space-between; width: 100%; padding: 0 4px; font-size: 14px; font-weight: 700; }
-.critter .stats .a { color: var(--hay-dark); } .critter .stats .h { color: var(--barn); }
+.critter .stats .a { color: var(--sky-deep); } .critter .stats .h { color: var(--barn); } /* attack=blue, health=red */
 .critter .badge { position: absolute; top: -10px; right: -7px; font-size: 15px; }
 .critter.sick::after { content: '💤'; position: absolute; top: -10px; left: -7px; font-size: 15px; }
 .critter.ready { border-color: var(--grass-dark); box-shadow: 0 0 0 2.5px var(--grass), var(--shadow); cursor: pointer; }
@@ -178,14 +181,14 @@ button:disabled { opacity: .45; pointer-events: none; }
 }
 .handcard .cost {
   position: absolute; top: -9px; left: -7px; width: 24px; height: 24px; border-radius: 50%;
-  background: var(--sky-deep); color: white; border: 2.5px solid var(--ink);
+  background: var(--hay); color: var(--ink); border: 2.5px solid var(--ink); /* yellow = energy cost (matches ⚡) */
   display: grid; place-items: center; font-size: 13px; font-weight: 700; z-index: 2;
 }
 .handcard .art { font-size: 27px; margin-top: 5px; }
 .handcard .cnm { font-size: 9px; font-weight: 700; text-align: center; line-height: 1.05; margin-top: 1px; }
 .handcard .ctx { font-size: 7.8px; text-align: center; line-height: 1.15; opacity: .85; margin-top: 1px; padding: 0 1px; }
 .handcard .stats { display: flex; justify-content: space-between; width: 100%; padding: 0 5px; font-size: 13px; font-weight: 700; margin-top: auto; }
-.handcard .stats .a { color: var(--hay-dark); } .handcard .stats .h { color: var(--barn); }
+.handcard .stats .a { color: var(--sky-deep); } .handcard .stats .h { color: var(--barn); } /* attack=blue, health=red */
 .handcard.unplayable { opacity: .55; filter: saturate(.5); }
 .handcard.selected { transform: translateY(-16px) scale(1.12); outline: 4px solid var(--gold); z-index: 5; }
 .handcard.legendary { background: linear-gradient(160deg, #fff9e3, #ffe9b3); border-color: #9a7b1c; }
