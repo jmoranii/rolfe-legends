@@ -198,10 +198,23 @@ $BG_STYLE
 
 Scene: a cozy farmhouse front porch at dramatic golden hour, a porch railing and rocking chair softly out of focus to one side, warm lamplight glowing from the windows, a faint golden shimmer in the air, the climactic final-showdown stage. The lower-center is calm open porch floorboards."; }
 
+# Screen backgrounds (full-screen, not per-boss). Portrait, painted to sit
+# behind a centered column of translucent UI panels.
+run_bg_map() { gen bg_map assets/backgrounds/bg_map.png 1024x1536 - "Vertical image, 1024×1536.
+Warm hand-painted storybook gouache illustration in the same children's trading-card art series, soft golden-hour light, gently muted and slightly desaturated colors, soft-focus, low-contrast and calm so translucent UI panels can sit over the vertical center, a soft vignette at the edges, unpopulated, no text, no borders, no frames, no watermark.
+
+Scene: a long dirt path winding through golden Iowa farm fields, seen from low at the bottom and receding upward into the distance, climbing toward a radiant warm sunrise glowing on the horizon at the very top like a destination to reach. A red barn, a windmill, wooden fences and soft open fields line the path. Hopeful and epic but cozy, a journey toward greatness. Keep the vertical center band soft and uncluttered for overlaid UI."; }
+
+run_bg_cards() { gen bg_cards assets/backgrounds/bg_cards.png 1024x1536 - "Vertical image, 1024×1536.
+Warm hand-painted storybook gouache illustration in the same children's trading-card art series, soft golden-hour window light, gently muted and low-contrast, a soft darker vignette at the edges, calm and simple, no people, NO playing cards, NO trading cards, NO illustrated cards anywhere in the image, no text, no borders, no frames, no watermark.
+
+Scene: a cozy warm wooden farmhouse tabletop of smooth aged planks, viewed from slightly above, soft window light, a faint knitted placemat and a small pitcher of wildflowers pushed to the far edges. The entire center of the table is completely empty, clear, bare wood with nothing resting on it. Just a quiet warm surface."; }
+
 # ------------------------------------------------------------------ driver ---
 
 ALL_IDS="sig_rocky sig_flaj sig_rusty sig_aaron sig_jacob sig_tory sig_brody sig_chelsea grand_finale guard_cat big_hug speed_demon llama dog_man portrait_wyatt portrait_coach title_bg"
 BG_IDS="bg_rusty bg_aaron bg_jacob bg_tory bg_brody bg_chelsea bg_flaj bg_rocky"
+SCREEN_IDS="bg_map bg_cards"
 TRIO="sig_rocky grand_finale title_bg"
 
 ref_for() {
@@ -240,8 +253,9 @@ case "${1:-list}" in
   trio) for id in $TRIO; do "run_$id"; done ;;
   all)  for id in $ALL_IDS; do "run_$id"; done ;;
   bg)   for id in $BG_IDS; do "run_$id"; done ;;
+  screens) for id in $SCREEN_IDS; do "run_$id"; done ;;
   *)    for id in "$@"; do
-          case " $ALL_IDS $BG_IDS " in
+          case " $ALL_IDS $BG_IDS $SCREEN_IDS " in
             *" $id "*) "run_$id" ;;
             *) echo "unknown id: $id (try: ./generate-art.sh list)"; exit 2 ;;
           esac

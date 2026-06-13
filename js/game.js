@@ -84,6 +84,42 @@ function artImg(path, fallbackEmoji, cls = 'art') {
 }
 const cardArt = (cardId, cls = 'art') => artImg(`assets/cards/${cardId}.png`, cardDef(cardId).emoji, cls);
 
+// ---------------- battle backgrounds (per-boss painted stage, drop-in) ----------------
+// Each fight loads assets/backgrounds/bg_<id>.png behind the board. Same spirit as the card
+// art above: probe the file once, cache the result, and fall back silently to the body's
+// green/blue gradient when it's absent (backgrounds can land incrementally). A tunable scrim
+// (style.css .battle.has-bg) keeps the board, numbers, and card text legible on top.
+const bgCache = new Map(); // path -> true | false
+function applyBattleBg(battleEl, bgId) {
+  if (!bgId) return; // no stage for this fight → generic gradient shows through
+  const path = `assets/backgrounds/bg_${bgId}.png`;
+  const show = () => { battleEl.style.setProperty('--battle-bg', `url("${path}")`); battleEl.classList.add('has-bg'); };
+  const cached = bgCache.get(path);
+  if (cached === true) { show(); return; }   // already loaded — apply instantly, no flicker
+  if (cached === false) return;              // known-missing — leave the generic gradient
+  const probe = new Image();                 // unknown — test it once, like artImg does
+  probe.onload = () => { bgCache.set(path, true); if (battleEl.isConnected) show(); };
+  probe.onerror = () => { bgCache.set(path, false); };
+  probe.src = path;
+}
+
+// ---------------- screen backgrounds + blurred letterbox backdrop ----------------
+// Every screen carries its own painted art: sharp inside the centered game column (#app),
+// plus a scaled-up blurred copy filling the wide-screen margins (.screen-backdrop). Setting
+// both per screen means the green/blue page gradient never bleeds. Drop-in like the rest —
+// a missing file just leaves the warm dark body tone (a missing CSS bg url is silently empty,
+// no console error). colUrl defaults to screenUrl; pass null to leave the column to a screen
+// that paints its own (the battle draws the scrimmed boss bg itself).
+const bossBgUrl = (id) => `assets/backgrounds/bg_${id}.png`;
+function setScreenBg(screenUrl, colUrl = screenUrl) {
+  if (!document.querySelector('.screen-backdrop')) {
+    document.body.insertBefore(el('div', 'screen-backdrop'), document.body.firstChild);
+  }
+  const root = document.documentElement.style;
+  root.setProperty('--screen-bg', screenUrl ? `url("${screenUrl}")` : 'none'); // blurred margins
+  root.setProperty('--col-bg', colUrl ? `url("${colUrl}")` : 'none');           // sharp column
+}
+
 // ---------------- card text (generated from data — text always matches behavior) ----------------
 function fxText(spec) {
   switch (spec.kind) {
@@ -174,6 +210,7 @@ function tipOnce(key, text) {
 function titleScreen() {
   clear();
   music.play('title');
+  setScreenBg('assets/ui/title_bg.png');
   const s = el('div', 'screen title-screen');
   const sign = el('div', 'game-sign');
   sign.appendChild(el('div', 't1', 'ROLFE<br>LEGENDS'));
@@ -223,6 +260,7 @@ function titleScreen() {
 function mapScreen() {
   clear();
   music.play('title');
+  setScreenBg('assets/backgrounds/bg_map.png');
   const s = el('div', 'screen');
   s.appendChild(el('h2', '', '🗺️ The Road to Legend'));
   const crown = el('div', 'map-crown' + (save.crowned ? ' earned' : ''), '👑');
@@ -276,6 +314,7 @@ function currentDeck() {
 function prefightScreen(bossIdx) {
   clear();
   const b = BOSSES[bossIdx];
+  setScreenBg(bossBgUrl(b.id)); // the boss's own stage behind their intro
   const s = el('div', 'screen');
   s.appendChild(el('h2', '', `Fight ${bossIdx + 1} of ${BOSSES.length}`));
   const panel = el('div', 'panel');
@@ -327,8 +366,9 @@ function startCampaignBattle(bossIdx) {
     heroB: { name: boss.name, emoji: boss.emoji, hp: boss.hp },
     seed: (Date.now() & 0xffffff) ^ (bossIdx << 20),
   });
-  B = { mode: 'campaign', bossIdx, boss, state, sel: null, busy: false, names: {}, log: [], pnames: ['Wyatt', boss.name] };
+  B = { mode: 'campaign', bossIdx, boss, bgId: boss.id, state, sel: null, busy: false, names: {}, log: [], pnames: ['Wyatt', boss.name] };
   music.play(boss.id === 'rocky' ? 'boss' : 'battle');
+  setScreenBg(bossBgUrl(boss.id), null); // backdrop = boss stage; column drawn by .battle (scrimmed) itself
   renderBattle();
   runEvents(state.bootEvents || [], () => { playerTurnBegins(); });
 }
@@ -340,8 +380,10 @@ function startVsBattle(deckA, deckB, nameA, nameB) {
     heroB: { name: nameB, emoji: '🧑', hp: 20 },
     seed: Date.now() & 0xffffff,
   });
-  B = { mode: 'vs', state, sel: null, busy: false, names: {}, log: [], pnames: [nameA, nameB], passPending: true };
+  // Couch Battle: reuse Rusty's open field as a neutral stage (falls back to the warm tone if absent)
+  B = { mode: 'vs', bgId: 'rusty', state, sel: null, busy: false, names: {}, log: [], pnames: [nameA, nameB], passPending: true };
   music.play('battle');
+  setScreenBg(bossBgUrl('rusty'), null); // neutral stage; column drawn by .battle itself
   renderBattle();
   showPassOverlay(() => runEvents(state.bootEvents || [], () => {}));
 }
@@ -352,6 +394,7 @@ const foeIdx = () => 1 - meIdx();
 function renderBattle() {
   clear();
   const s = el('div', 'battle');
+  applyBattleBg(s, B.bgId); // per-boss painted stage; no-op → generic gradient
   const state = B.state, me = meIdx(), foe = foeIdx();
   const pm = state.players[me], pf = state.players[foe];
 
@@ -935,6 +978,7 @@ function showPassOverlay(then) {
 function builderScreen(onDone) {
   clear();
   music.play('deckbuild');
+  setScreenBg('assets/backgrounds/bg_cards.png');
   const owned = ownedSet();
   const s = el('div', 'screen');
   const w = el('div', 'builder');
@@ -1035,6 +1079,7 @@ function builderScreen(onDone) {
 // ---------------- VS setup ----------------
 function vsSetupScreen() {
   clear();
+  setScreenBg('assets/backgrounds/bg_map.png');
   const s = el('div', 'screen');
   s.appendChild(el('h2', '', '🛋️ Couch Battle'));
   s.appendChild(el('p', '', 'Two players, one screen. Pass and play!'));
@@ -1076,6 +1121,7 @@ function vsSetupScreen() {
 // ---------------- settings ----------------
 function settingsScreen() {
   clear();
+  setScreenBg('assets/backgrounds/bg_map.png');
   const s = el('div', 'screen');
   s.appendChild(el('h2', '', '⚙️ Settings'));
   const p = el('div', 'panel');
