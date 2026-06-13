@@ -8,20 +8,33 @@ const FADE_MS = 600;
 
 let enabled = true;
 let unlocked = false;
+let started = false;         // has a track actually begun audible playback?
 let current = null;          // track name currently desired
-const els = new Map();       // name -> {audio, ok}
+const els = new Map();       // name -> {audio}
 const missing = new Set();   // names whose file 404'd — never retry
+
+const GESTURES = ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'click'];
+function onGesture() { unlock(); }
+
+// Arm autoplay-unlock: any user gesture tries to start music, and the listeners
+// STAY until playback actually succeeds (handles Safari/Chrome rejecting the
+// first attempt). Idempotent.
+export function arm() {
+  for (const g of GESTURES) window.addEventListener(g, onGesture, { capture: true, passive: true });
+}
+function disarm() {
+  for (const g of GESTURES) window.removeEventListener(g, onGesture, { capture: true });
+}
 
 export function setEnabled(on) {
   enabled = on;
   if (!on) stopAll();
-  else if (unlocked && current) play(current);
+  else { arm(); if (unlocked && current) play(current); }
 }
 export function isEnabled() { return enabled; }
 
-// Call once from the first user tap (satisfies autoplay policy).
+// Mark unlocked and attempt the current track. Safe to call repeatedly.
 export function unlock() {
-  if (unlocked) return;
   unlocked = true;
   if (enabled && current) play(current);
 }
@@ -69,8 +82,12 @@ export function play(name) {
   const e = getEl(name);
   if (!e) return;                        // file missing → silence, no error
   const p = e.audio.play();
-  if (p && p.catch) p.catch(() => {});   // autoplay rejection → wait for next unlock/gesture
-  fade(e.audio, VOL, FADE_MS);
+  if (p && p.then) {
+    p.then(() => { started = true; disarm(); fade(e.audio, VOL, FADE_MS); })
+     .catch(() => { /* autoplay still blocked → armed listeners retry on next gesture */ });
+  } else {                               // older browsers: no promise returned
+    started = true; disarm(); fade(e.audio, VOL, FADE_MS);
+  }
 }
 
 export function stopAll() {

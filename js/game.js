@@ -26,8 +26,9 @@ if (save.music === undefined) save.music = true;
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* private mode */ } }
 sfx.setEnabled(save.sound);
 music.setEnabled(save.music);
-// browser autoplay policy: music can only start after a user gesture
-window.addEventListener('pointerdown', () => music.unlock(), { once: true });
+// browser autoplay policy: music can only start after a user gesture.
+// arm() keeps trying on every gesture until playback actually succeeds.
+music.arm();
 
 // ---------------- tiny DOM helpers ----------------
 const app = document.getElementById('app');
