@@ -256,7 +256,7 @@ export function validateDeck(cardIds, owned) {
     if (!c) return `Unknown card: ${id}`;
     if (owned && !owned.has(id)) return `${c.name} isn't in your collection yet.`;
     counts[id] = (counts[id] || 0) + 1;
-    const max = c.legendary ? 1 : 2;
+    const max = c.legendary ? 1 : 3; // up to 3 copies of a normal card, 1 of a Legend
     if (counts[id] > max) return `Max ${max} cop${max === 1 ? 'y' : 'ies'} of ${c.name}.`;
   }
   return null; // valid

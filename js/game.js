@@ -1152,7 +1152,7 @@ function builderScreen(onDone) {
         const d = CARDS[id];
         const c = handCardEl(id);
         const n = working.filter(x => x === id).length;
-        const cap = d.legendary ? 1 : 2;
+        const cap = d.legendary ? 1 : 3;
         if (n > 0) { c.classList.add('indeck'); c.appendChild(el('div', 'count', `×${n}`)); }
         c.onclick = () => {
           sfx.tap();
@@ -1169,7 +1169,7 @@ function builderScreen(onDone) {
   render();
   s.appendChild(w);
   app.appendChild(s);
-  if (!save.seenTips.t_builder) tipOnce('t_builder', 'Tap a card to add it (tap again for a 2nd copy — then once more to remove). <b>12 to 24 cards</b> — small decks are reliable, big decks are full of surprises. Watch your 💥🛡️✨ stars change as you build!');
+  if (!save.seenTips.t_builder) tipOnce('t_builder', 'Tap a card to add it — up to <b>3 copies</b> (tap again for more, once past 3 it clears). Legends are 1 each. <b>12 to 24 cards</b> total. Watch your 💥🛡️✨ stars change as you build!');
 }
 
 // ---------------- VS setup ----------------
