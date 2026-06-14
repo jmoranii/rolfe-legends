@@ -30,7 +30,7 @@ damage (pick critter / any target / all enemy critters / enemy hero), heal (your
 |---|------|----|----------------|------------|--------------------------------------------|
 | 1 | **Rusty** 🐕 | 12 | Puppy Pack (vanilla 1/1s, 2/2s — cannot really win) | Play critters, attack, win | "Drag a critter onto the field, then tap it to attack. Rusty mostly wants belly rubs." |
 | 2 | **Aaron** 🦆 | 20 | **Swarm** — cheap ducks, token floods | Wide boards need wide answers (AoE) | "Little brothers come in waves. Duck, Duck, GOOSE! hits ALL his critters at once." |
-| 3 | **Dad** (Jacob) 🔧 | 16 | **The Wall** — Guards + buffs | Breaking through defenses (HP 16: your early lead must be able to CLOSE against a recycling wall) | "Your dad guards everything. Nutmeg slips right past Guards — very soccer, very sneaky." |
+| 3 | **Dad** (Jacob) 🔧 | 16 | **The Wall** — Guards + buffs | Breaking through defenses (HP 16: your early lead must be able to CLOSE against a recycling wall) | "Your dad guards everything. Curveball sneaks right past Guards — they never see it coming." |
 | 4 | **Mom** (Tory) 💪 | 20 | **Buffs/support** — makes her team huge | Kill the support first (priority targets) | "Your mom makes everyone around her stronger. Take out the helpers before the muscle." |
 | 5 | **Uncle Brody** 🔥 | 20 | **Aggro burn** — Fast critters, face damage | Racing vs healing; when to defend | "Brody goes FAST and loud. Heal up, put up Guards, survive the storm — then win." |
 | 6 | **Aunt Chelsea** 💖 | 20 | **Heal/control** — removal + heals, outlasts you | Out-pace healing with CONSISTENT board damage | "Chelsea heals every turn. Little pokes get undone — keep critters on the field and deal damage EVERY turn." |
@@ -52,10 +52,10 @@ Map = a farm path with 8 portrait nodes + a crown. **Bosses you haven't reached 
 | After beating | New cards | Other unlocks |
 |---|---|---|
 | Rusty | **Rusty** (sig), The Sprinter | — |
-| Aaron | **Aaron, Lil Tornado** (sig), Goat Stampede, **Nutmeg** | **Deck Builder** + preset *Farm Friends* |
+| Aaron | **Aaron, Lil Tornado** (sig), Goat Stampede, **Curveball** | **Deck Builder** + preset *Farm Friends* |
 | Dad (Jacob) | **Dad** (sig), Math Whiz | — |
 
-*(Nutmeg deliberately precedes Dad — Coach's wall-fight tip references it; the tool must come before the lesson.)*
+*(Curveball deliberately precedes Dad — Coach's wall-fight tip references it; the tool must come before the lesson.)*
 | Mom (Tory) | **Mom** (sig), Magic Vanish | — |
 | Brody | **Uncle Brody** (sig), The Trickster | preset *Speed Demons*, *Magic Show* |
 | Chelsea | **Aunt Chelsea** (sig), Piano Maestro, **THE ONE LLAMA** | — |
@@ -85,7 +85,7 @@ Boss decks become playable in **VS Mode** once beaten (replay value + "play AS m
 |---|---|---|---|---|
 | The Sprinter | 1 | 2/1 | Fast | "Started running and simply did not stop." |
 | Goat Stampede | 4 | Trick | Deal 2 to all enemy critters | "You hear them before you see them." |
-| Nutmeg | 1 | Trick | Your attacks ignore Guard this turn | "Right between the legs. GOAL." |
+| Curveball | 1 | Trick | Your attacks ignore Guard this turn | "They swing. They miss. You're already past." |
 | Math Whiz | 2 | 1/3 | When played: draw a card | "Already calculated how this ends." |
 | Magic Vanish | 2 | Trick | Return an enemy critter to its owner's hand | "Nothing up my sleeve…" |
 | The Trickster | 3 | 3/3 | When played: draw a card | "Pulls one from his sleeve. Don't ask which sleeve." |
@@ -107,8 +107,8 @@ Boss decks become playable in **VS Mode** once beaten (replay value + "play AS m
 
 ### Preset decks (Coach's Picks — one-tap good decks, freeform builder for when he's ready)
 - **Farm Friends** (post-Aaron): go-wide farm core — Barn Cat ×2, Billy ×2, Shep, Mama Hen ×2, Prize Pig, Rusty, Aaron Lil Tornado, Goat Stampede, Duck Duck GOOSE!
-- **Speed Demons** (post-Brody): Sprinter ×2, Barn Cat ×2, Striker ×2, Billy ×2, Uncle Brody, Nutmeg, Slide Tackle, Blessing
-- **Magic Show** (post-Brody): Math Whiz ×2, Trickster ×2, Magic Vanish ×2, Nutmeg, Slide Tackle, Shep ×2, Mom, Prize Pig
+- **Speed Demons** (post-Brody): Sprinter ×2, Barn Cat ×2, Striker ×2, Billy ×2, Uncle Brody, Curveball, Slide Tackle, Goat Stampede
+- **Magic Show** (post-Brody): Trickster ×2, Magic Vanish, Slide Tackle ×2, Barn Cat ×2, Billy ×2, Striker ×2, Uncle Brody
 - **Big Barn Energy** (post-Flaj): Prize Pig ×2, Grampa Flaj, The One Llama, Mama Hen ×2, Shep ×2, Billy ×2, Blessing, Slide Tackle
 
 ## Readability layer (playtest rounds 1–2, Jun 10–11)
