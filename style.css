@@ -220,6 +220,7 @@ button:disabled { opacity: .45; pointer-events: none; }
 .showcard .handcard .stats { font-size: 19px; }
 .showcard .handcard .cost { width: 36px; height: 36px; font-size: 19px; }
 .showcard .tapnote { position: absolute; bottom: 12dvh; left: 0; right: 0; text-align: center; color: var(--cream); font-weight: 600; font-size: 15px; text-shadow: 0 2px 4px rgba(0,0,0,.5); animation: pulse 1.4s infinite; }
+.showcard-banner { position: absolute; top: 11dvh; left: 50%; transform: translateX(-50%); background: var(--barn); color: var(--cream); border: 3px solid var(--ink); border-radius: 999px; padding: 8px 22px; font-weight: 700; font-size: 18px; box-shadow: var(--shadow); white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; animation: coachin .25s ease; }
 @keyframes showcardpop { 0% { transform: scale(.4) rotate(-6deg); opacity: 0; } 70% { transform: scale(1.06) rotate(1deg); } 100% { transform: scale(1); opacity: 1; } }
 
 /* live side-log — landscape/wide only, toggled by 📜; sits in the right margin beside the column */
@@ -303,6 +304,10 @@ button:disabled { opacity: .45; pointer-events: none; }
 .reveal-card .cnm { font-weight: 700; font-size: 16px; margin-top: 10px; text-align: center; line-height: 1.15; }
 .reveal-card .ctx { font-size: 11px; text-align: center; opacity: .85; margin-top: 6px; line-height: 1.3; word-wrap: break-word; max-width: 100%; }
 .reveal-card .stats { display: flex; justify-content: space-between; width: 100%; margin-top: 12px; font-size: 19px; font-weight: 700; padding: 0 4px; }
+
+/* enrage flash — the final boss's phase-2 power-up moment */
+.enrage-flash { position: fixed; inset: 0; z-index: 85; pointer-events: none; background: radial-gradient(circle at 50% 45%, rgba(229,57,53,0) 30%, rgba(180,20,20,.6) 100%); animation: enrageflash .75s ease-out forwards; }
+@keyframes enrageflash { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; } }
 
 /* confetti */
 .confetto { position: fixed; width: 10px; height: 14px; top: -20px; z-index: 90; pointer-events: none; animation: confall linear forwards; }

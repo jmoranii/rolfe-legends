@@ -17,8 +17,8 @@ function rnd() {
 
 const KID = { aggression: 0.55, tradeCare: 0.6, healAt: 10, smart: 0, curve: 'mid' }; // a decent, learning player
 
-function playGame(deckA, deckB, personaA, personaB, hpA, hpB, seed) {
-  let s = newGame({ deckA, deckB, heroA: { name: 'A', emoji: 'a', hp: hpA }, heroB: { name: 'B', emoji: 'b', hp: hpB }, seed });
+function playGame(deckA, deckB, personaA, personaB, hpA, hpB, seed, bExtra = {}) {
+  let s = newGame({ deckA, deckB, heroA: { name: 'A', emoji: 'a', hp: hpA }, heroB: { name: 'B', emoji: 'b', hp: hpB, enrage: bExtra.enrage, extraDraw: bExtra.extraDraw }, seed });
   let steps = 0, recycles = 0;
   while (!s.over && steps < 3000) {
     const persona = s.active === 0 ? personaA : personaB;
@@ -73,7 +73,7 @@ const curve = [];
 for (const boss of BOSSES) {
   let wins = 0, totalRounds = 0, totalRecycles = 0;
   for (let i = 0; i < N; i++) {
-    const r = playGame(KID_DECKS[boss.id], boss.deck, KID, boss.persona, WYATT.hp, boss.hp, 5000 + i * 7);
+    const r = playGame(KID_DECKS[boss.id], boss.deck, KID, boss.persona, WYATT.hp, boss.hp, 5000 + i * 7, { enrage: boss.enrage, extraDraw: boss.extraDraw });
     if (r.winner === 0) wins++;
     totalRounds += r.rounds;
     totalRecycles += r.recycles;

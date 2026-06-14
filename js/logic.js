@@ -62,7 +62,7 @@ export function newGame({ deckA, deckB, heroA, heroB, seed = 42, first = 0 }) {
 
 function mkPlayer(hero, deck) {
   return {
-    hero: { name: hero.name, emoji: hero.emoji, hp: hero.hp, maxHp: hero.hp },
+    hero: { name: hero.name, emoji: hero.emoji, hp: hero.hp, maxHp: hero.hp, enrage: hero.enrage || null, enraged: false, extraDraw: hero.extraDraw || 0 },
     deck: [...deck], hand: [], board: [], discard: [],
     energy: 0, turnsTaken: 0, flags: { tempAtk: 0, ignoreGuard: false },
   };
@@ -106,7 +106,7 @@ function startTurn(state, events) {
     damageHero(state, p, n, events);
     if (state.over) return;
   }
-  drawN(state, p, 1, events);
+  drawN(state, p, 1 + (pl.hero.extraDraw || 0), events); // final boss draws extra (card advantage)
   // start-of-turn triggers (e.g., Piano Maestro)
   for (const c of [...pl.board]) {
     const d = cardDef(c.cardId);
@@ -128,6 +128,14 @@ function damageHero(state, p, n, events) {
   if (h.hp <= 0 && !state.over) {
     state.over = true; state.winner = 1 - p;
     events.push({ t: 'win', p: 1 - p });
+    return;
+  }
+  // ENRAGE (final boss): the first time this hero drops to/below the threshold, her whole board
+  // powers up and every critter she plays afterward comes in bigger. A one-time phase-2 spike.
+  if (h.enrage && !h.enraged && h.hp <= h.enrage.at) {
+    h.enraged = true;
+    for (const c of state.players[p].board) { c.atk += h.enrage.a; c.hp += h.enrage.h; }
+    events.push({ t: 'enrage', p, a: h.enrage.a, h: h.enrage.h, name: h.name });
   }
 }
 
@@ -339,6 +347,7 @@ export function act(stateIn, action) {
     if (d.type === 'critter') {
       const inst = makeInst(state, cardId);
       if (d.fast) { inst.sick = false; inst.canAttack = true; }
+      if (pl.hero.enraged) { inst.atk += pl.hero.enrage.a; inst.hp += pl.hero.enrage.h; } // enraged boss plays bigger critters
       pl.board.push(inst);
       state.lastPlayedIid = inst.iid;
       events.push({ t: 'play', p, cardId, iid: inst.iid });

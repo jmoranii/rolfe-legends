@@ -30,7 +30,7 @@ def({ id: 'blessing',     name: 'Blessing',          type: 'trick',   cost: 1, f
 // ---- Wyatt's pool: unlockables --------------------------------------------
 def({ id: 'sprinter',      name: 'The Sprinter',   type: 'critter', cost: 1, atk: 2, hp: 1, fast: true, emoji: '🏃', flavor: 'Started running and simply did not stop.' });
 def({ id: 'goat_stampede', name: 'Goat Stampede',  type: 'trick',   cost: 4, fx: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '🐐', flavor: 'You hear them before you see them.' });
-def({ id: 'nutmeg',        name: 'Nutmeg',         type: 'trick',   cost: 1, fx: { kind: 'ignoreGuard' }, emoji: '🥎', flavor: 'Right between the legs. GOAL.' });
+def({ id: 'nutmeg',        name: 'Curveball',      type: 'trick',   cost: 1, fx: { kind: 'ignoreGuard' }, emoji: '⚾', flavor: 'They swing. They miss. You\'re already past.' });
 def({ id: 'math_whiz',     name: 'Math Whiz',      type: 'critter', cost: 2, atk: 2, hp: 3, bc: { kind: 'draw', n: 1 }, emoji: '🧮', flavor: 'Already calculated how this ends.' });
 def({ id: 'magic_vanish',  name: 'Magic Vanish',   type: 'trick',   cost: 2, fx: { kind: 'bounce', target: 'pick-critter-enemy' }, emoji: '🎩', flavor: 'Nothing up my sleeve…' });
 def({ id: 'trickster',     name: 'The Trickster',  type: 'critter', cost: 3, atk: 3, hp: 3, bc: { kind: 'draw', n: 1 }, emoji: '🪄', flavor: "Pulls one from his sleeve. Don't ask which sleeve." });
@@ -41,10 +41,10 @@ def({ id: 'dog_man',       name: 'Dog Man',        type: 'critter', cost: 5, atk
 // ---- Boss signature cards (Legendary, won on victory) ----------------------
 def({ id: 'sig_rusty',   name: 'Rusty',             type: 'critter', cost: 2, atk: 2, hp: 3, legendary: true, guard: true, emoji: '🐕', flavor: 'Good boy. GREAT boy.' });
 def({ id: 'sig_aaron',   name: 'Aaron, Lil Tornado',type: 'critter', cost: 2, atk: 2, hp: 2, legendary: true, bc: { kind: 'summon', token: 'duckling', count: 1 }, emoji: '🌪️', flavor: 'Has never once sat still.' });
-def({ id: 'sig_jacob',   name: 'Dad',               type: 'critter', cost: 3, atk: 2, hp: 4, legendary: true, guard: true, bc: { kind: 'buff', a: 1, h: 1, target: 'pick-ally-other' }, emoji: '🧑‍🌾', flavor: 'Can fix anything with zip ties.' });
+def({ id: 'sig_jacob',   name: 'Dad',               type: 'critter', cost: 3, atk: 2, hp: 4, legendary: true, guard: true, bc: { kind: 'buff', a: 2, h: 2, target: 'random-ally' }, emoji: '🧑‍🌾', flavor: 'Can fix anything with zip ties.' });
 def({ id: 'sig_tory',    name: 'Mom',               type: 'critter', cost: 4, atk: 3, hp: 4, legendary: true, aura: { a: 1 }, emoji: '👩‍🌾', flavor: "Says 'be careful!' Makes you stronger anyway." });
 def({ id: 'sig_brody',   name: 'Uncle Brody',       type: 'critter', cost: 4, atk: 5, hp: 2, legendary: true, fast: true, emoji: '🤠', flavor: 'REAL TALK.' });
-def({ id: 'sig_chelsea', name: 'Aunt Chelsea',      type: 'critter', cost: 3, atk: 2, hp: 3, legendary: true, bc: { kind: 'heal', n: 4, target: 'self-hero' }, emoji: '🤗', flavor: 'Hugs that heal.' });
+def({ id: 'sig_chelsea', name: 'Aunt Chelsea',      type: 'critter', cost: 3, atk: 2, hp: 3, legendary: true, bc: { kind: 'heal', n: 6, target: 'self-hero' }, emoji: '🤗', flavor: 'Hugs that heal.' });
 def({ id: 'sig_flaj',    name: 'Grampa Flaj',       type: 'critter', cost: 5, atk: 5, hp: 6, legendary: true, bc: { kind: 'buff', a: 0, h: 2, target: 'other-allies' }, emoji: '👴', flavor: 'Tough as old boots.' });
 def({ id: 'sig_rocky',   name: 'Grandma Rockie',     type: 'critter', cost: 5, atk: 4, hp: 5, legendary: true, bc: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '👵', flavor: 'Final boss energy. Bakes cookies.' });
 
@@ -74,7 +74,7 @@ def({ id: 'sunday_dinner', name: 'Sunday Dinner', type: 'trick',   cost: 4, fx: 
 def({ id: 'wild_card',    name: 'Wild Card',    type: 'critter', cost: 1, atk: 2, hp: 1, emoji: '🃏', flavor: 'Nobody knows. Not even him.' });
 def({ id: 'real_talk',    name: 'REAL TALK',    type: 'trick',   cost: 2, fx: { kind: 'damage', n: 3, target: 'any-enemy' }, emoji: '💥', flavor: 'Delivered at full volume.' });
 def({ id: 'rune_sword',   name: 'Rune Sword',   type: 'trick',   cost: 2, fx: { kind: 'buff', a: 2, h: 0, target: 'pick-ally' }, emoji: '⚔️', flavor: 'Earned through hard work. In a video game.' });
-def({ id: 'speed_demon',  name: 'Ruby',         type: 'critter', cost: 3, atk: 3, hp: 2, fast: true, emoji: '🐩', flavor: "Brody's goldendoodle. Zoomies at maximum volume." });
+def({ id: 'speed_demon',  name: 'Ruby',         type: 'critter', cost: 3, atk: 4, hp: 2, fast: true, emoji: '🐩', flavor: "Brody's goldendoodle. Zoomies at maximum volume." });
 def({ id: 'loud_music',   name: 'Loud Music',   type: 'trick',   cost: 3, fx: { kind: 'damage', n: 2, target: 'enemy-hero', draw: 1 }, emoji: '🔊', flavor: 'You feel it in your teeth.' });
 def({ id: 'big_rig',      name: 'Monster Truck', type: 'critter', cost: 4, atk: 4, hp: 3, fast: true, emoji: '🛻', flavor: 'Has never once parked between the lines.' });
 // Chelsea
@@ -132,12 +132,12 @@ export const BOSSES = [
     unlocks: { deckBuilder: true, presets: ['farm_friends'] },
   },
   {
-    id: 'jacob', name: 'Dad', title: 'The Wall', emoji: '🧑‍🌾', hp: 16,
+    id: 'jacob', name: 'Dad', title: 'The Wall', emoji: '🧑‍🌾', hp: 11,
     deck: ['fence', 'fence', 'shep', 'shep', 'barn_door', 'zip_ties', 'old_reliable', 'old_reliable', 'garden_helper', 'garden_helper', 'prize_pig', 'sig_jacob'],
     persona: { aggression: 0.35, tradeCare: 0.7, healAt: 0, smart: 0, curve: 'mid' },
     intro: 'Dad nods once, and builds a wall of fences, doors, and pure patience.',
-    tip: 'Your dad guards everything. Nutmeg slips right past Guards — very soccer, very sneaky.',
-    lossTip: 'You cannot punch through a Barn Door with ducklings. Go around Guards (Nutmeg!) or bring bigger critters.',
+    tip: 'Your dad guards everything. Curveball sneaks right past Guards — they never see it coming.',
+    lossTip: 'You cannot punch through a Barn Door with ducklings. Go around Guards (Curveball!) or bring bigger critters.',
     reward: ['sig_jacob', 'math_whiz'],
   },
   {
@@ -179,12 +179,14 @@ export const BOSSES = [
     unlocks: { presets: ['big_barn'] },
   },
   {
-    id: 'rocky', name: 'Grandma Rockie', title: 'The Legend', emoji: '👵', hp: 25,
-    deck: ['knitting_needles', 'knitting_needles', 'garden_gnome', 'garden_gnome', 'watch_dog', 'watch_dog', 'yarn_beast', 'yarn_beast', 'cookie_batch', 'rolling_pin', 'grand_finale', 'sig_rocky'],
-    persona: { aggression: 0.6, tradeCare: 0.9, healAt: 10, smart: 1, curve: 'mid' },
+    id: 'rocky', name: 'Grandma Rockie', title: 'The Legend', emoji: '👵', hp: 32,
+    deck: ['llama', 'sig_flaj', 'yarn_beast', 'yarn_beast', 'watch_dog', 'watch_dog', 'knitting_needles', 'knitting_needles', 'rolling_pin', 'cookie_batch', 'grand_finale', 'sig_rocky'],
+    persona: { aggression: 0.65, tradeCare: 0.9, healAt: 14, smart: 1, curve: 'mid' },
+    // ENRAGE phase: at half health she powers up — her whole board + every future critter gets +2/+2.
+    enrage: { at: 16, a: 2, h: 2 },
     intro: 'Grandma Rockie sets down her knitting. "Oh sweetheart. I INVENTED this game."',
-    tip: 'Grandma Rockie\'s seen every trick in this game — most of them are hers. Use EVERYTHING you\'ve learned.',
-    lossTip: 'She punishes greed. Don\'t overfill the field into her Rolling Pin — and whatever you do, do NOT ignore the little white dog.',
+    tip: 'Grandma Rockie\'s seen every trick in this game — most of them are hers. Use EVERYTHING you\'ve learned. And get her down FAST — when she\'s cornered, she gets scary.',
+    lossTip: 'She punishes greed (mind her Rolling Pin), never ignore the little white dog — and when she ENRAGES under 12 HP, you need to finish her quickly!',
     reward: ['sig_rocky'],
     unlocks: { crown: true, goldenBack: true },
   },

@@ -383,7 +383,7 @@ function startCampaignBattle(bossIdx) {
   const state = newGame({
     deckA: currentDeck().cards, deckB: boss.deck,
     heroA: { name: 'Wyatt', emoji: WYATT.emoji, hp: WYATT.hp },
-    heroB: { name: boss.name, emoji: boss.emoji, hp: boss.hp },
+    heroB: { name: boss.name, emoji: boss.emoji, hp: boss.hp, enrage: boss.enrage, extraDraw: boss.extraDraw },
     seed: (Date.now() & 0xffffff) ^ (bossIdx << 20),
   });
   B = { mode: 'campaign', bossIdx, boss, bgId: boss.id, state, sel: null, busy: false, names: {}, log: [], pnames: ['Wyatt', boss.name] };
@@ -452,13 +452,14 @@ function renderBattle() {
   // my board
   const mb = el('div', 'boardrow mine');
   mb.dataset.mine = '1';
-  // tap the field to drop a selected creature (the natural instinct), alongside tap-card-twice
+  // tap the field to play a selected card (the natural instinct), alongside tap-card-twice —
+  // works for creatures AND untargeted tricks (targeted tricks still need you to tap their target)
   mb.onclick = (e) => {
     if (e.target.closest('.critter')) return;          // a critter handles its own taps
     if (B.busy || B.state.active !== meIdx() || !(B.sel && B.sel.kind === 'hand')) return;
-    const idx = B.sel.idx, d = cardDef(B.state.players[meIdx()].hand[idx]);
+    const idx = B.sel.idx;
     const targets = playTargets(B.state, idx);
-    if (d.type === 'critter' && (!targets || !targets.length) && canPlay(B.state, idx)) {
+    if ((!targets || !targets.length) && canPlay(B.state, idx)) {
       B.sel = null; sfx.tap(); doAction({ type: 'play', hand: idx });
     }
   };
@@ -468,7 +469,7 @@ function renderBattle() {
     c.onclick = () => onMyCritterTap(inst.iid);
     mb.appendChild(c);
   }
-  if (!pm.board.length) mb.appendChild(el('div', '', '<span style="opacity:.4;font-size:13px">— tap here to place a critter —</span>'));
+  if (!pm.board.length) mb.appendChild(el('div', '', '<span style="opacity:.4;font-size:13px">— tap here to play a card —</span>'));
   s.appendChild(mb);
 
   // midbar: energy + end turn
@@ -750,6 +751,8 @@ const DUCKY = /duck|quack|goose|ddg/;
 // not-super-fast reader can actually read it. The game waits.
 function showCardPreview(cardId, onDone) {
   const wrap = el('div', 'showcard blocking');
+  const who = B.mode === 'campaign' ? B.boss.name : (B.pnames[foeIdx()] || 'Opponent');
+  wrap.appendChild(el('div', 'showcard-banner', `${who} played:`));
   wrap.appendChild(handCardEl(cardId));
   wrap.appendChild(el('div', 'tapnote', '👆 tap to continue'));
   let doneCalled = false;
@@ -797,6 +800,7 @@ function narrate(e) {
     case 'handFull': logLine(`✋ ${heroName(e.p)}'s hand is full — draw skipped`); break;
     case 'tempAtk': logLine(`📣 ${heroName(e.p)}'s critters get +${e.n} Attack this turn`); break;
     case 'ignoreGuard': logLine(`🥎 ${heroName(e.p)}'s attacks ignore Guard this turn`); break;
+    case 'enrage': logLine(`🔥 ${e.name} is ENRAGED! +${e.a}/+${e.h} to her critters!`); break;
     case 'win': logLine(`🏆 ${heroName(e.p)} WINS!`); break;
   }
   if (save.logOpen) renderSideLog(); // live-update the side panel as each action happens
@@ -889,6 +893,15 @@ function runEvents(events, done) {
       sfx.unlock();
       next(520); break;
     }
+    case 'enrage': {
+      toast(`🔥 ${e.name} is ENRAGED! +${e.a}/+${e.h} to all her critters!`);
+      sfx.fanfare();
+      const flash = el('div', 'enrage-flash');
+      document.body.appendChild(flash);
+      setTimeout(() => flash.remove(), 750);
+      renderBattle();
+      next(1200); break;
+    }
     case 'death': {
       sfx.death();
       const t = document.querySelector(`.critter[data-iid="${e.iid}"]`);
@@ -931,11 +944,16 @@ function endOfBattle() {
   }
   if (!won) {
     sfx.lose();
-    const b = B.boss;
-    panelScreen(`${b.name} wins this one…`, '😮', `<i>"${b.lossTip}"</i><br><span style="font-size:12px;opacity:.7">— Coach James</span>`, [
-      ['🔁 REMATCH!', () => startCampaignBattle(B.bossIdx)],
-      ['← Map', () => (save.progress === 0 ? titleScreen() : mapScreen())],
-    ]);
+    const b = B.boss, bossIdx = B.bossIdx;
+    const canBuild = deckBuilderUnlocked(save.progress);
+    // once the deck builder is unlocked, Coach nudges toward building a counter-deck
+    const deckNudge = canBuild
+      ? `<br><br>💡 Stuck? Tap <b>🃏 My Decks</b> to build a stronger deck — or one made to counter ${b.name}!`
+      : '';
+    const buttons = [['🔁 REMATCH!', () => startCampaignBattle(bossIdx)]];
+    if (canBuild) buttons.push(['🃏 My Decks', () => builderScreen(() => prefightScreen(bossIdx))]);
+    buttons.push(['← Map', () => (save.progress === 0 ? titleScreen() : mapScreen())]);
+    panelScreen(`${b.name} wins this one…`, '😮', `<i>"${b.lossTip}"</i><br><span style="font-size:12px;opacity:.7">— Coach James</span>${deckNudge}`, buttons);
     return;
   }
   // victory!
