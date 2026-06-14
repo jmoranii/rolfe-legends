@@ -236,6 +236,10 @@ button:disabled { opacity: .45; pointer-events: none; }
 .log-side-list .logline:first-child { animation: logflash 1s ease; border-radius: 5px; } /* newest line flashes as it arrives */
 @keyframes logflash { 0% { background: rgba(241,196,15,.55); } 100% { background: transparent; } }
 .logbtn.on { background: var(--gold); outline: 2px solid var(--ink); }
+/* round Coach James button — tap for the current boss's strategy tip */
+.coachbtn { padding: 0; width: 34px; height: 34px; border-radius: 50%; overflow: hidden; background: var(--sky); }
+.coachbtn .face { width: 100%; height: 100%; font-size: 18px; display: grid; place-items: center; }
+.coachbtn .face img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
 /* battle log (modal) */
 .logpanel { text-align: left; }

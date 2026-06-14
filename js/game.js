@@ -216,9 +216,9 @@ function tipOnce(key, text, onShow) {
   if (onShow) onShow();
   return true; // signals "a tip was shown this turn" to the one-per-turn gate
 }
-// draw the eye to the 📜 log button when the log tip fires
-function pulseLogBtn() {
-  const btn = document.querySelector('.logbtn');
+// draw the eye to a battle button when its tutorial tip fires
+function pulseBtn(sel) {
+  const btn = document.querySelector(sel);
   if (!btn) return;
   btn.classList.add('pulse-hint');
   setTimeout(() => btn.classList.remove('pulse-hint'), 8000);
@@ -532,6 +532,15 @@ function renderBattle() {
     else showLogOverlay();
   };
   app.appendChild(logBtn);
+  // Coach James button (campaign) — re-shows this boss's strategy tip on tap, so the pre-fight
+  // hint isn't a one-time flash you forget mid-battle.
+  if (B.mode === 'campaign') {
+    const coachBtn = el('button', 'quiet coachbtn');
+    coachBtn.style.cssText = 'position:absolute;top:6px;left:96px;z-index:10;';
+    coachBtn.appendChild(artImg('assets/ui/portrait_coach.png', '🧢', 'face'));
+    coachBtn.onclick = () => { sfx.tap(); coachSay(`<b>vs ${B.boss.name}:</b> ${B.boss.tip}`, true); };
+    app.appendChild(coachBtn);
+  }
   app.appendChild(s);
   applySelectionHighlights();
   renderSideLog();
@@ -727,7 +736,8 @@ function playerTurnBegins() {
     if (state.players.some(p2 => p2.board.some(c => c.guard)) || pl.hand.some(c => cardDef(c).guard)) {
       once('t_guard', '🛡️ <b>Guard</b> critters protect their whole team — enemies MUST attack them first. Put one in front of your squishy friends!');
     }
-    once('t_log', '📜 See the <b>scroll button</b> in the top-left? Tap it anytime to read everything that\'s happened — every card, attack, and ouch!', pulseLogBtn);
+    once('t_log', '📜 See the <b>scroll button</b> in the top-left? Tap it anytime to read everything that\'s happened — every card, attack, and ouch!', () => pulseBtn('.logbtn'));
+    once('t_coachbtn', 'Forgot the plan? 🧢 Tap <b>Coach James</b> (top-left) anytime for a reminder on who you\'re fighting and how to beat them!', () => pulseBtn('.coachbtn'));
     if (pl.hand.some(c => cardDef(c).type === 'trick')) once('t_trick', '✨ <b>Tricks</b> are one-time magic — play one and it happens right away!');
   }
   if (B.bossIdx === 1 && pl.hand.includes('ddg')) once('t_aoe', '<b>Duck, Duck, GOOSE!</b> hits ALL of Aaron\'s critters at once. Best when his field is crowded!');
