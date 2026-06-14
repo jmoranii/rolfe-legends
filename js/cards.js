@@ -39,8 +39,8 @@ def({ id: 'llama',         name: 'Goldie',         type: 'critter', cost: 5, atk
 def({ id: 'dog_man',       name: 'Dog Man',        type: 'critter', cost: 5, atk: 7, hp: 7, legendary: true, secret: true, guard: true, fast: true, bc: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '🦸', flavor: 'Part dog. Part man. All hero.' });
 
 // ---- Boss signature cards (Legendary, won on victory) ----------------------
-def({ id: 'sig_rusty',   name: 'Rusty',             type: 'critter', cost: 2, atk: 2, hp: 3, legendary: true, guard: true, emoji: '🐕', flavor: 'Good boy. GREAT boy.' });
-def({ id: 'sig_aaron',   name: 'Aaron, Lil Tornado',type: 'critter', cost: 2, atk: 2, hp: 2, legendary: true, bc: { kind: 'summon', token: 'duckling', count: 1 }, emoji: '🌪️', flavor: 'Has never once sat still.' });
+def({ id: 'sig_rusty',   name: 'Rusty',             type: 'critter', cost: 2, atk: 2, hp: 4, legendary: true, guard: true, emoji: '🐕', flavor: 'Good boy. GREAT boy.' });
+def({ id: 'sig_aaron',   name: 'Aaron, Lil Tornado',type: 'critter', cost: 2, atk: 2, hp: 2, legendary: true, bc: { kind: 'summon', token: 'duckling', count: 2 }, emoji: '🌪️', flavor: 'Has never once sat still.' });
 def({ id: 'sig_jacob',   name: 'Dad',               type: 'critter', cost: 3, atk: 2, hp: 4, legendary: true, guard: true, bc: { kind: 'buff', a: 2, h: 2, target: 'random-ally' }, emoji: '🧑‍🌾', flavor: 'Can fix anything with zip ties.' });
 def({ id: 'sig_tory',    name: 'Mom',               type: 'critter', cost: 4, atk: 3, hp: 4, legendary: true, aura: { a: 1 }, emoji: '👩‍🌾', flavor: "Says 'be careful!' Makes you stronger anyway." });
 def({ id: 'sig_brody',   name: 'Uncle Brody',       type: 'critter', cost: 4, atk: 5, hp: 2, legendary: true, fast: true, emoji: '🤠', flavor: 'REAL TALK.' });
@@ -164,8 +164,8 @@ export const BOSSES = [
     deck: ['tea_time', 'cozy_blanket', 'cozy_blanket', 'gentle_goat', 'gentle_goat', 'time_out', 'time_out', 'guard_cat', 'guard_cat', 'big_hug', 'big_hug', 'sig_chelsea'],
     persona: { aggression: 0.3, tradeCare: 0.8, healAt: 14, smart: 0, curve: 'mid' },
     intro: 'Aunt Chelsea has tea, blankets, and all the time in the world.',
-    tip: 'Chelsea heals everything. Little pokes won\'t cut it — save up for one BIG turn.',
-    lossTip: 'Chip damage gets healed right back. Build a big field first, then hit her with everything at once.',
+    tip: 'Aunt Chelsea heals back up every turn. Make sure you can deal <b>consistent damage</b> — keep critters on the field so you out-pace her healing!',
+    lossTip: 'She heals every turn, so chip damage gets undone. Build a steady board that deals damage every single turn and never let up.',
     reward: ['sig_chelsea', 'maestro', 'llama'],
   },
   {
@@ -202,7 +202,7 @@ export const PRESETS = {
     blurb: 'Go wide. The farm fights together.' },
   speed_demons: {
     id: 'speed_demons', name: 'Speed Demons', emoji: '⚡',
-    cards: ['sprinter', 'sprinter', 'barn_cat', 'barn_cat', 'striker', 'striker', 'billy_goat', 'billy_goat', 'sig_brody', 'nutmeg', 'slide_tackle', 'blessing'],
+    cards: ['sprinter', 'sprinter', 'barn_cat', 'barn_cat', 'striker', 'striker', 'billy_goat', 'billy_goat', 'sig_brody', 'nutmeg', 'slide_tackle', 'goat_stampede'],
     blurb: 'Hit first. Hit fast. Win before they wake up.' },
   magic_show: {
     id: 'magic_show', name: 'Magic Show', emoji: '🎩',
@@ -256,7 +256,7 @@ export function validateDeck(cardIds, owned) {
     if (!c) return `Unknown card: ${id}`;
     if (owned && !owned.has(id)) return `${c.name} isn't in your collection yet.`;
     counts[id] = (counts[id] || 0) + 1;
-    const max = c.legendary ? 1 : 3; // up to 3 copies of a normal card, 1 of a Legend
+    const max = c.legendary ? 1 : 2; // up to 2 copies of a normal card, 1 of a Legend
     if (counts[id] > max) return `Max ${max} cop${max === 1 ? 'y' : 'ies'} of ${c.name}.`;
   }
   return null; // valid

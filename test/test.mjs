@@ -56,8 +56,8 @@ console.log('— data integrity —');
     ok(presetsFor(gate).includes(pid), `preset ${pid} unlocked at ${gate}`);
   }
   ok(validateDeck(['barn_cat'], collectionFor(0)) !== null, 'rejects short deck');
-  ok(validateDeck(['barn_cat', 'barn_cat', 'barn_cat', 'billy_goat', 'billy_goat', 'shep', 'striker', 'striker', 'mama_hen', 'prize_pig', 'slide_tackle', 'ddg'], collectionFor(0)) === null, 'allows 3 copies of a normal card');
-  ok(validateDeck(['barn_cat', 'barn_cat', 'barn_cat', 'barn_cat', 'billy_goat', 'billy_goat', 'shep', 'striker', 'striker', 'mama_hen', 'prize_pig', 'ddg'], collectionFor(0)) !== null, 'rejects 4 copies of a normal card');
+  ok(validateDeck(['barn_cat', 'barn_cat', 'billy_goat', 'billy_goat', 'shep', 'striker', 'striker', 'mama_hen', 'prize_pig', 'slide_tackle', 'ddg', 'blessing'], collectionFor(0)) === null, 'allows 2 copies of a normal card');
+  ok(validateDeck(['barn_cat', 'barn_cat', 'barn_cat', 'billy_goat', 'billy_goat', 'shep', 'striker', 'striker', 'mama_hen', 'prize_pig', 'ddg', 'blessing'], collectionFor(0)) !== null, 'rejects 3 copies of a normal card');
   ok(validateDeck(['llama', 'llama', ...STARTER_DECK.slice(0, 10)], collectionFor(8)) !== null, 'rejects 2x legendary');
   ok(validateDeck([...STARTER_DECK.slice(0, 11), 'llama'], collectionFor(0)) !== null, 'rejects unowned card');
   // flexible deck sizes 12–24
@@ -207,10 +207,10 @@ console.log('— card effects —');
   eq(r.players[1].board[0].hp, 2, 'rocky battlecry damages the pig');
 }
 {
-  // aaron summons duckling
+  // aaron summons TWO ducklings
   let s = rig({ aHand: ['sig_aaron'] });
   const r = act(s, { type: 'play', hand: 0 }).state;
-  ok(r.players[0].board.some(c => c.cardId === 'duckling'), 'aaron summons duckling');
+  eq(r.players[0].board.filter(c => c.cardId === 'duckling').length, 2, 'aaron summons 2 ducklings');
 }
 {
   // jacob (Dad) buffs a RANDOM ally +2/+2 on play

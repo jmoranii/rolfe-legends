@@ -137,6 +137,8 @@ button:disabled { opacity: .45; pointer-events: none; }
 .battle.has-bg .boardrow > div:not(.critter) span { color: rgba(253, 246, 227, 0.6); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
 .hero-bar { display: flex; align-items: center; gap: 10px; background: var(--cream); border: 3px solid var(--ink); border-radius: 14px; padding: 6px 12px; box-shadow: var(--shadow); }
 .hero-bar .face { font-size: 30px; }
+.hero-bar .face.enraged-face { box-shadow: 0 0 0 2px #e53935, 0 0 12px 3px rgba(229,57,53,.85); animation: enragepulse 1s ease-in-out infinite; }
+@keyframes enragepulse { 0%,100% { box-shadow: 0 0 0 2px #e53935, 0 0 10px 2px rgba(229,57,53,.7); } 50% { box-shadow: 0 0 0 2px #ff7043, 0 0 16px 5px rgba(255,87,34,.95); } }
 .hero-bar .nm { font-weight: 700; font-size: 16px; flex: 1; line-height: 1.1; }
 .hero-bar .nm .sub { display: block; font-size: 11px; font-weight: 500; opacity: .7; }
 .hero-bar .hp { font-weight: 700; font-size: 20px; color: var(--barn); white-space: nowrap; }
