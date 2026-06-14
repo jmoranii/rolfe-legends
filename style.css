@@ -325,7 +325,9 @@ button:disabled { opacity: .45; pointer-events: none; }
 .presetrow { display: flex; gap: 8px; overflow-x: auto; padding: 6px 2px; width: 100%; }
 .presetrow .preset { flex-shrink: 0; background: var(--cream); border: 3px solid var(--ink); border-radius: 12px; padding: 8px 12px; cursor: pointer; box-shadow: var(--shadow); text-align: center; }
 .presetrow .preset .pe { font-size: 24px; } .presetrow .preset .pn { font-size: 12px; font-weight: 700; }
-.presetrow .preset.active { outline: 3px solid var(--gold); }
+/* active deck: gold border + warm fill (both interior to the chip, so the scroll container's
+   overflow never clips them) + a gold ring. Reads clearly as "this is the deck you're on." */
+.presetrow .preset.active { border-color: var(--gold); background: #fff3cf; box-shadow: 0 0 0 2px var(--gold), var(--shadow); }
 
 /* vs setup */
 .vs-pick { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 380px; }

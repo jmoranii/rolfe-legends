@@ -421,9 +421,12 @@ function renderBattle() {
   // foe hero bar + their hand as backs
   const fbar = el('div', 'hero-bar foe');
   fbar.dataset.hero = foe;
-  // boss avatar — swaps to a fiery ENRAGED portrait once the boss has enraged (Grandma Rockie)
-  const bossArt = pf.hero.enraged ? `assets/cards/sig_${B.boss.id}_enraged.png` : `assets/cards/sig_${B.boss.id}.png`;
-  const foeFace = B.mode === 'campaign' ? artImg(bossArt, pf.hero.emoji, 'face') : el('div', 'face', pf.hero.emoji);
+  // boss avatar — swaps to a fiery ENRAGED portrait once the boss has enraged (Grandma Rockie).
+  // NB: B.boss only exists in campaign mode — keep the deref inside the campaign branch or couch
+  // battle (VS mode, no boss) throws here and the battle screen never renders.
+  const foeFace = B.mode === 'campaign'
+    ? artImg(pf.hero.enraged ? `assets/cards/sig_${B.boss.id}_enraged.png` : `assets/cards/sig_${B.boss.id}.png`, pf.hero.emoji, 'face')
+    : el('div', 'face', pf.hero.emoji);
   if (pf.hero.enraged) foeFace.classList.add('enraged-face');
   fbar.appendChild(foeFace);
   const fnm = el('div', 'nm', `${pf.hero.name}${B.mode === 'campaign' ? `<span class="sub">${pf.hero.enraged ? '🔥 ENRAGED' : B.boss.title}</span>` : ''}`);
@@ -1082,10 +1085,12 @@ function builderScreen(onDone) {
   const w = el('div', 'builder');
   w.appendChild(el('h2', '', '🃏 Your Cards'));
 
-  // preset row
+  // preset row — chips for each available deck. The .active highlight is (re)applied in render(),
+  // not just at creation, so selecting a deck lights up its chip (not only swaps the card grid).
   const pr = el('div', 'presetrow');
+  const presetEls = [];
   for (const dk of availableDecks()) {
-    const pe = el('div', 'preset' + (save.deckId === dk.id ? ' active' : ''));
+    const pe = el('div', 'preset');
     pe.appendChild(el('div', 'pe', dk.emoji));
     pe.appendChild(el('div', 'pn', dk.name));
     const ps = deckStats(dk.cards);
@@ -1097,6 +1102,7 @@ function builderScreen(onDone) {
       render();
       toast(`Using: ${dk.name}` + (PRESETS[dk.id] ? ` — "${PRESETS[dk.id].blurb}"` : ''));
     };
+    presetEls.push({ el: pe, id: dk.id });
     pr.appendChild(pe);
   }
   w.appendChild(pr);
@@ -1108,6 +1114,8 @@ function builderScreen(onDone) {
   w.appendChild(grid);
 
   function render() {
+    // keep the preset-row highlight in sync with the active deck (the chip lights up, not just the grid)
+    for (const pe of presetEls) pe.el.classList.toggle('active', save.deckId === pe.id);
     // meta: count + live scorecard + buttons
     meta.innerHTML = '';
     const okSize = working.length >= DECK_MIN && working.length <= DECK_MAX;
