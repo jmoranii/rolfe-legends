@@ -11,6 +11,7 @@
 export const TOKENS = {
   chick:    { id: 'chick',    name: 'Chick',    type: 'critter', cost: 0, atk: 1, hp: 1, emoji: '🐤', flavor: 'Cheep cheep.', token: true },
   duckling: { id: 'duckling', name: 'Duckling', type: 'critter', cost: 0, atk: 1, hp: 1, emoji: '🐥', flavor: 'Follows you everywhere.', token: true },
+  guard_dog:{ id: 'guard_dog',name: 'Guard Dog',type: 'critter', cost: 0, atk: 3, hp: 3, guard: true, emoji: '🦮', flavor: 'Grandma whistled. You are in trouble.', token: true },
 };
 
 const C = {}; // all card defs by id
@@ -182,11 +183,13 @@ export const BOSSES = [
     id: 'rocky', name: 'Grandma Rockie', title: 'The Legend', emoji: '👵', hp: 32,
     deck: ['llama', 'sig_flaj', 'yarn_beast', 'yarn_beast', 'watch_dog', 'watch_dog', 'knitting_needles', 'knitting_needles', 'rolling_pin', 'cookie_batch', 'grand_finale', 'sig_rocky'],
     persona: { aggression: 0.65, tradeCare: 0.9, healAt: 14, smart: 1, curve: 'mid' },
-    // ENRAGE phase: at half health she powers up — her whole board + every future critter gets +2/+2.
-    enrage: { at: 16, a: 2, h: 2 },
+    // ENRAGE phase: at half health, a ONE-TIME burst — she summons a guard dog onto the field and
+    // buffs her whole board +1/+1. Works even from an empty field (the summon always lands), so it
+    // never whiffs when you're ahead on board. No heal, no permanent buff — a single hard wall.
+    enrage: { at: 16, summon: 1, token: 'guard_dog', a: 1, h: 1 },
     intro: 'Grandma Rockie sets down her knitting. "Oh sweetheart. I INVENTED this game."',
     tip: 'Grandma Rockie\'s seen every trick in this game — most of them are hers. Use EVERYTHING you\'ve learned. And get her down FAST — when she\'s cornered, she gets scary.',
-    lossTip: 'She punishes greed (mind her Rolling Pin), never ignore the little white dog — and when she ENRAGES under 12 HP, you need to finish her quickly!',
+    lossTip: 'She punishes greed (mind her Rolling Pin), never ignore the little white dog — and when she ENRAGES at half health, she calls in a guard dog and rallies her whole board. Be ready to push through it!',
     reward: ['sig_rocky'],
     unlocks: { crown: true, goldenBack: true },
   },

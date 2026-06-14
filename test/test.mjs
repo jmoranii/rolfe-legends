@@ -349,10 +349,10 @@ console.log('— recycle (discard pile) —');
   ok(r.events.some(e => e.t === 'deckEmpty'), 'deckEmpty when truly out');
 }
 
-console.log('— enrage (final boss phase 2) —');
+console.log('— enrage (final boss phase 2: one-time summon + buff) —');
 {
-  // existing board powers up when the boss drops to/below the threshold
-  let s = newGame({ deckA: ['barn_cat'], deckB: ['lil_goat'], heroA: HERO, heroB: { name: 'R', emoji: 'r', hp: 14, enrage: { at: 12, a: 3, h: 3 } }, seed: 3 });
+  // dropping below threshold: summon reinforcements + buff the whole board (existing + summons), once
+  let s = newGame({ deckA: ['barn_cat'], deckB: ['lil_goat'], heroA: HERO, heroB: { name: 'R', emoji: 'r', hp: 14, enrage: { at: 12, summon: 2, token: 'guard_dog', a: 2, h: 2 } }, seed: 3 });
   s = structuredClone(s); delete s.bootEvents;
   s.players[1].board = [{ iid: ++s.nextIid, cardId: 'lil_goat', atk: 2, hp: 2, sick: false, guard: false, fast: false, canAttack: true }];
   s.players[0].board = [{ iid: ++s.nextIid, cardId: 'prize_bull', atk: 5, hp: 4, sick: false, guard: false, fast: false, canAttack: true }];
@@ -360,19 +360,25 @@ console.log('— enrage (final boss phase 2) —');
   const r = act(s, { type: 'attack', iid: s.players[0].board[0].iid, target: { kind: 'hero', p: 1 } }); // 14 - 5 = 9 ≤ 12
   ok(r.events.some(e => e.t === 'enrage'), 'enrage fires when boss drops below threshold');
   ok(r.state.players[1].hero.enraged, 'enraged flag set');
-  eq([r.state.players[1].board[0].atk, r.state.players[1].board[0].hp], [5, 5], 'enrage buffs existing board +3/+3 (lil_goat 2/2→5/5)');
-  // does NOT re-fire on further damage
-  let s2 = structuredClone(r.state); s2.active = 0; s2.players[0].board = [{ iid: ++s2.nextIid, cardId: 'barn_cat', atk: 2, hp: 1, sick: false, guard: false, fast: false, canAttack: true }];
-  const r2 = act(s2, { type: 'attack', iid: s2.players[0].board[0].iid, target: { kind: 'hero', p: 1 } });
-  ok(!r2.events.some(e => e.t === 'enrage'), 'enrage fires only once');
+  eq(r.state.players[1].board.length, 3, 'enrage summons 2 guard dogs (1 existing + 2 = 3)');
+  const dogs = r.state.players[1].board.filter(c => c.cardId === 'guard_dog');
+  eq([dogs.length, dogs[0].atk, dogs[0].hp], [2, 5, 5], 'summoned guard dogs buffed (3/3 + 2/2 = 5/5)');
+  const goat = r.state.players[1].board.find(c => c.cardId === 'lil_goat');
+  eq([goat.atk, goat.hp], [4, 4], 'existing board buffed too (lil_goat 2/2→4/4)');
 }
 {
-  // enraged boss plays critters bigger
-  let s = newGame({ deckA: ['barn_cat'], deckB: ['big_duck'], heroA: HERO, heroB: { name: 'R', emoji: 'r', hp: 9, enrage: { at: 12, a: 3, h: 3 } }, seed: 1 });
+  // lands even from an EMPTY board (the whole point) — and only fires once
+  let s = newGame({ deckA: ['barn_cat'], deckB: ['lil_goat'], heroA: HERO, heroB: { name: 'R', emoji: 'r', hp: 14, enrage: { at: 12, summon: 2, token: 'guard_dog', a: 2, h: 2 } }, seed: 4 });
   s = structuredClone(s); delete s.bootEvents;
-  s.players[1].hero.enraged = true; s.players[1].hand = ['big_duck']; s.players[1].energy = 5; s.players[1].board = []; s.active = 1;
-  const r = act(s, { type: 'play', hand: 0 }).state;
-  eq([r.players[1].board[0].atk, r.players[1].board[0].hp], [6, 6], 'enraged hero plays critters at +3/+3 (big_duck 3/3→6/6)');
+  s.players[0].board = [{ iid: ++s.nextIid, cardId: 'prize_bull', atk: 5, hp: 4, sick: false, guard: false, fast: false, canAttack: true }];
+  s.players[1].board = []; s.active = 0;
+  const r = act(s, { type: 'attack', iid: s.players[0].board[0].iid, target: { kind: 'hero', p: 1 } });
+  eq(r.state.players[1].board.length, 2, 'enrage from empty board still summons 2 guard dogs');
+  // does NOT re-fire (clear the summoned guards so the hero is hittable again)
+  let s2 = structuredClone(r.state); s2.players[1].board = []; s2.active = 0;
+  s2.players[0].board = [{ iid: ++s2.nextIid, cardId: 'barn_cat', atk: 2, hp: 1, sick: false, guard: false, fast: false, canAttack: true }];
+  const r2 = act(s2, { type: 'attack', iid: s2.players[0].board[0].iid, target: { kind: 'hero', p: 1 } });
+  ok(!r2.events.some(e => e.t === 'enrage'), 'enrage fires only once');
 }
 {
   // a normal hero (no enrage config) never enrages

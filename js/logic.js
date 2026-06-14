@@ -130,12 +130,19 @@ function damageHero(state, p, n, events) {
     events.push({ t: 'win', p: 1 - p });
     return;
   }
-  // ENRAGE (final boss): the first time this hero drops to/below the threshold, her whole board
-  // powers up and every critter she plays afterward comes in bigger. A one-time phase-2 spike.
+  // ENRAGE (final boss): the first time this hero drops to/below the threshold, a ONE-TIME burst —
+  // summon reinforcement critters onto the field, then buff her whole board (existing + summons).
+  // Designed to land even from an empty field, so it never whiffs when you're ahead.
   if (h.enrage && !h.enraged && h.hp <= h.enrage.at) {
     h.enraged = true;
-    for (const c of state.players[p].board) { c.atk += h.enrage.a; c.hp += h.enrage.h; }
-    events.push({ t: 'enrage', p, a: h.enrage.a, h: h.enrage.h, name: h.name });
+    const pl = state.players[p];
+    for (let i = 0; i < (h.enrage.summon || 0) && pl.board.length < BOARD_CAP; i++) {
+      const inst = makeInst(state, h.enrage.token);
+      pl.board.push(inst); // arrives summoning-sick like any summon (still Guards immediately)
+      events.push({ t: 'summon', p, iid: inst.iid, cardId: inst.cardId });
+    }
+    for (const c of pl.board) { c.atk += h.enrage.a; c.hp += h.enrage.h; }
+    events.push({ t: 'enrage', p, a: h.enrage.a, h: h.enrage.h, name: h.name, summon: h.enrage.summon || 0 });
   }
 }
 
@@ -347,7 +354,6 @@ export function act(stateIn, action) {
     if (d.type === 'critter') {
       const inst = makeInst(state, cardId);
       if (d.fast) { inst.sick = false; inst.canAttack = true; }
-      if (pl.hero.enraged) { inst.atk += pl.hero.enrage.a; inst.hp += pl.hero.enrage.h; } // enraged boss plays bigger critters
       pl.board.push(inst);
       state.lastPlayedIid = inst.iid;
       events.push({ t: 'play', p, cardId, iid: inst.iid });

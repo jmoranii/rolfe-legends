@@ -802,7 +802,7 @@ function narrate(e) {
     case 'handFull': logLine(`✋ ${heroName(e.p)}'s hand is full — draw skipped`); break;
     case 'tempAtk': logLine(`📣 ${heroName(e.p)}'s critters get +${e.n} Attack this turn`); break;
     case 'ignoreGuard': logLine(`🥎 ${heroName(e.p)}'s attacks ignore Guard this turn`); break;
-    case 'enrage': logLine(`🔥 ${e.name} is ENRAGED! +${e.a}/+${e.h} to her critters!`); break;
+    case 'enrage': logLine(`🔥 ${e.name} is ENRAGED!${e.summon ? ` Summons ${e.summon} guard dog${e.summon > 1 ? 's' : ''}!` : ''} +${e.a}/+${e.h} to her board!`); break;
     case 'win': logLine(`🏆 ${heroName(e.p)} WINS!`); break;
   }
   if (save.logOpen) renderSideLog(); // live-update the side panel as each action happens
@@ -896,7 +896,7 @@ function runEvents(events, done) {
       next(520); break;
     }
     case 'enrage': {
-      toast(`🔥 ${e.name} is ENRAGED! +${e.a}/+${e.h} to all her critters!`);
+      toast(e.summon ? `🔥 ${e.name} is ENRAGED! She calls in reinforcements! 🦮` : `🔥 ${e.name} is ENRAGED! +${e.a}/+${e.h} to all her critters!`);
       sfx.fanfare();
       const flash = el('div', 'enrage-flash');
       document.body.appendChild(flash);
