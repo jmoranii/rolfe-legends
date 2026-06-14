@@ -587,6 +587,7 @@ function onHandTap(i) {
     return;
   }
   B.sel = { kind: 'hand', idx: i };
+  document.querySelectorAll('.coach').forEach(n => n.remove()); // clear any tip so it can't block the placement tap
   applySelectionHighlights();
 }
 
@@ -660,13 +661,12 @@ function applySelectionHighlights() {
     }
   }
 }
-let hintTimer = null;
 function coachHint(key, text) {
-  // light inline hint — once each, only during the first two campaign fights
+  // light in-interaction hint — a non-blocking toast (NOT a coach bubble), so it never sits over
+  // the field the player is about to tap. Once each, first two campaign fights only.
   if (B.mode !== 'campaign' || B.bossIdx > 1 || save.seenTips[key]) return;
   save.seenTips[key] = true; persist();
-  clearTimeout(hintTimer);
-  hintTimer = setTimeout(() => coachSay(text, true), 220);
+  toast(text);
 }
 
 // ---------- actions & event animation ----------
