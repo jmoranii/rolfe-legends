@@ -254,9 +254,8 @@ function resolveEffect(state, p, spec, target, events, srcCardId) {
     }
     case 'heal': {
       const h = pl.hero;
-      const healed = Math.min(spec.n, h.maxHp - h.hp);
-      h.hp += healed;
-      events.push({ t: 'heal', side: p, n: healed, hp: h.hp });
+      h.hp += spec.n; // overheal allowed — you can climb above your starting HP
+      events.push({ t: 'heal', side: p, n: spec.n, hp: h.hp });
       if (spec.draw) drawN(state, p, spec.draw, events);
       break;
     }

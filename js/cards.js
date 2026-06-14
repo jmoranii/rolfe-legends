@@ -36,7 +36,7 @@ def({ id: 'magic_vanish',  name: 'Magic Vanish',   type: 'trick',   cost: 2, fx:
 def({ id: 'trickster',     name: 'The Trickster',  type: 'critter', cost: 3, atk: 3, hp: 3, bc: { kind: 'draw', n: 1 }, emoji: '🪄', flavor: "Pulls one from his sleeve. Don't ask which sleeve." });
 def({ id: 'maestro',       name: 'Piano Maestro',  type: 'critter', cost: 4, atk: 2, hp: 5, sot: { kind: 'buff', a: 1, h: 1, target: 'random-ally' }, emoji: '🎹', flavor: 'Every turn, the song builds.' });
 def({ id: 'llama',         name: 'Goldie',         type: 'critter', cost: 5, atk: 6, hp: 6, legendary: true, bc: { kind: 'debuffAtkAll', n: 1 }, emoji: '🦙', flavor: 'Goldie says nothing. Goldie knows.' });
-def({ id: 'dog_man',       name: 'Dog Man',        type: 'critter', cost: 3, atk: 3, hp: 3, legendary: true, secret: true, guard: true, fast: true, emoji: '🦸', flavor: 'Part dog. Part man. All hero.' });
+def({ id: 'dog_man',       name: 'Dog Man',        type: 'critter', cost: 5, atk: 7, hp: 7, legendary: true, secret: true, guard: true, fast: true, bc: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '🦸', flavor: 'Part dog. Part man. All hero.' });
 
 // ---- Boss signature cards (Legendary, won on victory) ----------------------
 def({ id: 'sig_rusty',   name: 'Rusty',             type: 'critter', cost: 2, atk: 2, hp: 3, legendary: true, guard: true, emoji: '🐕', flavor: 'Good boy. GREAT boy.' });

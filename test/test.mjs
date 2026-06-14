@@ -184,10 +184,10 @@ console.log('— card effects —');
   let s = rig({ aHand: ['sig_chelsea'], aHp: 10 });
   const r = act(s, { type: 'play', hand: 0 }).state;
   eq(r.players[0].hero.hp, 14, 'chelsea battlecry heals 4');
-  // heal caps at maxHp
+  // overheal past maxHp is allowed (you can climb above starting HP)
   let s2 = rig({ aHand: ['blessing'], aHp: 19 });
   const r2 = act(s2, { type: 'play', hand: 0 }).state;
-  eq(r2.players[0].hero.hp, 20, 'heal capped at maxHp');
+  eq(r2.players[0].hero.hp, 23, 'overheal past maxHp allowed (19 + 4)');
 }
 {
   // flaj toughens others (not self)

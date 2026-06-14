@@ -535,9 +535,11 @@ function renderBattle() {
   // Coach James button (campaign) — re-shows this boss's strategy tip on tap, so the pre-fight
   // hint isn't a one-time flash you forget mid-battle.
   if (B.mode === 'campaign') {
-    const coachBtn = el('button', 'quiet coachbtn');
-    coachBtn.style.cssText = 'position:absolute;top:6px;left:96px;z-index:10;';
-    coachBtn.appendChild(artImg('assets/ui/portrait_coach.png', '🧢', 'face'));
+    // Coach James portrait as the button's own background-image (robust: a nested <img> inside a
+    // <button> rendered blank; a direct background paints reliably, incl. iOS Safari).
+    const coachBtn = el('button', 'coachbtn');
+    coachBtn.style.cssText = 'position:absolute;top:6px;left:96px;z-index:10;background-image:url("assets/ui/portrait_coach.png");';
+    coachBtn.title = 'Coach James — tap for a hint';
     coachBtn.onclick = () => { sfx.tap(); coachSay(`<b>vs ${B.boss.name}:</b> ${B.boss.tip}`, true); };
     app.appendChild(coachBtn);
   }
