@@ -36,7 +36,7 @@ def({ id: 'math_whiz',     name: 'Math Whiz',      type: 'critter', cost: 2, atk
 def({ id: 'magic_vanish',  name: 'Magic Vanish',   type: 'trick',   cost: 2, fx: { kind: 'bounce', target: 'pick-critter-enemy' }, emoji: '🎩', flavor: 'Nothing up my sleeve…' });
 def({ id: 'trickster',     name: 'The Trickster',  type: 'critter', cost: 3, atk: 3, hp: 3, bc: { kind: 'draw', n: 1 }, emoji: '🪄', flavor: "Pulls one from his sleeve. Don't ask which sleeve." });
 def({ id: 'maestro',       name: 'Piano Maestro',  type: 'critter', cost: 4, atk: 2, hp: 5, sot: { kind: 'buff', a: 1, h: 1, target: 'random-ally' }, emoji: '🎹', flavor: 'Every turn, the song builds.' });
-def({ id: 'llama',         name: 'Goldie',         type: 'critter', cost: 5, atk: 6, hp: 6, legendary: true, bc: { kind: 'debuffAtkAll', n: 1 }, emoji: '🦙', flavor: 'Goldie says nothing. Goldie knows.' });
+def({ id: 'llama',         name: 'Goldie',         type: 'critter', cost: 5, atk: 6, hp: 6, guard: true, legendary: true, bc: { kind: 'debuffAtkAll', n: 1 }, emoji: '🦙', flavor: 'A real guard llama — she protects the whole herd. Goldie knows.' });
 def({ id: 'dog_man',       name: 'Dog Man',        type: 'critter', cost: 5, atk: 7, hp: 7, legendary: true, secret: true, guard: true, fast: true, bc: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '🦸', flavor: 'Part dog. Part man. All hero.' });
 
 // ---- Boss signature cards (Legendary, won on victory) ----------------------
@@ -101,7 +101,9 @@ def({ id: 'cookie_batch',     name: 'Cookie Batch',     type: 'trick',   cost: 2
 def({ id: 'secret_recipe',    name: 'Secret Recipe',    type: 'trick',   cost: 3, fx: { kind: 'buff', a: 1, h: 1, target: 'all-allies' }, emoji: '📜', flavor: 'Written nowhere. Remembered perfectly.' });
 def({ id: 'watch_dog',        name: 'Watch Dog',        type: 'critter', cost: 3, atk: 3, hp: 3, guard: true, emoji: '🐕‍🦺', flavor: 'Grandma trained him. Be afraid.' });
 def({ id: 'rolling_pin',      name: 'Rolling Pin',      type: 'trick',   cost: 4, fx: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '🥖', flavor: 'For dough. Mostly.' });
-def({ id: 'grand_finale',     name: 'Smidgen',          type: 'critter', cost: 5, atk: 5, hp: 5, fast: true, legendary: true, emoji: '🐾', flavor: "Rockie's little white lap dog. Six pounds of pure doom." });
+// Smidgen is now Grandma's ENRAGE summon (not a deck card): a fierce little Guard who blocks for her.
+// token:true → evaporates on death (never recycles into Rockie's deck). Art: grand_finale.png.
+def({ id: 'grand_finale',     name: 'Smidgen',          type: 'critter', cost: 5, atk: 3, hp: 4, guard: true, token: true, emoji: '🐾', flavor: "Rockie's little white lap dog. Six pounds of pure doom." });
 
 export const CARDS = C;
 
@@ -180,16 +182,16 @@ export const BOSSES = [
     unlocks: { presets: ['big_barn'] },
   },
   {
-    id: 'rocky', name: 'Grandma Rockie', title: 'The Legend', emoji: '👵', hp: 32,
-    deck: ['llama', 'sig_flaj', 'yarn_beast', 'yarn_beast', 'watch_dog', 'watch_dog', 'knitting_needles', 'knitting_needles', 'rolling_pin', 'cookie_batch', 'grand_finale', 'sig_rocky'],
+    id: 'rocky', name: 'Grandma Rockie', title: 'The Legend', emoji: '👵', hp: 23,
+    deck: ['llama', 'sig_flaj', 'yarn_beast', 'yarn_beast', 'yarn_beast', 'watch_dog', 'watch_dog', 'knitting_needles', 'knitting_needles', 'rolling_pin', 'cookie_batch', 'sig_rocky'],
     persona: { aggression: 0.65, tradeCare: 0.9, healAt: 14, smart: 1, curve: 'mid' },
-    // ENRAGE phase: at half health, a ONE-TIME burst — she summons a guard dog onto the field and
-    // buffs her whole board +1/+1. Works even from an empty field (the summon always lands), so it
-    // never whiffs when you're ahead on board. No heal, no permanent buff — a single hard wall.
-    enrage: { at: 16, summon: 1, token: 'guard_dog', a: 1, h: 1 },
+    // ENRAGE phase: at half health, a ONE-TIME burst — she whistles in her dogs (Smidgen leads, then
+    // a Guard Dog), both fierce Guards that block, then rallies her whole board. A loud, telegraphed
+    // phase-2 wall (full-screen cutscene in the UI). Smidgen ONLY appears here. No heal, no perma-buff.
+    enrage: { at: 12, summon: ['grand_finale', 'guard_dog'], a: 0, h: 0 },
     intro: 'Grandma Rockie sets down her knitting. "Oh sweetheart. I INVENTED this game."',
     tip: 'Grandma Rockie\'s seen every trick in this game — most of them are hers. Use EVERYTHING you\'ve learned. And get her down FAST — when she\'s cornered, she gets scary.',
-    lossTip: 'She punishes greed (mind her Rolling Pin), never ignore the little white dog — and when she ENRAGES at half health, she calls in a guard dog and rallies her whole board. Be ready to push through it!',
+    lossTip: 'She punishes greed (mind her Rolling Pin). And when she ENRAGES at half health, she unleashes Smidgen — her little white guard dog — plus a Guard Dog. Both block for her! Push through them and finish her FAST.',
     reward: ['sig_rocky'],
     unlocks: { crown: true, goldenBack: true },
   },
@@ -213,7 +215,7 @@ export const PRESETS = {
     blurb: 'Vanish their best. Tackle the rest. Ta-da.' },
   big_barn: {
     id: 'big_barn', name: 'Big Barn Energy', emoji: '🚜',
-    cards: ['prize_pig', 'sig_flaj', 'llama', 'mama_hen', 'shep', 'shep', 'barn_cat', 'barn_cat', 'billy_goat', 'billy_goat', 'blessing', 'slide_tackle'],
+    cards: ['prize_pig', 'sig_flaj', 'llama', 'mama_hen', 'mama_hen', 'shep', 'barn_cat', 'barn_cat', 'billy_goat', 'billy_goat', 'blessing', 'slide_tackle'],
     blurb: 'Slow. Huge. Inevitable.' },
 };
 
@@ -225,8 +227,9 @@ export function collectionFor(progress, secrets = {}) {
     for (const c of BOSSES[i].reward) owned.add(c);
   }
   if (progress >= BOSSES.length) {
-    // champion's reward: the WHOLE card pool — every card from every boss deck (except the secret)
-    for (const [id, c] of Object.entries(CARDS)) if (!c.secret) owned.add(id);
+    // champion's reward: the WHOLE card pool — every card from every boss deck (except the secret
+    // Dog Man, and except tokens like Smidgen who are summon-only, never deck-buildable)
+    for (const [id, c] of Object.entries(CARDS)) if (!c.secret && !c.token) owned.add(id);
   }
   if (secrets.dogMan) owned.add('dog_man');
   return owned;

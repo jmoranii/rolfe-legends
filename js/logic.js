@@ -131,18 +131,23 @@ function damageHero(state, p, n, events) {
     return;
   }
   // ENRAGE (final boss): the first time this hero drops to/below the threshold, a ONE-TIME burst —
-  // summon reinforcement critters onto the field, then buff her whole board (existing + summons).
-  // Designed to land even from an empty field, so it never whiffs when you're ahead.
+  // summon specific reinforcement critters (Smidgen leads the dogs in), then rally her whole board
+  // (existing + summons). Designed to land even from an empty field, so it never whiffs when ahead.
+  // The `enrage` event is emitted FIRST (before the summons) so the UI can play its cutscene and
+  // only THEN animate the dogs in — the engine has already applied everything; events are the replay.
   if (h.enrage && !h.enraged && h.hp <= h.enrage.at) {
     h.enraged = true;
     const pl = state.players[p];
-    for (let i = 0; i < (h.enrage.summon || 0) && pl.board.length < BOARD_CAP; i++) {
-      const inst = makeInst(state, h.enrage.token);
-      pl.board.push(inst); // arrives summoning-sick like any summon (still Guards immediately)
-      events.push({ t: 'summon', p, iid: inst.iid, cardId: inst.cardId });
+    const ids = Array.isArray(h.enrage.summon) ? h.enrage.summon : [];
+    const a = h.enrage.a || 0, hh = h.enrage.h || 0;
+    events.push({ t: 'enrage', p, a, h: hh, name: h.name, summonIds: [...ids] });
+    for (const tid of ids) {
+      if (pl.board.length >= BOARD_CAP) break; // no room — the rest don't fit
+      const inst = makeInst(state, tid);
+      pl.board.push(inst); // summoning-sick like any summon (Guards still block immediately)
+      events.push({ t: 'summon', p, iid: inst.iid, cardId: tid, fromEnrage: true });
     }
-    for (const c of pl.board) { c.atk += h.enrage.a; c.hp += h.enrage.h; }
-    events.push({ t: 'enrage', p, a: h.enrage.a, h: h.enrage.h, name: h.name, summon: h.enrage.summon || 0 });
+    if (a || hh) for (const c of pl.board) { c.atk += a; c.hp += hh; }
   }
 }
 

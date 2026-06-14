@@ -4,7 +4,7 @@
 
 ## Core rules (Hearthstone-lite, tuned for a 10-year-old first-timer)
 
-- Two heroes face off. **Hero HP: 20** (Rusty 12, Grandma Rockie 32).
+- Two heroes face off. **Hero HP: 20** (Rusty 12, Dad 11, Grandma Rockie 23).
 - **Energy ⚡:** you start your turn with energy = number of your turns so far, **capped at 5** (1, 2, 3, 4, 5, 5, …). Spend it to play cards; unspent energy is lost. The math of "what can I afford" is the first strategy layer.
 - **Decks: 12–24 cards** player-built (boss decks are 12), max 2 copies of a card (Legendary cards max 1). *(Briefly tried 3 copies — too consistent, reverted.)* Small decks are reliable, big decks are surprising — a real strategy tradeoff. Start of game: player going first draws 4, second draws 5. **Draw 1/turn.** Hand cap 7 (draw skipped with a "Hand full!" toast — no card burning, gentle).
 - **Decks recycle:** played tricks and fallen critters go to a discard pile; when your deck runs dry it auto-reshuffles (♻️ toast). You never run out of cards. Tokens evaporate instead.
@@ -35,13 +35,13 @@ damage (pick critter / any target / all enemy critters / enemy hero), heal (your
 | 5 | **Uncle Brody** 🔥 | 20 | **Aggro burn** — Fast critters, face damage | Racing vs healing; when to defend | "Brody goes FAST and loud. Heal up, put up Guards, survive the storm — then win." |
 | 6 | **Aunt Chelsea** 💖 | 20 | **Heal/control** — removal + heals, outlasts you | Out-pace healing with CONSISTENT board damage | "Chelsea heals every turn. Little pokes get undone — keep critters on the field and deal damage EVERY turn." |
 | 7 | **Grampa Flaj** 🚜 | 20 | **Big tanks** — slow giants | Answer big threats (or race them) | "Grampa's slow but his critters are TOUGH as old boots. Hit fast, or pack a vanishing act." |
-| 8 | **Grandma Rockie** 👑 | 32 | **Everything** — smart mixed deck, best AI, **ENRAGE phase** | The final exam | "Grandma Rockie's seen every trick in this game — most of them are hers. Use EVERYTHING you've learned." |
+| 8 | **Grandma Rockie** 👑 | 23 | **Everything** — smart mixed deck, best AI, guard wall, **ENRAGE phase** | The final exam | "Grandma Rockie's seen every trick in this game — most of them are hers. Use EVERYTHING you've learned." |
 
 Boss AI personalities: per-boss heuristic weights (aggression, trade-care, heal threshold, curve priority). All bosses lethal-check except Rusty. Rockie additionally prioritizes killing your aura/snowball pieces and holds AoE for value.
 
-**Grandma Rockie's ENRAGE (final-boss phase 2):** the first time she drops to/below half (HP 16), a ONE-TIME burst fires — she summons a 3/3 Guard Dog onto her field *and* rallies her whole board (existing critters + the new dog) +1/+1. No heal, no permanent buff: a single hard wall you have to punch through, not a snowball. Designed to land even from an empty field (the summon always arrives), so it never whiffs in the exact moment you're ahead on board. Her avatar swaps to a fiery ENRAGED portrait and a red flash + fanfare sells the turn. This is the only enrage in the game; it's a per-hero config (`enrage: { at, summon, token, a, h }`) the engine reads, so any boss *could* get one later.
+**Grandma Rockie's ENRAGE (final-boss phase 2):** the first time she drops to/below 12 HP, a ONE-TIME burst fires. It opens with a **full-screen cutscene** — her fiery ENRAGED portrait, big and centered, with a plain-language explanation of what's happening, paced for a reader ("tap to continue") so it never "just happens fast." Then she whistles in her two dogs, which animate in one at a time: **Smidgen** — her little white guard dog, "six pounds of pure doom," a 3/4 Guard — leads, followed by a 3/3 Guard Dog. Both are Guards that block immediately, so you have to knock them down to reach her. No heal, no permanent buff: a single telegraphed wall. The summons always land (even from an empty field), so it never whiffs when you're ahead on board, and her hero-bar avatar stays the ENRAGED portrait for the rest of the fight. This is the only enrage in the game; it's a per-hero config (`enrage: { at, summon: [cardIds], a, h }`) the engine reads, so any boss *could* get one later. **Smidgen is `grand_finale`, a summon-only token** — she appears ONLY here, evaporates on death (never recycles into Rockie's deck), and is never a player-collectible card.
 
-**Difficulty intent (selfplay-verified):** Rusty ~unloseable → Aaron easy → mid bosses occasionally need a retry → Rockie is a deliberate wall (~18% KID-policy win rate; expect several attempts even with a tuned deck, and the ENRAGE turn is where greedy boards get punished). Losing is part of the strategy lesson; rematch is instant.
+**Difficulty intent (selfplay-verified):** Rusty ~unloseable → Aaron easy → mid bosses occasionally need a retry → Rockie is a deliberate wall (~16% KID-policy win rate; expect several attempts even with a tuned deck, and the ENRAGE dogs are where greedy boards get punished). Losing is part of the strategy lesson; rematch is instant. (Curveball — ignore-Guard — is the kid's key tech against her Guard wall; the AI proxy under-uses it, so a human reads higher than 16%.)
 
 ## The campaign arc — the 10th Legend
 
@@ -58,7 +58,7 @@ Map = a farm path with 8 portrait nodes + a crown. **Bosses you haven't reached 
 *(Curveball deliberately precedes Dad — Coach's wall-fight tip references it; the tool must come before the lesson.)*
 | Mom (Tory) | **Mom** (sig), Magic Vanish | — |
 | Brody | **Uncle Brody** (sig), The Trickster | preset *Speed Demons*, *Magic Show* |
-| Chelsea | **Aunt Chelsea** (sig), Piano Maestro, **THE ONE LLAMA** | — |
+| Chelsea | **Aunt Chelsea** (sig), Piano Maestro, **Goldie** (the llama) | — |
 | Grampa Flaj | **Grampa Flaj** (sig) | preset *Big Barn Energy* |
 | Grandma Rockie | **Grandma Rockie** (sig) | Crown, golden card back, Dog Man hint, **champion's reward: every card from every boss deck joins the collection** |
 | 🤫 Secret | **Dog Man** | Tap the llama on the title screen 3× |
@@ -90,7 +90,7 @@ Boss decks become playable in **VS Mode** once beaten (replay value + "play AS m
 | Magic Vanish | 2 | Trick | Return an enemy critter to its owner's hand | "Nothing up my sleeve…" |
 | The Trickster | 3 | 3/3 | When played: draw a card | "Pulls one from his sleeve. Don't ask which sleeve." |
 | Piano Maestro | 4 | 2/5 | At the start of your turn, a random ally gets +1/+1 | "Every turn, the song builds." |
-| **THE ONE LLAMA** 🦙 | 5 | 6/6 | Legendary. When played: all enemy critters get −1 Attack | "The Llama says nothing. The Llama knows." |
+| **Goldie** 🦙 (the one llama) | 5 | 6/6 | Legendary, **Guard**. When played: all enemy critters get −1 Attack | "A real guard llama — she protects the whole herd. Goldie knows." |
 | **Dog Man** 🤫 | 3 | 3/3 | Legendary, secret. Guard, Fast | "Part dog. Part man. All hero." |
 
 ### Boss signature cards (Legendary, won on victory)
@@ -109,7 +109,7 @@ Boss decks become playable in **VS Mode** once beaten (replay value + "play AS m
 - **Farm Friends** (post-Aaron): go-wide farm core — Barn Cat ×2, Billy ×2, Shep, Mama Hen ×2, Prize Pig, Rusty, Aaron Lil Tornado, Goat Stampede, Duck Duck GOOSE!
 - **Speed Demons** (post-Brody): Sprinter ×2, Barn Cat ×2, Striker ×2, Billy ×2, Uncle Brody, Curveball, Slide Tackle, Goat Stampede
 - **Magic Show** (post-Brody): Trickster ×2, Magic Vanish, Slide Tackle ×2, Barn Cat ×2, Billy ×2, Striker ×2, Uncle Brody
-- **Big Barn Energy** (post-Flaj): Prize Pig ×2, Grampa Flaj, The One Llama, Mama Hen ×2, Shep ×2, Billy ×2, Blessing, Slide Tackle
+- **Big Barn Energy** (post-Flaj): Prize Pig, Grampa Flaj, Goldie (the llama), Mama Hen ×2, Shep, Barn Cat ×2, Billy ×2, Blessing, Slide Tackle
 
 ## Readability layer (playtest rounds 1–2, Jun 10–11)
 

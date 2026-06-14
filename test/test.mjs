@@ -94,10 +94,11 @@ console.log('— data integrity —');
   ok(collectionFor(8, { dogMan: true }).has('dog_man'), 'dog man via secret');
   // champion's reward: beating the campaign unlocks the whole pool
   ok(!collectionFor(7).has('knitting_needles') && !collectionFor(7).has('fence'), 'boss-only cards locked before the crown');
-  ok(collectionFor(8).has('knitting_needles') && collectionFor(8).has('fence') && collectionFor(8).has('grand_finale') && collectionFor(8).has('big_hug'), 'crown unlocks every boss card');
-  const champDeck = ['fence', 'fence', 'real_talk', 'real_talk', 'knitting_needles', 'knitting_needles', 'speed_demon', 'speed_demon', 'guard_cat', 'guard_cat', 'big_hug', 'grand_finale'];
+  ok(collectionFor(8).has('knitting_needles') && collectionFor(8).has('fence') && collectionFor(8).has('sig_rocky') && collectionFor(8).has('big_hug'), 'crown unlocks every boss deck card');
+  ok(!collectionFor(8).has('grand_finale'), 'Smidgen stays a boss-only enrage token (never player-collectible)');
+  const champDeck = ['fence', 'fence', 'real_talk', 'real_talk', 'knitting_needles', 'knitting_needles', 'speed_demon', 'speed_demon', 'guard_cat', 'guard_cat', 'big_hug', 'sig_rocky'];
   ok(validateDeck(champDeck, collectionFor(8)) === null, 'all-boss-card deck buildable after crown');
-  ok(validateDeck([...champDeck.slice(0, 11), 'grand_finale', 'grand_finale'], collectionFor(8)) !== null, 'smidgen respects legendary 1-copy cap');
+  ok(validateDeck([...champDeck.slice(0, 11), 'sig_rocky', 'sig_rocky'], collectionFor(8)) !== null, 'legendary 1-copy cap enforced (2× sig_rocky rejected)');
   for (const [id, c] of Object.entries(CARDS)) {
     ok(c.type === 'critter' ? Number.isInteger(c.atk) && Number.isInteger(c.hp) : !!c.fx, `card coherent: ${id}`);
     ok(c.cost >= 0 && c.cost <= 5, `cost in range: ${id}`);
@@ -351,8 +352,8 @@ console.log('— recycle (discard pile) —');
 
 console.log('— enrage (final boss phase 2: one-time summon + buff) —');
 {
-  // dropping below threshold: summon reinforcements + buff the whole board (existing + summons), once
-  let s = newGame({ deckA: ['barn_cat'], deckB: ['lil_goat'], heroA: HERO, heroB: { name: 'R', emoji: 'r', hp: 14, enrage: { at: 12, summon: 2, token: 'guard_dog', a: 2, h: 2 } }, seed: 3 });
+  // dropping below threshold: summon the listed reinforcements + buff the whole board (existing + summons), once
+  let s = newGame({ deckA: ['barn_cat'], deckB: ['lil_goat'], heroA: HERO, heroB: { name: 'R', emoji: 'r', hp: 14, enrage: { at: 12, summon: ['guard_dog', 'guard_dog'], a: 2, h: 2 } }, seed: 3 });
   s = structuredClone(s); delete s.bootEvents;
   s.players[1].board = [{ iid: ++s.nextIid, cardId: 'lil_goat', atk: 2, hp: 2, sick: false, guard: false, fast: false, canAttack: true }];
   s.players[0].board = [{ iid: ++s.nextIid, cardId: 'prize_bull', atk: 5, hp: 4, sick: false, guard: false, fast: false, canAttack: true }];
@@ -360,20 +361,48 @@ console.log('— enrage (final boss phase 2: one-time summon + buff) —');
   const r = act(s, { type: 'attack', iid: s.players[0].board[0].iid, target: { kind: 'hero', p: 1 } }); // 14 - 5 = 9 ≤ 12
   ok(r.events.some(e => e.t === 'enrage'), 'enrage fires when boss drops below threshold');
   ok(r.state.players[1].hero.enraged, 'enraged flag set');
-  eq(r.state.players[1].board.length, 3, 'enrage summons 2 guard dogs (1 existing + 2 = 3)');
+  // the enrage event is emitted BEFORE the summons, so the UI cutscene can play first
+  const ei = r.events.findIndex(e => e.t === 'enrage'), si = r.events.findIndex(e => e.t === 'summon');
+  ok(ei >= 0 && si > ei, 'enrage event precedes the summon events');
+  eq(r.events.find(e => e.t === 'enrage').summonIds, ['guard_dog', 'guard_dog'], 'enrage event carries the summon list');
+  eq(r.state.players[1].board.length, 3, 'enrage summons 2 dogs (1 existing + 2 = 3)');
   const dogs = r.state.players[1].board.filter(c => c.cardId === 'guard_dog');
   eq([dogs.length, dogs[0].atk, dogs[0].hp], [2, 5, 5], 'summoned guard dogs buffed (3/3 + 2/2 = 5/5)');
   const goat = r.state.players[1].board.find(c => c.cardId === 'lil_goat');
   eq([goat.atk, goat.hp], [4, 4], 'existing board buffed too (lil_goat 2/2→4/4)');
 }
 {
-  // lands even from an EMPTY board (the whole point) — and only fires once
-  let s = newGame({ deckA: ['barn_cat'], deckB: ['lil_goat'], heroA: HERO, heroB: { name: 'R', emoji: 'r', hp: 14, enrage: { at: 12, summon: 2, token: 'guard_dog', a: 2, h: 2 } }, seed: 4 });
+  // summons SPECIFIC tokens in order (Smidgen leads), and works with no buff
+  let s = newGame({ deckA: ['barn_cat'], deckB: ['lil_goat'], heroA: HERO, heroB: { name: 'R', emoji: 'r', hp: 14, enrage: { at: 12, summon: ['grand_finale', 'guard_dog'], a: 0, h: 0 } }, seed: 5 });
   s = structuredClone(s); delete s.bootEvents;
   s.players[0].board = [{ iid: ++s.nextIid, cardId: 'prize_bull', atk: 5, hp: 4, sick: false, guard: false, fast: false, canAttack: true }];
   s.players[1].board = []; s.active = 0;
   const r = act(s, { type: 'attack', iid: s.players[0].board[0].iid, target: { kind: 'hero', p: 1 } });
-  eq(r.state.players[1].board.length, 2, 'enrage from empty board still summons 2 guard dogs');
+  eq(r.state.players[1].board.map(c => c.cardId), ['grand_finale', 'guard_dog'], 'summons the listed tokens in order (Smidgen first)');
+  const smidge = r.state.players[1].board[0];
+  eq([smidge.atk, smidge.hp, smidge.guard, smidge.fast], [3, 4, true, false], 'Smidgen is a 3/4 Guard, summoning-sick (no fast, no buff)');
+}
+{
+  // respects the 4-board cap: only as many summons as fit
+  let s = newGame({ deckA: ['barn_cat'], deckB: ['lil_goat'], heroA: HERO, heroB: { name: 'R', emoji: 'r', hp: 14, enrage: { at: 12, summon: ['guard_dog', 'guard_dog', 'guard_dog'], a: 0, h: 0 } }, seed: 6 });
+  s = structuredClone(s); delete s.bootEvents;
+  s.players[1].board = [
+    { iid: ++s.nextIid, cardId: 'lil_goat', atk: 2, hp: 2, sick: false, guard: false, fast: false, canAttack: true },
+    { iid: ++s.nextIid, cardId: 'lil_goat', atk: 2, hp: 2, sick: false, guard: false, fast: false, canAttack: true },
+  ];
+  s.players[0].board = [{ iid: ++s.nextIid, cardId: 'prize_bull', atk: 5, hp: 4, sick: false, guard: false, fast: false, canAttack: true }];
+  s.active = 0;
+  const r = act(s, { type: 'attack', iid: s.players[0].board[0].iid, target: { kind: 'hero', p: 1 } });
+  eq(r.state.players[1].board.length, 4, 'enrage respects the 4-board cap (2 existing + 2 of 3 summons)');
+}
+{
+  // lands even from an EMPTY board (the whole point) — and only fires once
+  let s = newGame({ deckA: ['barn_cat'], deckB: ['lil_goat'], heroA: HERO, heroB: { name: 'R', emoji: 'r', hp: 14, enrage: { at: 12, summon: ['guard_dog', 'guard_dog'], a: 2, h: 2 } }, seed: 4 });
+  s = structuredClone(s); delete s.bootEvents;
+  s.players[0].board = [{ iid: ++s.nextIid, cardId: 'prize_bull', atk: 5, hp: 4, sick: false, guard: false, fast: false, canAttack: true }];
+  s.players[1].board = []; s.active = 0;
+  const r = act(s, { type: 'attack', iid: s.players[0].board[0].iid, target: { kind: 'hero', p: 1 } });
+  eq(r.state.players[1].board.length, 2, 'enrage from empty board still summons 2 dogs');
   // does NOT re-fire (clear the summoned guards so the hero is hittable again)
   let s2 = structuredClone(r.state); s2.players[1].board = []; s2.active = 0;
   s2.players[0].board = [{ iid: ++s2.nextIid, cardId: 'barn_cat', atk: 2, hp: 1, sick: false, guard: false, fast: false, canAttack: true }];

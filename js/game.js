@@ -768,6 +768,30 @@ function showCardPreview(cardId, onDone) {
 }
 const foePlayed = (e) => B.mode === 'campaign' && e.p === 1;
 
+// Final-boss phase-2 cutscene: a full-screen, tap-to-continue reveal of the enraged portrait +
+// a plain-language explanation of what just happened. Paced for a reader so the enrage doesn't
+// "just happen fast." The dogs animate in AFTER this is dismissed (the summon events that follow).
+function showEnrageCutscene(e, onDone) {
+  const wrap = el('div', 'enrage-cut blocking');
+  const bossId = B.boss ? B.boss.id : 'rocky', bossEmoji = (B.boss && B.boss.emoji) || '👵';
+  wrap.appendChild(artImg(`assets/cards/sig_${bossId}_enraged.png`, bossEmoji, 'enrage-cut-face'));
+  wrap.appendChild(el('div', 'enrage-cut-title', `🔥 ${e.name.toUpperCase()} IS ENRAGED! 🔥`));
+  // name the dogs she's calling in, straight from the summon list (so it stays correct if it changes)
+  const names = (e.summonIds || []).map(id => `${cardDef(id).emoji} <b>${cardDef(id).name}</b>`);
+  const dogs = names.length === 0 ? ''
+    : names.length === 1 ? `She whistles — ${names[0]} comes running!`
+    : `She whistles — ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} come running!`;
+  const buff = (e.a || e.h) ? ` Her whole barn rallies <b>+${e.a}/+${e.h}</b>!` : '';
+  wrap.appendChild(el('div', 'enrage-cut-body',
+    `She sets down the rolling pin. <i>"Oh — you've gone and woken Grandma up."</i><br>${dogs}${buff}<br><b>Knock down her dogs, then finish her FAST!</b>`));
+  wrap.appendChild(el('div', 'tapnote', '👆 tap to continue'));
+  let done = false;
+  const finish = () => { if (done) return; done = true; wrap.remove(); onDone(); };
+  wrap.onclick = finish;
+  document.body.appendChild(wrap);
+  if (location.hash === '#autoplay') setTimeout(finish, 600); // attract mode has no reader
+}
+
 // ---------- battle log ----------
 const stars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
 function logLine(txt) {
@@ -805,7 +829,7 @@ function narrate(e) {
     case 'handFull': logLine(`✋ ${heroName(e.p)}'s hand is full — draw skipped`); break;
     case 'tempAtk': logLine(`📣 ${heroName(e.p)}'s critters get +${e.n} Attack this turn`); break;
     case 'ignoreGuard': logLine(`⚾ ${heroName(e.p)}'s attacks ignore Guard this turn`); break;
-    case 'enrage': logLine(`🔥 ${e.name} is ENRAGED!${e.summon ? ` Summons ${e.summon} guard dog${e.summon > 1 ? 's' : ''}!` : ''} +${e.a}/+${e.h} to her board!`); break;
+    case 'enrage': logLine(`🔥 ${e.name} is ENRAGED!${(e.summonIds && e.summonIds.length) ? ` She calls in ${e.summonIds.map(id => cardDef(id).name).join(' + ')}!` : ''}${(e.a || e.h) ? ` +${e.a}/+${e.h} to her board!` : ''}`); break;
     case 'win': logLine(`🏆 ${heroName(e.p)} WINS!`); break;
   }
   if (save.logOpen) renderSideLog(); // live-update the side panel as each action happens
@@ -850,7 +874,14 @@ function runEvents(events, done) {
       else { toast(`${d.emoji} ${d.name}!`); next(480); }
       break;
     }
-    case 'summon': { sfx.play(); renderBattle(); next(220); break; }
+    case 'summon': {
+      sfx.play(); renderBattle();
+      const nel = document.querySelector(`.critter[data-iid="${e.iid}"]`);
+      if (nel) nel.classList.add('summon-in'); // pop/bounce in so you SEE it arrive
+      // enrage dogs get named + a slower beat each, so Smidgen + the Guard Dog read one at a time
+      if (e.fromEnrage) { const d = cardDef(e.cardId); toast(`${d.emoji} ${d.name} charges in!`); sfx.fanfare(); }
+      next(e.fromEnrage ? 750 : 220); break;
+    }
     case 'attack': {
       const elFrom = document.querySelector(`.critter[data-iid="${e.fromIid}"]`);
       const elTo = e.target.kind === 'hero'
@@ -899,13 +930,15 @@ function runEvents(events, done) {
       next(520); break;
     }
     case 'enrage': {
-      toast(e.summon ? `🔥 ${e.name} is ENRAGED! She calls in reinforcements! 🦮` : `🔥 ${e.name} is ENRAGED! +${e.a}/+${e.h} to all her critters!`);
       sfx.fanfare();
       const flash = el('div', 'enrage-flash');
       document.body.appendChild(flash);
       setTimeout(() => flash.remove(), 750);
-      renderBattle();
-      next(1200); break;
+      // Full-screen phase-2 cutscene: big enraged portrait + what's happening. Waits for a tap, THEN
+      // the dogs animate in (the summon events that follow). Don't renderBattle yet — keep the board
+      // pre-summon behind the overlay so the reveal is the dogs popping in after, not already there.
+      showEnrageCutscene(e, () => runEvents(rest, done));
+      break;
     }
     case 'death': {
       sfx.death();
