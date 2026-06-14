@@ -665,6 +665,7 @@ function doAction(action) {
   if (B.busy) return;
   B.busy = true;
   B.sel = null;
+  document.querySelectorAll('.coach').forEach(n => n.remove()); // tip clears once the player acts on it
   // VS: hide the incoming player's hand the moment the turn flips — no peeking during animations
   if (B.mode === 'vs' && action.type === 'end') B.hideHand = true;
   let res;

@@ -266,7 +266,10 @@ button:disabled { opacity: .45; pointer-events: none; }
 @keyframes floatup { 0% { opacity: 0; transform: translateY(6px) scale(.8); } 18% { opacity: 1; transform: translateY(0) scale(1.15); } 100% { opacity: 0; transform: translateY(-34px) scale(1); } }
 
 /* coach bubble */
-.coach { position: fixed; left: 10px; right: 10px; bottom: 12px; max-width: 500px; margin: 0 auto; display: flex; gap: 10px; align-items: flex-end; z-index: 60; cursor: pointer; animation: coachin .25s ease; }
+/* coach bubble floats over the field but must NEVER intercept taps (it would block tap-to-place,
+   END TURN, etc.). pointer-events:none lets every tap pass through to the game; bubbles auto-clear
+   when the player acts (doAction) or time out. */
+.coach { position: fixed; left: 10px; right: 10px; bottom: 12px; max-width: 500px; margin: 0 auto; display: flex; gap: 10px; align-items: flex-end; z-index: 60; pointer-events: none; animation: coachin .25s ease; }
 .coach.high { bottom: 220px; } /* above the Wyatt hero bar, partially over your field — never covers the hand */
 @keyframes coachin { from { opacity: 0; transform: translateY(14px); } }
 .coach .cap { font-size: 38px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
