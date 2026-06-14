@@ -804,7 +804,7 @@ function narrate(e) {
     case 'bedtime': logLine(`🌙 Past bedtime! ${e.n} damage to ${heroName(e.p)}`); break;
     case 'handFull': logLine(`✋ ${heroName(e.p)}'s hand is full — draw skipped`); break;
     case 'tempAtk': logLine(`📣 ${heroName(e.p)}'s critters get +${e.n} Attack this turn`); break;
-    case 'ignoreGuard': logLine(`🥎 ${heroName(e.p)}'s attacks ignore Guard this turn`); break;
+    case 'ignoreGuard': logLine(`⚾ ${heroName(e.p)}'s attacks ignore Guard this turn`); break;
     case 'enrage': logLine(`🔥 ${e.name} is ENRAGED!${e.summon ? ` Summons ${e.summon} guard dog${e.summon > 1 ? 's' : ''}!` : ''} +${e.a}/+${e.h} to her board!`); break;
     case 'win': logLine(`🏆 ${heroName(e.p)} WINS!`); break;
   }
@@ -927,7 +927,7 @@ function runEvents(events, done) {
     case 'deckEmpty': { next(60); break; }
     case 'bedtime': { toast(`🌙 Past bedtime! ${e.n} damage to ${B.state.players[e.p].hero.name}`); next(420); break; }
     case 'tempAtk': { renderBattle(); next(200); break; }
-    case 'ignoreGuard': { toast('🥎 NUTMEG! Guards can\'t stop you this turn!'); next(380); break; }
+    case 'ignoreGuard': { toast('⚾ CURVEBALL! Guards can\'t stop you this turn!'); next(380); break; }
     case 'fizzle': { if (e.reason === 'board-full') toast('No room on the field!'); next(200); break; }
     case 'win': { next(200); break; }
     default: next(40);
