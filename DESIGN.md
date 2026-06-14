@@ -29,8 +29,8 @@ damage (pick critter / any target / all enemy critters / enemy hero), heal (your
 | # | Boss | HP | Deck archetype | The lesson | Coach's pre-fight tip (voice: warm, brief) |
 |---|------|----|----------------|------------|--------------------------------------------|
 | 1 | **Rusty** 🐕 | 12 | Puppy Pack (vanilla 1/1s, 2/2s — cannot really win) | Play critters, attack, win | "Drag a critter onto the field, then tap it to attack. Rusty mostly wants belly rubs." |
-| 2 | **Aaron** 🦆 | 20 | **Swarm** — cheap ducks, token floods | Wide boards need wide answers (AoE) | "Little brothers come in waves. Duck, Duck, GOOSE! hits ALL his critters at once." |
-| 3 | **Dad** (Jacob) 🔧 | 16 | **The Wall** — Guards + buffs | Breaking through defenses (HP 16: your early lead must be able to CLOSE against a recycling wall) | "Your dad guards everything. Curveball sneaks right past Guards — they never see it coming." |
+| 2 | **Aaron** 🌪️ | 20 | **Swarm** — cheap ducks, token floods | Wide boards need wide answers (AoE) | "Little brothers come in waves. Duck, Duck, GOOSE! hits ALL his critters at once." |
+| 3 | **Dad** (Jacob) 🧑‍🌾 | 11 | **The Wall** — Guards + buffs | Breaking through defenses (HP 11 by design — his Guards + recycling wall are the obstacle, not his face; selfplay's hardest boss before Rockie, ~66% kid win) | "Your dad guards everything. Curveball sneaks right past Guards — they never see it coming." |
 | 4 | **Mom** (Tory) 💪 | 20 | **Buffs/support** — makes her team huge | Kill the support first (priority targets) | "Your mom makes everyone around her stronger. Take out the helpers before the muscle." |
 | 5 | **Uncle Brody** 🔥 | 20 | **Aggro burn** — Fast critters, face damage | Racing vs healing; when to defend | "Brody goes FAST and loud. Heal up, put up Guards, survive the storm — then win." |
 | 6 | **Aunt Chelsea** 💖 | 20 | **Heal/control** — removal + heals, outlasts you | Out-pace healing with CONSISTENT board damage | "Chelsea heals every turn. Little pokes get undone — keep critters on the field and deal damage EVERY turn." |
