@@ -18,7 +18,7 @@ const cardDef = (id) => CARDS[id] || TOKENS[id];
 const SAVE_KEY = 'rolfeLegends.v1';
 let save;
 try { save = JSON.parse(localStorage.getItem(SAVE_KEY)) || null; } catch { save = null; }
-if (!save || save.v !== 1) save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: true, music: true, crowned: false, seenTips: {} };
+if (!save || save.v !== 1) save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: true, music: true, logOpen: false, crowned: false, seenTips: {} };
 // migrate old single-custom saves to the two-slot model (one slot per couch-battler)
 if (!save.customs) { save.customs = save.custom ? [[...save.custom], null] : [null, null]; delete save.custom; }
 if (save.deckId === 'custom') save.deckId = 'custom1';
@@ -38,7 +38,7 @@ function el(tag, cls, html) {
   if (html !== undefined) e.innerHTML = html;
   return e;
 }
-function clear() { app.innerHTML = ''; document.querySelectorAll('.coach, .overlay').forEach(n => n.remove()); }
+function clear() { app.innerHTML = ''; document.querySelectorAll('.coach, .overlay, .log-side').forEach(n => n.remove()); }
 function toast(msg) {
   document.querySelectorAll('.toast').forEach(n => n.remove());
   document.body.appendChild(el('div', 'toast', msg));
@@ -523,13 +523,36 @@ function renderBattle() {
     confirmPanel('Leave this battle?', () => { B = null; save.progress === 0 ? titleScreen() : mapScreen(); });
   };
   app.appendChild(quit);
-  const logBtn = el('button', 'quiet logbtn', '📜');
+  const logBtn = el('button', 'quiet logbtn' + (save.logOpen && logIsSideMode() ? ' on' : ''), '📜');
   logBtn.style.cssText = 'position:absolute;top:8px;left:52px;padding:4px 10px;font-size:13px;z-index:10;';
-  logBtn.onclick = () => { sfx.tap(); showLogOverlay(); };
+  // wide screen → toggle a live side-log in the margin; narrow → open the modal log
+  logBtn.onclick = () => {
+    sfx.tap();
+    if (logIsSideMode()) { save.logOpen = !save.logOpen; persist(); renderBattle(); }
+    else showLogOverlay();
+  };
   app.appendChild(logBtn);
   app.appendChild(s);
   applySelectionHighlights();
+  renderSideLog();
 }
+
+// Live side-log (landscape/wide only): a panel in the margin that updates as actions happen,
+// toggled by the 📜 button. On narrow screens 📜 opens the modal log instead.
+function logIsSideMode() { return (window.innerWidth - 520) / 2 >= 180; }
+function renderSideLog() {
+  let panel = document.querySelector('.log-side');
+  const want = save.logOpen && logIsSideMode() && !!document.querySelector('.battle') && B;
+  if (!want) { if (panel) panel.remove(); return; }
+  if (!panel) { panel = el('div', 'log-side'); document.body.appendChild(panel); }
+  panel.innerHTML = '';
+  panel.appendChild(el('div', 'log-side-title', '📜 Battle Log'));
+  const list = el('div', 'log-side-list');
+  if (!B.log.length) list.appendChild(el('div', 'logline', '<i>Watch the action here!</i>'));
+  for (const line of B.log.slice(0, 50)) list.appendChild(el('div', 'logline', line));
+  panel.appendChild(list);
+}
+window.addEventListener('resize', () => { if (document.querySelector('.battle')) renderSideLog(); });
 
 // ---------- selection / input ----------
 function onHandTap(i) {
@@ -763,6 +786,7 @@ function narrate(e) {
     case 'ignoreGuard': logLine(`🥎 ${heroName(e.p)}'s attacks ignore Guard this turn`); break;
     case 'win': logLine(`🏆 ${heroName(e.p)} WINS!`); break;
   }
+  if (save.logOpen) renderSideLog(); // live-update the side panel as each action happens
 }
 function showLogOverlay() {
   const ov = el('div', 'overlay');
@@ -810,6 +834,12 @@ function runEvents(events, done) {
       const elTo = e.target.kind === 'hero'
         ? document.querySelector(`.hero-bar[data-hero="${e.target.p}"]`)
         : document.querySelector(`.critter[data-iid="${e.target.iid}"]`);
+      // light feedback: flash a toast when the ENEMY attacks (the "what just hit me?" moment),
+      // unless the live side-log is already showing it
+      if (foePlayed(e) && !(save.logOpen && logIsSideMode())) {
+        const tn = e.target.kind === 'hero' ? B.pnames[e.target.p] : (B.names[e.target.iid] || 'your critter');
+        toast(`⚔️ ${B.names[e.fromIid] || 'Enemy'} attacks ${tn}!`);
+      }
       const telegraph = foePlayed(e) ? 420 : 90; // AI attacks announce themselves first
       elFrom?.classList.add('aim-from');
       elTo?.classList.add('aim');
@@ -1170,7 +1200,7 @@ function settingsScreen() {
   p.appendChild(el('div', '', '<br>'));
   const reset = el('button', 'quiet', '🗑️ Start campaign over');
   reset.onclick = () => confirmPanel('Really erase ALL progress?', () => {
-    save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: save.sound, music: save.music, crowned: false, seenTips: {} };
+    save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: save.sound, music: save.music, logOpen: save.logOpen, crowned: false, seenTips: {} };
     persist(); toast('Fresh start!'); titleScreen();
   });
   p.appendChild(reset);

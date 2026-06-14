@@ -222,7 +222,22 @@ button:disabled { opacity: .45; pointer-events: none; }
 .showcard .tapnote { position: absolute; bottom: 12dvh; left: 0; right: 0; text-align: center; color: var(--cream); font-weight: 600; font-size: 15px; text-shadow: 0 2px 4px rgba(0,0,0,.5); animation: pulse 1.4s infinite; }
 @keyframes showcardpop { 0% { transform: scale(.4) rotate(-6deg); opacity: 0; } 70% { transform: scale(1.06) rotate(1deg); } 100% { transform: scale(1); opacity: 1; } }
 
-/* battle log */
+/* live side-log — landscape/wide only, toggled by 📜; sits in the right margin beside the column */
+.log-side {
+  position: fixed; top: 56px; bottom: 56px; right: 12px;
+  width: min(260px, calc((100vw - 540px) / 2));
+  background: rgba(253, 246, 227, 0.95); border: 3px solid var(--ink); border-radius: 14px;
+  padding: 8px 10px; box-shadow: var(--shadow); z-index: 40;
+  display: flex; flex-direction: column; animation: coachin .2s ease;
+}
+.log-side-title { font-weight: 700; font-size: 14px; text-align: center; padding-bottom: 5px; border-bottom: 2px solid rgba(59,47,47,.25); margin-bottom: 4px; }
+.log-side-list { overflow-y: auto; display: flex; flex-direction: column; }
+.log-side-list .logline { font-size: 12px; line-height: 1.3; padding: 3px 1px; border-bottom: 1px dashed rgba(59,47,47,.13); }
+.log-side-list .logline:first-child { animation: logflash 1s ease; border-radius: 5px; } /* newest line flashes as it arrives */
+@keyframes logflash { 0% { background: rgba(241,196,15,.55); } 100% { background: transparent; } }
+.logbtn.on { background: var(--gold); outline: 2px solid var(--ink); }
+
+/* battle log (modal) */
 .logpanel { text-align: left; }
 .logpanel h2 { text-align: center; }
 .loglist { max-height: 52dvh; overflow-y: auto; margin: 10px 0 14px; border: 2.5px solid var(--ink); border-radius: 12px; background: #fffdf6; padding: 8px 10px; }
