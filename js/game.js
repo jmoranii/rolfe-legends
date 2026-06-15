@@ -1258,28 +1258,159 @@ function revealRewards(boss, i, done) {
   document.body.appendChild(ov);
 }
 
+// ---------------- victory credits (the crown roll) ----------------
+// A synced victory-lap through the whole farm: as the anthem names each family member and pet, their
+// painted portrait flies in on their painted place and the REAL lyric lights up as a caption. The song
+// is unchanged — these are its own words on its own timing (Suno word-level, saved assets/audio/anthem.lrc).
+// Reuses every painted bg + portrait (emoji fallback). The only non-lyric text fills the silent intro
+// (the crown title) and the outro (the crew card). Driven off the anthem audio's playhead.
+const CREDIT_LINES = [
+  { t: 12.45, text: `Out in Rolfe where the cornfields grow` },
+  { t: 15.58, text: `Nine legends ruled the road` },
+  { t: 18.71, text: `Rusty barked, the ducks went quack` },
+  { t: 21.38, text: `Aaron's tornado got sent right back` },
+  { t: 24.55, text: `Dad built walls, but they came down` },
+  { t: 27.45, text: `Mom's whole team got run out of town` },
+  { t: 30.32, text: `Brody yelled REAL TALK, Chelsea healed all night` },
+  { t: 33.39, text: `Grampa Flaj stood tough as boots — but you won that fight` },
+  { t: 40.37, text: `WYATT! The 10th Legend of Rolfe!` },
+  { t: 43.80, text: `Ten years old with a heart of gold` },
+  { t: 46.95, text: `Shuffled up and took control` },
+  { t: 52.90, text: `WYATT! The legend's true —` },
+  { t: 56.05, text: `Even Grandma Rockie bows to you!` },
+  { t: 62.33, text: `Smidgen growled, the llama stared` },
+  { t: 65.13, text: `Six pounds of doom — you weren't scared` },
+  { t: 68.18, text: `Coach James said, "Kid, you've got the spark"` },
+  { t: 71.49, text: `You played your cards and left your mark` },
+  { t: 77.55, text: `WYATT! The 10th Legend of Rolfe!` },
+  { t: 81.01, text: `Happy birthday, brave and bold` },
+  { t: 83.72, text: `Ten candles and a crown of gold` },
+  { t: 89.92, text: `WYATT! This song's for you —` },
+  { t: 92.99, text: `From Uncle James: I'm proud of you!` },
+  { t: 95.86, text: `The 10th Legend of Rolfe... that's you` },
+];
+const CREDIT_BEATS = [
+  { t: 0,     kind: 'title' },
+  { t: 12.45, kind: 'road' },
+  { t: 18.71, kind: 'boss', id: 'rusty',   name: 'Rusty',          title: 'The Goodest Boy' },
+  { t: 21.38, kind: 'boss', id: 'aaron',   name: 'Aaron',          title: 'The Lil Tornado' },
+  { t: 24.55, kind: 'boss', id: 'jacob',   name: 'Dad',            title: 'The Wall' },
+  { t: 27.45, kind: 'boss', id: 'tory',    name: 'Mom',            title: 'The Team Mom' },
+  { t: 30.32, kind: 'boss', id: 'brody',   name: 'Uncle Brody',    title: 'The Hurricane' },
+  { t: 31.80, kind: 'boss', id: 'chelsea', name: 'Aunt Chelsea',   title: 'The Healer' },
+  { t: 33.39, kind: 'boss', id: 'flaj',    name: 'Grampa Flaj',    title: 'The Mountain' },
+  { t: 40.37, kind: 'wyatt' },
+  { t: 56.05, kind: 'boss', id: 'rocky',   name: 'Grandma Rockie', title: 'bows to the champion 🙇' },
+  { t: 62.33, kind: 'pets' },
+  { t: 68.18, kind: 'coach' },
+  { t: 77.55, kind: 'birthday' },
+  { t: 89.92, kind: 'heart' },
+  { t: 95.86, kind: 'finale' },
+];
+const PETS_CAST = [
+  { id: 'llama', name: 'Goldie' },          // lead (center, big)
+  { id: 'grand_finale', name: 'Smidgen' }, { id: 'guard_cat', name: 'Lily' },
+  { id: 'big_hug', name: 'Rig' }, { id: 'speed_demon', name: 'Ruby' }, { id: 'dog_man', name: 'Dog Man' },
+];
+
+function creditsRoll(onDone) {
+  save.crowned = true; persist();
+  sfx.fanfare(); confetti(140);
+  music.play('anthem'); // Wyatt's birthday song drives the whole sequence
+  const root = el('div', 'credits');
+  const bg = el('div', 'credits-bg'), stage = el('div', 'credits-stage'), cap = el('div', 'credits-caption');
+  const skip = el('button', 'credits-skip quiet', 'skip ⏭');
+  root.append(bg, stage, cap, skip);
+  document.body.appendChild(root);
+
+  const audioEl = () => document.querySelector('audio[data-track="anthem"]');
+  const t0 = performance.now();
+  // sync to the actual audio playhead; fall back to a wall clock if music is off / not yet playing
+  const clock = () => { const a = audioEl(); return (a && !a.paused && a.currentTime > 0.05) ? a.currentTime : (performance.now() - t0) / 1000; };
+  const setBg = (path) => { bg.style.opacity = '0'; setTimeout(() => { bg.style.backgroundImage = path ? `url("${path}")` : 'none'; bg.style.opacity = '1'; }, 160); };
+
+  let beatIdx = -1, lineIdx = -1, ended = false, continued = false, raf = 0;
+
+  function showScene(b) {
+    stage.innerHTML = '';
+    if (b.kind === 'title' || b.kind === 'finale') {
+      setBg('assets/ui/title_bg.png');
+      stage.append(el('div', 'credits-crown', '👑'), el('div', 'credits-big', 'WYATT'),
+        el('div', 'credits-sub', b.kind === 'finale' ? 'The 10th Legend of Rolfe' : 'THE 10TH LEGEND OF ROLFE'));
+      if (b.kind === 'finale') {
+        stage.appendChild(el('div', 'credits-crew', `Made with love by <b>James</b><br>for <b>Wyatt's 10th birthday</b> 🎂<br><span class="dim">Music by Suno · Rolfe Legends 2026</span>`));
+        confetti(90); showContinue();
+      }
+    } else if (b.kind === 'road') {
+      setBg('assets/backgrounds/bg_map.png');
+      stage.appendChild(el('div', 'credits-sub', '✨ How you became a legend ✨'));
+    } else if (b.kind === 'boss') {
+      setBg(`assets/backgrounds/bg_${b.id}.png`);
+      const boss = BOSSES.find(x => x.id === b.id);
+      stage.appendChild(artImg(`assets/cards/sig_${b.id}.png`, boss ? boss.emoji : '⭐', 'credits-portrait in-right'));
+      const card = el('div', 'credits-titlecard');
+      card.append(el('div', 'cn', b.name), el('div', 'ct', b.title));
+      stage.appendChild(card);
+    } else if (b.kind === 'wyatt' || b.kind === 'birthday' || b.kind === 'heart') {
+      setBg('assets/ui/title_bg.png');
+      stage.append(el('div', 'credits-crown small', '👑'), artImg('assets/ui/portrait_wyatt.png', '🧒', 'credits-portrait hero in-pop'));
+      if (b.kind === 'birthday') { stage.appendChild(el('div', 'credits-sub', '🎂 Happy 10th Birthday 🎂')); confetti(50); }
+      if (b.kind === 'heart') stage.appendChild(el('div', 'credits-sub', '❤️'));
+    } else if (b.kind === 'pets') {
+      setBg('assets/backgrounds/bg_flaj.png');
+      const row = el('div', 'credits-menagerie');
+      PETS_CAST.forEach((pet, i) => {
+        const w = el('div', 'pet' + (i === 0 ? ' lead' : ''));
+        const d = cardDef(pet.id);
+        w.appendChild(artImg(`assets/cards/${pet.id}.png`, d ? d.emoji : '🐾', 'credits-pet'));
+        w.appendChild(el('div', 'pn', pet.name));
+        w.style.animationDelay = (i * 170) + 'ms';
+        row.appendChild(w);
+      });
+      stage.appendChild(row);
+    } else if (b.kind === 'coach') {
+      setBg('assets/backgrounds/bg_map.png');
+      stage.appendChild(artImg('assets/ui/portrait_coach.png', '🧢', 'credits-portrait in-right'));
+      const card = el('div', 'credits-titlecard');
+      card.append(el('div', 'cn', 'Coach James'), el('div', 'ct', 'believed in you all along'));
+      stage.appendChild(card);
+    }
+  }
+
+  function showContinue() {
+    if (continued) return; continued = true;
+    skip.remove();
+    root.appendChild(el('div', 'credits-rewards', '✨ Golden card back · 🃏 every card in your Deck Builder · 🛋️ boss decks in Couch Battle'));
+    const btn = el('button', 'primary credits-continue', '👑 Continue');
+    btn.onclick = finish;
+    root.appendChild(btn);
+  }
+  function finish() { if (ended) return; ended = true; cancelAnimationFrame(raf); root.remove(); onDone(); }
+  skip.onclick = () => { beatIdx = CREDIT_BEATS.length - 1; showScene(CREDIT_BEATS[beatIdx]); };
+
+  function loop() {
+    const t = clock();
+    let bi = beatIdx;
+    while (bi + 1 < CREDIT_BEATS.length && CREDIT_BEATS[bi + 1].t <= t) bi++;
+    if (bi !== beatIdx) { beatIdx = bi; showScene(CREDIT_BEATS[bi]); }
+    let li = lineIdx;
+    while (li + 1 < CREDIT_LINES.length && CREDIT_LINES[li + 1].t <= t) li++;
+    if (li !== lineIdx && li >= 0) { lineIdx = li; cap.innerHTML = CREDIT_LINES[li].text; cap.classList.remove('show'); void cap.offsetWidth; cap.classList.add('show'); }
+    if (!continued && (t >= 103.5 || (audioEl() && audioEl().ended))) { beatIdx = CREDIT_BEATS.length - 1; showScene(CREDIT_BEATS[beatIdx]); }
+    raf = requestAnimationFrame(loop);
+  }
+  beatIdx = 0; showScene(CREDIT_BEATS[0]);
+  raf = requestAnimationFrame(loop);
+  if (location.hash === '#autoplay') setTimeout(finish, 1800); // attract mode doesn't linger
+}
+
 function afterVictory(bossIdx) {
   if (bossIdx === BOSSES.length - 1) {
-    // THE CROWN
-    save.crowned = true; persist();
-    sfx.fanfare(); confetti(140);
-    music.play('anthem'); // Wyatt's birthday song over the crown
-    const ov = el('div', 'overlay');
-    const p = el('div', 'panel');
-    p.appendChild(el('div', 'big-emoji', '👑'));
-    p.appendChild(el('h2', '', 'WYATT'));
-    p.appendChild(el('h2', '', 'THE 10TH LEGEND OF ROLFE'));
-    p.appendChild(el('p', '', `<br>Rusty. Aaron. Dad. Mom. Uncle Brody. Aunt Chelsea. Grampa Flaj. Grandma Rockie. Coach James.<br><br><b>Nine legends came before you — and on your 10th birthday, you beat them all.</b><br><br>🎂 Happy 10th Birthday, Wyatt.<br>Love, Uncle James ❤️`));
-    p.appendChild(el('div', 'golden-back-note', '✨ Golden card back · 🃏 EVERY card from EVERY deck is now in your Deck Builder · 🛋️ boss decks playable in Couch Battle'));
-    const btn = el('button', 'primary', '👑');
-    btn.onclick = () => {
-      ov.remove();
+    // THE CROWN — a synced credits victory-lap through the whole farm, set to Wyatt's song
+    creditsRoll(() => {
       coachSay('Psst — champions hear rumors. They say <b>Goldie</b> (the llama on the title screen) keeps a secret. Maybe… tap her three times? 🦙', true);
       mapScreen();
-    };
-    p.appendChild(btn);
-    ov.appendChild(p);
-    document.body.appendChild(ov);
+    });
     return;
   }
   mapScreen();
@@ -1520,5 +1651,6 @@ function autoplay() {
 // ---------------- boot ----------------
 window.addEventListener('load', () => {
   if (location.hash === '#autoplay') autoplay();
+  else if (location.hash === '#credits') creditsRoll(() => titleScreen()); // preview the ending anytime
   else titleScreen();
 });
