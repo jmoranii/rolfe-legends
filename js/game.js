@@ -1325,8 +1325,16 @@ function creditsRoll(onDone) {
 
   const audioEl = () => document.querySelector('audio[data-track="anthem"]');
   const t0 = performance.now();
-  // sync to the actual audio playhead; fall back to a wall clock if music is off / not yet playing
-  const clock = () => { const a = audioEl(); return (a && !a.paused && a.currentTime > 0.05) ? a.currentTime : (performance.now() - t0) / 1000; };
+  let wallBase = null; // set only if we give up waiting for the song (music off / autoplay blocked)
+  // The song is the clock. While it isn't playing yet, HOLD on the title (return 0) for a short grace
+  // so a fresh #credits preview waits for the first tap and starts in sync — then fall back to a wall
+  // clock so music-off still rolls. In the real win flow the anthem is already playing, so no wait.
+  const clock = () => {
+    const a = audioEl();
+    if (a && !a.paused && a.currentTime > 0.05) return a.currentTime;
+    if (wallBase == null) { if (performance.now() - t0 > 2500) wallBase = performance.now(); else return 0; }
+    return (performance.now() - wallBase) / 1000;
+  };
   const setBg = (path) => { bg.style.opacity = '0'; setTimeout(() => { bg.style.backgroundImage = path ? `url("${path}")` : 'none'; bg.style.opacity = '1'; }, 160); };
 
   let beatIdx = -1, lineIdx = -1, ended = false, continued = false, raf = 0;
