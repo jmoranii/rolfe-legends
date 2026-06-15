@@ -334,6 +334,15 @@ button:disabled { opacity: .45; pointer-events: none; }
 .trick-impact { position: fixed; z-index: 61; width: 12px; height: 12px; pointer-events: none; border-radius: 50%; transform: translate(-50%,-50%);
   background: radial-gradient(circle, rgba(255,238,170,.98) 0%, rgba(255,130,45,.78) 45%, rgba(255,90,30,0) 72%); animation: trickimpact .38s ease-out forwards; }
 @keyframes trickimpact { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.3); } 28% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-50%) scale(4.6); } }
+/* bounce "poof" puff — soft white smoke instead of the orange damage burst */
+.trick-impact.poof { background: radial-gradient(circle, rgba(255,255,255,.96) 0%, rgba(214,214,226,.7) 45%, rgba(214,214,226,0) 72%); }
+/* MEND — heal sparkles rising over a hero */
+.heal-spark { position: fixed; z-index: 60; font-size: 22px; pointer-events: none; transform: translate(-50%,-50%); filter: drop-shadow(0 0 5px rgba(120,255,170,.85)); animation: healrise .85s ease-out forwards; }
+@keyframes healrise { 0% { opacity: 0; transform: translate(-50%,-50%) translateY(8px) scale(.5); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-50%) translateY(-46px) scale(1.1); } }
+/* BOOST / RALLY / QUACK — the emoji pops up off a powered-up critter */
+.buff-pop { position: fixed; z-index: 60; font-size: 32px; pointer-events: none; transform: translate(-50%,-50%); filter: drop-shadow(0 0 7px rgba(255,220,90,.9)); animation: buffpop .6s cubic-bezier(.2,1.5,.4,1) forwards; }
+.buff-pop.shock { font-size: 40px; animation-duration: .5s; filter: drop-shadow(0 0 8px rgba(142,202,230,.95)); }
+@keyframes buffpop { 0% { opacity: 0; transform: translate(-50%,-50%) translateY(10px) scale(.3); } 45% { opacity: 1; transform: translate(-50%,-50%) translateY(-8px) scale(1.25); } 100% { opacity: 0; transform: translate(-50%,-50%) translateY(-24px) scale(1); } }
 
 /* enraged battlefield — the stage turns blood-red (scrim set in JS) + a pulsing ember vignette
    ringing the arena. Edge-only (transparent center) + pointer-events:none, so the board cards stay

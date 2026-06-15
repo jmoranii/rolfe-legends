@@ -939,23 +939,116 @@ const trickTargetEl = (t) => !t ? null
   : t.kind === 'hero' ? document.querySelector(`.hero-bar[data-hero="${t.p}"]`)
   : document.querySelector(`.critter[data-iid="${t.iid}"]`);
 
-// Run the right FX for a trick event. Returns ms to wait before the follow-on effect event fires,
-// or null if this trick has no custom FX yet (caller keeps its default toast + timing).
+// spawn a styled emoji at a viewport point that removes itself (sparkles, pops, puffs)
+function spawnFx(emoji, x, y, cls, ttl, delay) {
+  const s = el('div', cls, emoji);
+  s.style.left = x + 'px'; s.style.top = y + 'px';
+  if (delay) s.style.animationDelay = delay + 'ms';
+  document.body.appendChild(s);
+  setTimeout(() => s.remove(), ttl);
+  return s;
+}
+
+// SWEEP — roll the card's emoji left-to-right across a board row (Rolling Pin literally rolls)
+function sweepRow(rowEl, emoji, opts = {}) {
+  if (!rowEl) return;
+  const r = rowEl.getBoundingClientRect();
+  const node = el('div', 'trickfx', emoji);
+  node.style.left = (r.left - 8) + 'px'; node.style.top = (r.top + r.height / 2) + 'px';
+  document.body.appendChild(node);
+  const dist = r.width + 16, spin = opts.roll ? 720 : 0;
+  const c = (tx, r2, s) => `translate(-50%,-50%) translateX(${tx}px) rotate(${r2}deg) scale(${s})`;
+  node.animate([
+    { transform: c(0, 0, 0.6), opacity: 0 },
+    { transform: c(0, 0, 1.1), opacity: 1, offset: 0.12 },
+    { transform: c(dist, spin, 1.1), opacity: 1, offset: 0.88 },
+    { transform: c(dist, spin, 0.6), opacity: 0 },
+  ], { duration: 560, easing: 'cubic-bezier(.3,0,.5,1)', fill: 'forwards' }).onfinish = () => node.remove();
+}
+
+// MEND — warm sparkles (the card's emoji + ✨) rise over a hero bar
+function healAura(heroEl, emoji) {
+  if (!heroEl) return;
+  const r = heroEl.getBoundingClientRect();
+  for (let i = 0; i < 5; i++) {
+    const x = r.left + r.width * (0.18 + 0.64 * (i / 4));
+    spawnFx(i % 2 ? '✨' : emoji, x, r.top + r.height * 0.55, 'heal-spark', 900 + i * 60, i * 60);
+  }
+}
+
+// BOOST — the emoji pops up off a buffed critter with a sparkle
+function buffPop(critterEl, emoji) {
+  if (!critterEl) return;
+  const { x, y } = centerOf(critterEl);
+  spawnFx(emoji, x, y, 'buff-pop', 660, 0);
+  spawnFx('✨', x + 13, y - 9, 'heal-spark', 780, 90);
+}
+
+// RALLY / QUACK — the emoji pops across every critter on a board row (falls back to the hero if empty)
+function rallyRow(rowEl, emoji, casterEl, opts = {}) {
+  const critters = rowEl ? [...rowEl.querySelectorAll('.critter')] : [];
+  const cls = opts.shock ? 'buff-pop shock' : 'buff-pop';
+  if (!critters.length) { if (casterEl) { const { x, y } = centerOf(casterEl); spawnFx(emoji, x, y, cls, 660, 0); } return; }
+  critters.forEach((cEl, i) => { const { x, y } = centerOf(cEl); spawnFx(emoji, x, y, cls, 720 + i * 80, i * 80); });
+}
+
+// POOF — the bounced critter spins down to nothing while the card's emoji (🎩/⏰) pops over it
+function poof(critterEl, emoji) {
+  if (!critterEl) return;
+  const { x, y } = centerOf(critterEl);
+  const s = el('div', 'trickfx', emoji);
+  s.style.left = x + 'px'; s.style.top = y + 'px';
+  document.body.appendChild(s);
+  s.animate([
+    { transform: 'translate(-50%,-50%) translateY(-36px) scale(.5)', opacity: 0 },
+    { transform: 'translate(-50%,-50%) translateY(0) scale(1.25)', opacity: 1, offset: 0.55 },
+    { transform: 'translate(-50%,-50%) translateY(0) scale(1)', opacity: 1 },
+  ], { duration: 300, fill: 'forwards' });
+  setTimeout(() => s.remove(), 440);
+  critterEl.style.transition = 'transform .3s ease-in, opacity .3s';
+  critterEl.style.transform = 'scale(0) rotate(160deg)';
+  critterEl.style.opacity = '0';
+  setTimeout(() => spawnFx('', x, y, 'trick-impact poof', 400, 0), 230);
+}
+
+// CURVEBALL — the ball flies in a pronounced lateral CURVE across the enemy line (the card IS a curve)
+function curveball(casterEl, foeRowEl, emoji) {
+  if (!casterEl || !foeRowEl) return;
+  const a = centerOf(casterEl), r = foeRowEl.getBoundingClientRect();
+  const dx = (r.left + r.width * 0.5) - a.x, dy = (r.top + r.height / 2) - a.y;
+  const node = el('div', 'trickfx', emoji);
+  node.style.left = a.x + 'px'; node.style.top = a.y + 'px';
+  document.body.appendChild(node);
+  node.animate([
+    { transform: 'translate(-50%,-50%) scale(.6)', opacity: 0 },
+    { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.1 },
+    { transform: `translate(-50%,-50%) translate(${dx * 0.5 - 95}px, ${dy * 0.5}px) rotate(200deg) scale(1.15)`, opacity: 1, offset: 0.55 },
+    { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) rotate(400deg) scale(.85)`, opacity: 1 },
+  ], { duration: 480, easing: 'ease-in-out', fill: 'forwards' }).onfinish = () => node.remove();
+}
+
+// Run the right FX for a trick event, by effect family. Returns ms to wait before the follow-on
+// effect event fires, or null if there's no custom FX (caller keeps its default toast + timing).
 function trickFx(e) {
   const d = cardDef(e.cardId);
   if (!d || !d.fx) return null;
   const caster = document.querySelector(`.hero-bar[data-hero="${e.p}"]`);
+  const mine = (e.p === meIdx());
+  const allyRow = () => document.querySelector(mine ? '.boardrow.mine' : '.boardrow.foe');
+  const foeRow = () => document.querySelector(mine ? '.boardrow.foe' : '.boardrow.mine');
   switch (d.fx.kind) {
-    // BOLT — single-target damage: the card's emoji flies to the target, impact pop on landing,
-    // then the dmg event (shake + number) fires right as it lands.
-    case 'damage': {
-      if (!e.target) return null; // AoE (Sweep family) handled separately, later
-      const to = trickTargetEl(e.target);
-      if (!to) return null;
-      flyEmoji(caster, to, d.emoji, { spin: 360, onHit: () => impactBurst(to) });
-      return 440;
-    }
-    default: return null;
+    case 'damage':
+      if (!e.target) { sweepRow(foeRow(), d.emoji, { roll: true }); return 320; }   // SWEEP (AoE)
+      { const to = trickTargetEl(e.target); if (!to) return null;                    // BOLT (single)
+        flyEmoji(caster, to, d.emoji, { spin: 360, onHit: () => impactBurst(to) }); return 440; }
+    case 'heal': healAura(caster, d.emoji); return 360;                              // MEND
+    case 'buff':
+      if (!e.target) { rallyRow(allyRow(), d.emoji, caster); return 380; }           // RALLY (all allies)
+      buffPop(trickTargetEl(e.target), d.emoji); return 340;                         // BOOST (one ally)
+    case 'bounce': poof(trickTargetEl(e.target), d.emoji); return 400;               // POOF
+    case 'tempAtkAll': rallyRow(allyRow(), d.emoji, caster, { shock: true }); return 340; // QUACK
+    case 'ignoreGuard': curveball(caster, foeRow(), d.emoji); return 460;            // CURVEBALL
+    default: return null;                                                            // summon → summon-in pops
   }
 }
 
