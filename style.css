@@ -328,6 +328,13 @@ button:disabled { opacity: .45; pointer-events: none; }
 .critter.summon-in { animation: summonin .5s cubic-bezier(.2,1.5,.4,1); }
 @keyframes summonin { 0% { transform: scale(0) translateY(-16px); opacity: 0; } 60% { transform: scale(1.18) translateY(0); } 100% { transform: scale(1); opacity: 1; } }
 
+/* trick FX — a spell card's emoji flung at its target (motion driven by Web Animations API in JS) */
+.trickfx { position: fixed; z-index: 60; font-size: 40px; line-height: 1; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.45)); will-change: transform, opacity; }
+/* bright impact pop where a bolt lands */
+.trick-impact { position: fixed; z-index: 61; width: 12px; height: 12px; pointer-events: none; border-radius: 50%; transform: translate(-50%,-50%);
+  background: radial-gradient(circle, rgba(255,238,170,.98) 0%, rgba(255,130,45,.78) 45%, rgba(255,90,30,0) 72%); animation: trickimpact .38s ease-out forwards; }
+@keyframes trickimpact { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.3); } 28% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-50%) scale(4.6); } }
+
 /* enraged battlefield — the stage turns blood-red (scrim set in JS) + a pulsing ember vignette
    ringing the arena. Edge-only (transparent center) + pointer-events:none, so the board cards stay
    crisp and tappable; only the rim glows (the hero bars sitting there reads as "the room is angry"). */

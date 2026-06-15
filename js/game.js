@@ -899,6 +899,66 @@ function showLogOverlay() {
   document.body.appendChild(ov);
 }
 
+// ---------------- trick FX (juice for spell cards) ----------------
+// Each trick gets a real "moment," animated by EFFECT FAMILY but using the card's own emoji as the
+// projectile/effect — so generic machinery reads as semi-custom (Knitting Needles throws 🪡, REAL
+// TALK throws 💥, etc.). Built from the same toolkit as floatText/confetti: spawned emoji + CSS.
+// Pure presentation; no logic touched. Snappy by design (a card game plays many tricks).
+
+// Fling an emoji from one element's center to another's, on a little arc, then fire onHit.
+function flyEmoji(fromEl, toEl, emoji, opts = {}) {
+  if (!fromEl || !toEl) { opts.onHit && opts.onHit(); return; }
+  const a = centerOf(fromEl), b = centerOf(toEl);
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const node = el('div', 'trickfx', emoji);
+  node.style.left = a.x + 'px'; node.style.top = a.y + 'px';
+  document.body.appendChild(node);
+  const lift = opts.arc != null ? opts.arc : -(40 + Math.min(110, Math.abs(dx) * 0.28));
+  const spin = opts.spin || 0;
+  const c = (tx, ty, r, s) => `translate(-50%,-50%) translate(${tx}px,${ty}px) rotate(${r}deg) scale(${s})`;
+  const anim = node.animate([
+    { transform: c(0, 0, 0, 0.5), opacity: 0 },
+    { transform: c(0, 0, 0, 1), opacity: 1, offset: 0.14 },
+    { transform: c(dx * 0.5, dy * 0.5 + lift, spin * 0.5, 1.18), opacity: 1, offset: 0.55 },
+    { transform: c(dx, dy, spin, 0.9), opacity: 1 },
+  ], { duration: opts.dur || 430, easing: 'cubic-bezier(.45,.05,.7,1)', fill: 'forwards' });
+  anim.onfinish = () => { node.remove(); opts.onHit && opts.onHit(); };
+}
+
+// A bright impact pop at a target element's center.
+function impactBurst(targetEl) {
+  if (!targetEl) return;
+  const { x, y } = centerOf(targetEl);
+  const burst = el('div', 'trick-impact');
+  burst.style.left = x + 'px'; burst.style.top = y + 'px';
+  document.body.appendChild(burst);
+  setTimeout(() => burst.remove(), 380);
+}
+
+const trickTargetEl = (t) => !t ? null
+  : t.kind === 'hero' ? document.querySelector(`.hero-bar[data-hero="${t.p}"]`)
+  : document.querySelector(`.critter[data-iid="${t.iid}"]`);
+
+// Run the right FX for a trick event. Returns ms to wait before the follow-on effect event fires,
+// or null if this trick has no custom FX yet (caller keeps its default toast + timing).
+function trickFx(e) {
+  const d = cardDef(e.cardId);
+  if (!d || !d.fx) return null;
+  const caster = document.querySelector(`.hero-bar[data-hero="${e.p}"]`);
+  switch (d.fx.kind) {
+    // BOLT — single-target damage: the card's emoji flies to the target, impact pop on landing,
+    // then the dmg event (shake + number) fires right as it lands.
+    case 'damage': {
+      if (!e.target) return null; // AoE (Sweep family) handled separately, later
+      const to = trickTargetEl(e.target);
+      if (!to) return null;
+      flyEmoji(caster, to, d.emoji, { spin: 360, onHit: () => impactBurst(to) });
+      return 440;
+    }
+    default: return null;
+  }
+}
+
 function runEvents(events, done) {
   if (!events || !events.length) { done(); return; }
   const [e, ...rest] = events;
@@ -919,8 +979,18 @@ function runEvents(events, done) {
       // ring the trick's target so you can see who it's aimed at
       if (e.target && e.target.kind === 'critter') document.querySelector(`.critter[data-iid="${e.target.iid}"]`)?.classList.add('aim');
       if (e.target && e.target.kind === 'hero') document.querySelector(`.hero-bar[data-hero="${e.target.p}"]`)?.classList.add('aim');
-      if (foePlayed(e)) showCardPreview(e.cardId, () => runEvents(rest, done)); // waits for the reader
-      else { toast(`${d.emoji} ${d.name}!`); next(480); }
+      if (foePlayed(e)) {
+        // foe: big card reveal first (the reader's moment), THEN the FX flies, THEN the effect lands
+        showCardPreview(e.cardId, () => {
+          const ms = trickFx(e);
+          if (ms != null) setTimeout(() => runEvents(rest, done), ms);
+          else runEvents(rest, done);
+        });
+      } else {
+        const ms = trickFx(e);          // fly the card's emoji at its target (Bolt family, for now)
+        toast(`${d.emoji} ${d.name}!`);
+        next(ms != null ? ms : 480);
+      }
       break;
     }
     case 'summon': {
