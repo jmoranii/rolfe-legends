@@ -1336,34 +1336,39 @@ function creditsRoll(onDone) {
   };
   const setBg = (path) => { bg.style.opacity = '0'; setTimeout(() => { bg.style.backgroundImage = path ? `url("${path}")` : 'none'; bg.style.opacity = '1'; }, 160); };
 
-  let beatIdx = -1, lineIdx = -1, ended = false, continued = false, raf = 0, capWords = [];
+  let beatIdx = -1, lineIdx = -1, ended = false, continued = false, raf = 0, capWords = [], curSlide = null;
 
   function showScene(b) {
-    stage.innerHTML = '';
+    const slide = el('div', 'credits-slide enter-right');
     if (b.kind === 'title' || b.kind === 'finale') {
       setBg('assets/ui/title_bg.png');
-      stage.append(el('div', 'credits-crown', '👑'), el('div', 'credits-big', 'WYATT'),
-        el('div', 'credits-sub', b.kind === 'finale' ? 'The 10th Legend of Rolfe' : 'THE 10TH LEGEND OF ROLFE'));
-      if (b.kind === 'title') stage.appendChild(el('div', 'credits-stay', '🎵 Stay for your victory song —<br>relive your whole journey to legend!'));
+      slide.append(el('div', 'credits-crown', '👑'), el('div', 'credits-big', 'WYATT'));
       if (b.kind === 'finale') {
-        stage.appendChild(el('div', 'credits-crew', `Made with love by <b>James</b><br>for <b>Wyatt's 10th birthday</b> 🎂<br><span class="dim">Music by Suno · Rolfe Legends 2026</span>`));
+        slide.appendChild(el('div', 'credits-sub', 'The 10th Legend of Rolfe'));
+        slide.appendChild(el('div', 'credits-crew', `Made with love by <b>James</b><br>for <b>Wyatt's 10th birthday</b> 🎂<br><span class="dim">Music by Suno · Rolfe Legends 2026</span>`));
         confetti(90); showContinue();
+      } else {
+        slide.appendChild(el('div', 'credits-intro',
+          `<div class="ci ci-1">🎉 You did it, Wyatt!</div>` +
+          `<div class="ci ci-2">Sit back and relax —</div>` +
+          `<div class="ci ci-3">here comes the story of how you beat all nine legends and became the 10th Legend of Rolfe.</div>` +
+          `<div class="ci ci-4">🎬 everyone you beat is about to take a bow — keep watching <span class="ci-go">→</span></div>`));
       }
     } else if (b.kind === 'road') {
       setBg('assets/backgrounds/bg_map.png');
-      stage.appendChild(el('div', 'credits-sub', '✨ How you became a legend ✨'));
+      slide.appendChild(el('div', 'credits-sub', '✨ How you became a legend ✨'));
     } else if (b.kind === 'boss') {
       setBg(`assets/backgrounds/bg_${b.id}.png`);
       const boss = BOSSES.find(x => x.id === b.id);
-      stage.appendChild(artImg(`assets/cards/sig_${b.id}.png`, boss ? boss.emoji : '⭐', 'credits-portrait in-right'));
+      slide.appendChild(artImg(`assets/cards/sig_${b.id}.png`, boss ? boss.emoji : '⭐', 'credits-portrait in-pop'));
       const card = el('div', 'credits-titlecard');
       card.append(el('div', 'cn', b.name), el('div', 'ct', b.title));
-      stage.appendChild(card);
+      slide.appendChild(card);
     } else if (b.kind === 'wyatt' || b.kind === 'birthday' || b.kind === 'heart') {
       setBg('assets/ui/title_bg.png');
-      stage.append(el('div', 'credits-crown small', '👑'), artImg('assets/ui/portrait_wyatt.png', '🧒', 'credits-portrait hero in-pop'));
-      if (b.kind === 'birthday') { stage.appendChild(el('div', 'credits-sub', '🎂 Happy 10th Birthday 🎂')); confetti(50); }
-      if (b.kind === 'heart') stage.appendChild(el('div', 'credits-sub', '❤️'));
+      slide.append(el('div', 'credits-crown small', '👑'), artImg('assets/ui/portrait_wyatt.png', '🧒', 'credits-portrait hero in-pop'));
+      if (b.kind === 'birthday') { slide.appendChild(el('div', 'credits-sub', '🎂 Happy 10th Birthday 🎂')); confetti(50); }
+      if (b.kind === 'heart') slide.appendChild(el('div', 'credits-sub', '❤️'));
     } else if (b.kind === 'pets') {
       setBg('assets/backgrounds/bg_flaj.png');
       const row = el('div', 'credits-menagerie');
@@ -1375,13 +1380,24 @@ function creditsRoll(onDone) {
         w.style.animationDelay = (i * 170) + 'ms';
         row.appendChild(w);
       });
-      stage.appendChild(row);
+      slide.appendChild(row);
     } else if (b.kind === 'coach') {
       setBg('assets/backgrounds/bg_map.png');
-      stage.appendChild(artImg('assets/ui/portrait_coach.png', '🧢', 'credits-portrait in-right'));
+      slide.appendChild(artImg('assets/ui/portrait_coach.png', '🧢', 'credits-portrait in-pop'));
       const card = el('div', 'credits-titlecard');
       card.append(el('div', 'cn', 'Coach James'), el('div', 'ct', 'believed in you all along'));
-      stage.appendChild(card);
+      slide.appendChild(card);
+    }
+    // journey transition: new scene slides in from the right, the previous one exits left
+    const old = curSlide;
+    stage.appendChild(slide);
+    curSlide = slide;
+    if (old) {
+      old.classList.remove('enter-right');
+      old.classList.add('exit-left');
+      const rm = () => old.remove();
+      old.addEventListener('animationend', rm, { once: true });
+      setTimeout(rm, 650);
     }
   }
 

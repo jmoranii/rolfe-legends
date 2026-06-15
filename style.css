@@ -394,6 +394,26 @@ button:disabled { opacity: .45; pointer-events: none; }
 .credits-rewards { position: relative; z-index: 3; text-align: center; color: var(--cream); font-size: 12px; opacity: .85; padding: 0 16px 8px; text-shadow: 0 1px 3px rgba(0,0,0,.85); }
 .credits-continue { position: relative; z-index: 4; margin: 0 auto calc(16px + env(safe-area-inset-bottom)); display: block; animation: capin .5s ease; }
 
+/* journey slide transition — each scene slides in from the right while the previous exits left
+   (reads as moving forward down the road to legend); the caption + bg are separate layers, so they don't slide */
+.credits-slide { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 22px; text-align: center; }
+.credits-slide.enter-right { animation: slidein-r .5s cubic-bezier(.25,.9,.3,1) both; }
+.credits-slide.exit-left { animation: slideout-l .5s cubic-bezier(.5,0,.7,1) both; }
+@keyframes slidein-r { from { opacity: 0; transform: translateX(56%); } to { opacity: 1; transform: none; } }
+@keyframes slideout-l { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-56%); } }
+
+/* staged intro over the song's ~15s wind-up — fills the dead air + promises the journey (replaces the old static "stay" line) */
+.credits-intro { display: flex; flex-direction: column; align-items: center; gap: 9px; margin-top: 12px; max-width: 330px; }
+.credits-intro .ci { opacity: 0; line-height: 1.4; text-shadow: 0 2px 6px rgba(0,0,0,.8); }
+.credits-intro .ci-1 { font-size: clamp(19px,5.4vw,24px); font-weight: 800; color: #fff3cf; animation: introup .7s ease 1.6s forwards; }
+.credits-intro .ci-2 { font-size: clamp(16px,4.6vw,20px); font-weight: 700; color: var(--cream); animation: introup .7s ease 4.2s forwards; }
+.credits-intro .ci-3 { font-size: clamp(14px,4.1vw,17px); font-weight: 600; color: var(--cream); animation: introup .7s ease 5.7s forwards; }
+.credits-intro .ci-4 { font-size: clamp(14px,4.1vw,17px); font-weight: 700; color: #ffe6a6; animation: introup .7s ease 8s forwards, glowpulse 1.9s ease-in-out 8.8s infinite; }
+.credits-intro .ci-go { display: inline-block; animation: nudge 1s ease-in-out infinite; }
+@keyframes introup { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes nudge { 0%,100% { transform: translateX(0); } 50% { transform: translateX(7px); } }
+@keyframes glowpulse { 0%,100% { text-shadow: 0 2px 6px rgba(0,0,0,.8); } 50% { text-shadow: 0 0 13px rgba(255,210,110,.9), 0 2px 6px rgba(0,0,0,.8); } }
+
 /* confetti */
 .confetto { position: fixed; width: 10px; height: 14px; top: -20px; z-index: 90; pointer-events: none; animation: confall linear forwards; }
 @keyframes confall { to { transform: translateY(110dvh) rotate(720deg); } }
