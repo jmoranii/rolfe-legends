@@ -936,6 +936,7 @@ function runEvents(events, done) {
     }
     case 'enrage': {
       sfx.fanfare();
+      music.play('boss_enraged'); // crossfade the boss theme into its frantic phase-2 variant
       const flash = el('div', 'enrage-flash');
       document.body.appendChild(flash);
       setTimeout(() => flash.remove(), 750);
