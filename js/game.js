@@ -1324,20 +1324,16 @@ function creditsRoll(onDone) {
   document.body.appendChild(root);
 
   const audioEl = () => document.querySelector('audio[data-track="anthem"]');
-  const t0 = performance.now();
-  let wallBase = null; // set only if we give up waiting for the song (music off / autoplay blocked)
-  // The song is the clock. While it isn't playing yet, HOLD on the title (return 0) for a short grace
-  // so a fresh #credits preview waits for the first tap and starts in sync — then fall back to a wall
-  // clock so music-off still rolls. In the real win flow the anthem is already playing, so no wait.
+  let wallBase = null; // set when rolling without the song as the source (music off / autoplay blocked)
+  // The song is the clock; when it isn't the source, a wall clock from wallBase keeps things moving.
   const clock = () => {
     const a = audioEl();
     if (a && !a.paused && a.currentTime > 0.05) return a.currentTime;
-    if (wallBase == null) { if (performance.now() - t0 > 2500) wallBase = performance.now(); else return 0; }
-    return (performance.now() - wallBase) / 1000;
+    return wallBase != null ? (performance.now() - wallBase) / 1000 : 0;
   };
   const setBg = (path) => { bg.style.opacity = '0'; setTimeout(() => { bg.style.backgroundImage = path ? `url("${path}")` : 'none'; bg.style.opacity = '1'; }, 160); };
 
-  let beatIdx = -1, lineIdx = -1, ended = false, continued = false, raf = 0;
+  let beatIdx = -1, lineIdx = -1, ended = false, continued = false, raf = 0, capLine = null;
 
   function showScene(b) {
     stage.innerHTML = '';
@@ -1345,6 +1341,7 @@ function creditsRoll(onDone) {
       setBg('assets/ui/title_bg.png');
       stage.append(el('div', 'credits-crown', '👑'), el('div', 'credits-big', 'WYATT'),
         el('div', 'credits-sub', b.kind === 'finale' ? 'The 10th Legend of Rolfe' : 'THE 10TH LEGEND OF ROLFE'));
+      if (b.kind === 'title') stage.appendChild(el('div', 'credits-stay', '🎵 Stay for your victory song —<br>relive your whole journey to legend!'));
       if (b.kind === 'finale') {
         stage.appendChild(el('div', 'credits-crew', `Made with love by <b>James</b><br>for <b>Wyatt's 10th birthday</b> 🎂<br><span class="dim">Music by Suno · Rolfe Legends 2026</span>`));
         confetti(90); showContinue();
@@ -1403,13 +1400,38 @@ function creditsRoll(onDone) {
     if (bi !== beatIdx) { beatIdx = bi; showScene(CREDIT_BEATS[bi]); }
     let li = lineIdx;
     while (li + 1 < CREDIT_LINES.length && CREDIT_LINES[li + 1].t <= t) li++;
-    if (li !== lineIdx && li >= 0) { lineIdx = li; cap.innerHTML = CREDIT_LINES[li].text; cap.classList.remove('show'); void cap.offsetWidth; cap.classList.add('show'); }
+    if (li !== lineIdx && li >= 0) {
+      lineIdx = li;
+      cap.innerHTML = `<span class="cap-line" style="--fill:0%">${CREDIT_LINES[li].text}</span>`;
+      capLine = cap.firstChild;
+      cap.classList.remove('show'); void cap.offsetWidth; cap.classList.add('show');
+    }
+    // karaoke fill — the current line "loads in" left-to-right, hitting 100% just as the next begins
+    if (capLine && lineIdx >= 0) {
+      const ls = CREDIT_LINES[lineIdx].t, le = (lineIdx + 1 < CREDIT_LINES.length) ? CREDIT_LINES[lineIdx + 1].t : ls + 4;
+      const pct = Math.max(0, Math.min(1, (t - ls) / Math.max(0.1, le - ls))) * 100;
+      capLine.style.setProperty('--fill', pct.toFixed(1) + '%');
+    }
     if (!continued && (t >= 103.5 || (audioEl() && audioEl().ended))) { beatIdx = CREDIT_BEATS.length - 1; showScene(CREDIT_BEATS[beatIdx]); }
     raf = requestAnimationFrame(loop);
   }
-  beatIdx = 0; showScene(CREDIT_BEATS[0]);
-  raf = requestAnimationFrame(loop);
-  if (location.hash === '#autoplay') setTimeout(finish, 1800); // attract mode doesn't linger
+  beatIdx = 0; showScene(CREDIT_BEATS[0]); // the crown title holds during the wind-up
+
+  let started = false, hintEl = null;
+  function startRoll(useWall) {
+    if (started) return; started = true;
+    if (hintEl) { hintEl.remove(); hintEl = null; }
+    if (useWall) wallBase = performance.now();
+    raf = requestAnimationFrame(loop);
+  }
+  if (location.hash === '#autoplay') { startRoll(true); setTimeout(finish, 1800); return; }
+  if (!save.music) { startRoll(true); return; }            // silent → roll immediately on the wall clock
+  // Music on: roll the instant the anthem is actually playing — automatic in the real win flow (already
+  // unlocked). If the browser blocked autoplay (e.g. a fresh #credits load), a pulsing "tap to start"
+  // appears and the first tap kicks the song off, in sync.
+  const armed = setInterval(() => { const a = audioEl(); if (a && !a.paused && a.currentTime > 0.05) { clearInterval(armed); startRoll(false); } }, 110);
+  setTimeout(() => { if (!started) { hintEl = el('div', 'credits-hint', '🎵 Tap to start the song'); root.appendChild(hintEl); } }, 480);
+  root.addEventListener('pointerdown', () => { if (!started) { music.unlock(); music.play('anthem'); } });
 }
 
 function afterVictory(bossIdx) {
