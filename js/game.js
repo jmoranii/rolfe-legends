@@ -68,6 +68,45 @@ function centerOf(elem) {
   return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
 }
 
+// ---------------- add to home screen (PWA install) ----------------
+// Registered early: Chromium fires beforeinstallprompt once, before the title renders.
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; });
+window.addEventListener('appinstalled', () => { deferredInstall = null; toast('🎉 Added to your home screen!'); });
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+// Show the button only when it can actually do something: a real install prompt (Android/Chrome)
+// or iOS's manual flow. Hidden once installed (running standalone).
+const canInstall = () => !isStandalone() && (!!deferredInstall || isIOS());
+function promptInstall() {
+  if (deferredInstall) {
+    deferredInstall.prompt();
+    deferredInstall.userChoice.finally(() => { deferredInstall = null; });
+  } else {
+    iosInstallHelp();
+  }
+}
+function iosInstallHelp() {
+  document.querySelectorAll('.overlay').forEach(n => n.remove());
+  const ov = el('div', 'overlay');
+  const p = el('div', 'panel');
+  p.appendChild(el('div', 'big-emoji', '📲'));
+  p.appendChild(el('h2', '', 'Put Rolfe Legends on your tablet'));
+  p.appendChild(el('p', '', 'So it opens like a real app, with no address bar:'));
+  const steps = el('ol', 'install-steps');
+  steps.appendChild(el('li', '', 'Tap the <b>Share</b> button — a box with an arrow pointing up (at the top of Safari on iPad).'));
+  steps.appendChild(el('li', '', 'Scroll down and tap <b>Add to Home Screen</b>.'));
+  steps.appendChild(el('li', '', 'Tap <b>Add</b>, and Wyatt lands on your home screen. 🦙'));
+  p.appendChild(steps);
+  const btns = el('div', 'btns');
+  const ok = el('button', 'primary', 'Got it!');
+  ok.onclick = () => { sfx.tap(); ov.remove(); };
+  btns.appendChild(ok);
+  p.appendChild(btns);
+  ov.appendChild(p);
+  document.body.appendChild(ov);
+}
+
 // ---------------- art (drop-in PNGs with emoji fallback) ----------------
 // Legends get painted portraits (assets/cards/<id>.png, assets/ui/*.png); everything
 // missing falls back to its emoji — art can land incrementally with zero code changes.
@@ -257,6 +296,11 @@ function titleScreen() {
   const set = el('button', 'quiet', '⚙️ Settings');
   set.onclick = () => { sfx.tap(); settingsScreen(); };
   btns.appendChild(set);
+  if (canInstall()) {
+    const add = el('button', 'quiet', '📲 Add to Home Screen');
+    add.onclick = () => { sfx.tap(); promptInstall(); };
+    btns.appendChild(add);
+  }
   s.appendChild(btns);
   // the llama knows things
   const llama = el('div', 'title-llama', '🦙');
