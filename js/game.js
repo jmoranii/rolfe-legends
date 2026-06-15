@@ -90,18 +90,23 @@ const cardArt = (cardId, cls = 'art') => artImg(`assets/cards/${cardId}.png`, ca
 // green/blue gradient when it's absent (backgrounds can land incrementally). A tunable scrim
 // (style.css .battle.has-bg) keeps the board, numbers, and card text legible on top.
 const bgCache = new Map(); // path -> true | false
-function applyBattleBg(battleEl, bgId) {
+function applyBattleBg(battleEl, bgId, enraged = false) {
   if (!bgId) return; // no stage for this fight → generic gradient shows through
   const path = `assets/backgrounds/bg_${bgId}.png`;
   // Set the FULL background directly (scrim gradients over the painted stage). We do NOT route the
   // url() through a CSS custom property in a `background` shorthand — that pattern fails to paint on
   // iOS Safari. Direct style.background is universally supported. The scrim keeps the board legible.
+  // ENRAGED: swap the warm scrim for a dark blood-red one so the whole stage turns menacing the
+  // moment the final boss powers up. Cards keep their opaque cream backings, so they stay readable.
   const show = () => {
-    battleEl.style.background =
-      'radial-gradient(ellipse 82% 66% at 50% 47%, transparent 38%, rgba(12,9,7,0.55) 100%),'
-      + ' linear-gradient(rgba(16,12,9,0.42), rgba(16,12,9,0.42)),'
+    battleEl.style.background = (enraged
+      ? 'radial-gradient(ellipse 86% 70% at 50% 46%, rgba(90,0,0,0.30) 26%, rgba(34,2,2,0.82) 100%),'
+        + ' linear-gradient(rgba(70,8,6,0.50), rgba(28,3,3,0.58)),'
+      : 'radial-gradient(ellipse 82% 66% at 50% 47%, transparent 38%, rgba(12,9,7,0.55) 100%),'
+        + ' linear-gradient(rgba(16,12,9,0.42), rgba(16,12,9,0.42)),')
       + ` url("${path}") center / cover no-repeat`;
     battleEl.classList.add('has-bg');
+    battleEl.classList.toggle('enraged-stage', enraged);
   };
   const cached = bgCache.get(path);
   if (cached === true) { show(); return; }   // already loaded — apply instantly, no flicker
@@ -414,7 +419,7 @@ const foeIdx = () => 1 - meIdx();
 function renderBattle() {
   clear();
   const s = el('div', 'battle');
-  applyBattleBg(s, B.bgId); // per-boss painted stage; no-op → generic gradient
+  applyBattleBg(s, B.bgId, B.mode === 'campaign' && B.state.players[1].hero.enraged); // stage turns blood-red once enraged
   const state = B.state, me = meIdx(), foe = foeIdx();
   const pm = state.players[me], pf = state.players[foe];
 

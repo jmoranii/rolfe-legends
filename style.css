@@ -326,6 +326,14 @@ button:disabled { opacity: .45; pointer-events: none; }
 .critter.summon-in { animation: summonin .5s cubic-bezier(.2,1.5,.4,1); }
 @keyframes summonin { 0% { transform: scale(0) translateY(-16px); opacity: 0; } 60% { transform: scale(1.18) translateY(0); } 100% { transform: scale(1); opacity: 1; } }
 
+/* enraged battlefield — the stage turns blood-red (scrim set in JS) + a pulsing ember vignette
+   ringing the arena. Edge-only (transparent center) + pointer-events:none, so the board cards stay
+   crisp and tappable; only the rim glows (the hero bars sitting there reads as "the room is angry"). */
+.battle.enraged-stage { position: relative; }
+.battle.enraged-stage::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: radial-gradient(ellipse 80% 66% at 50% 46%, transparent 56%, rgba(150,12,12,0.45) 100%); animation: enrageglow 1.7s ease-in-out infinite; }
+@keyframes enrageglow { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+
 /* confetti */
 .confetto { position: fixed; width: 10px; height: 14px; top: -20px; z-index: 90; pointer-events: none; animation: confall linear forwards; }
 @keyframes confall { to { transform: translateY(110dvh) rotate(720deg); } }
