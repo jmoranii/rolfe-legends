@@ -360,8 +360,10 @@ button:disabled { opacity: .45; pointer-events: none; }
 .credits-caption { position: relative; z-index: 3; min-height: 58px; display: grid; place-items: center; padding: 10px 18px calc(14px + env(safe-area-inset-bottom)); color: var(--cream); font-size: clamp(17px, 5vw, 23px); font-weight: 600; line-height: 1.35; text-shadow: 0 2px 7px rgba(0,0,0,.85); }
 .credits-caption.show { animation: capin .42s ease; }
 @keyframes capin { from { opacity: 0; transform: translateY(9px); } }
-/* karaoke fill — the lyric loads in left-to-right as it's sung (JS sets --fill 0→100% to the playhead) */
-.credits-caption .cap-line { background: linear-gradient(90deg, #fff6de 0%, #fff6de var(--fill, 0%), rgba(253,246,227,.5) var(--fill, 0%), rgba(253,246,227,.5) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; filter: drop-shadow(0 2px 4px rgba(0,0,0,.75)); }
+/* karaoke — each word lights up the moment it's sung (held notes/breaks just hold, no creeping fill) */
+.credits-caption .cap-inner { text-align: center; line-height: 1.35; } /* words flow inline + wrap, centered */
+.credits-caption .cw { color: rgba(253,246,227,.42); text-shadow: 0 2px 5px rgba(0,0,0,.8); transition: color .28s ease, text-shadow .28s ease; }
+.credits-caption .cw.lit { color: #fff6de; text-shadow: 0 0 9px rgba(255,228,150,.55), 0 2px 5px rgba(0,0,0,.8); }
 .credits-skip { position: absolute; top: calc(8px + env(safe-area-inset-top)); right: 10px; z-index: 6; font-size: 12px; padding: 5px 11px; opacity: .5; }
 .credits-portrait { width: min(52vw, 210px); height: min(52vw, 210px); border-radius: 20px; overflow: hidden; border: 4px solid var(--gold); box-shadow: 0 10px 30px rgba(0,0,0,.55); background: #2a1d14; display: grid; place-items: center; font-size: 92px; }
 .credits-portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }

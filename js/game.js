@@ -1264,30 +1264,33 @@ function revealRewards(boss, i, done) {
 // is unchanged — these are its own words on its own timing (Suno word-level, saved assets/audio/anthem.lrc).
 // Reuses every painted bg + portrait (emoji fallback). The only non-lyric text fills the silent intro
 // (the crown title) and the outro (the crew card). Driven off the anthem audio's playhead.
+// Each line carries its words with the exact moment each is sung (Suno word-level timing). The
+// caption lights each word AS it's sung — so during a held note or instrumental break the lit words
+// just sit there (no creeping fill), then resume when the next word actually lands.
 const CREDIT_LINES = [
-  { t: 12.45, text: `Out in Rolfe where the cornfields grow` },
-  { t: 15.58, text: `Nine legends ruled the road` },
-  { t: 18.71, text: `Rusty barked, the ducks went quack` },
-  { t: 21.38, text: `Aaron's tornado got sent right back` },
-  { t: 24.55, text: `Dad built walls, but they came down` },
-  { t: 27.45, text: `Mom's whole team got run out of town` },
-  { t: 30.32, text: `Brody yelled REAL TALK, Chelsea healed all night` },
-  { t: 33.39, text: `Grampa Flaj stood tough as boots — but you won that fight` },
-  { t: 40.37, text: `WYATT! The 10th Legend of Rolfe!` },
-  { t: 43.80, text: `Ten years old with a heart of gold` },
-  { t: 46.95, text: `Shuffled up and took control` },
-  { t: 52.90, text: `WYATT! The legend's true —` },
-  { t: 56.05, text: `Even Grandma Rockie bows to you!` },
-  { t: 62.33, text: `Smidgen growled, the llama stared` },
-  { t: 65.13, text: `Six pounds of doom — you weren't scared` },
-  { t: 68.18, text: `Coach James said, "Kid, you've got the spark"` },
-  { t: 71.49, text: `You played your cards and left your mark` },
-  { t: 77.55, text: `WYATT! The 10th Legend of Rolfe!` },
-  { t: 81.01, text: `Happy birthday, brave and bold` },
-  { t: 83.72, text: `Ten candles and a crown of gold` },
-  { t: 89.92, text: `WYATT! This song's for you —` },
-  { t: 92.99, text: `From Uncle James: I'm proud of you!` },
-  { t: 95.86, text: `The 10th Legend of Rolfe... that's you` },
+  { t: 12.45, w: [["Out", 12.45], ["in", 12.73], ["Rolfe", 12.89], ["where", 13.21], ["the", 13.46], ["cornfields", 13.66], ["grow", 14.46]] },
+  { t: 15.58, w: [["Nine", 15.58], ["legends", 16.05], ["ruled", 16.78], ["the", 17.15], ["road", 17.41]] },
+  { t: 18.71, w: [["Rusty", 18.71], ["barked,", 19.11], ["the", 19.71], ["ducks", 19.83], ["went", 20.19], ["quack", 20.47]] },
+  { t: 21.38, w: [["Aaron's", 21.38], ["tornado", 21.88], ["got", 22.69], ["sent", 22.98], ["right", 23.28], ["back", 23.64]] },
+  { t: 24.55, w: [["Dad", 24.55], ["built", 24.96], ["walls,", 25.31], ["but", 25.93], ["they", 26.07], ["came", 26.35], ["down", 26.75]] },
+  { t: 27.45, w: [["Mom's", 27.45], ["whole", 27.91], ["team", 28.26], ["got", 28.64], ["run", 28.91], ["out", 29.23], ["of", 29.56], ["town", 29.78]] },
+  { t: 30.32, w: [["Brody", 30.32], ["yelled", 30.68], ["REAL", 31.12], ["TALK,", 31.46], ["Chelsea", 31.8], ["healed", 32.21], ["all", 32.58], ["night", 32.89]] },
+  { t: 33.39, w: [["Grampa", 33.39], ["Flaj", 33.86], ["stood", 34.26], ["tough", 34.52], ["as", 34.83], ["boots —", 35.2], ["but", 36.53], ["you", 36.7], ["won", 36.94], ["that", 37.18], ["fight", 37.52]] },
+  { t: 40.37, w: [["WYATT!", 40.37], ["The 10", 41.73], ["th", 41.97], ["Legend", 42.27], ["of", 42.69], ["Rolfe!", 42.89]] },
+  { t: 43.8, w: [["Ten", 43.8], ["years", 44.04], ["old", 44.47], ["with", 45.12], ["a", 45.4], ["heart", 45.48], ["of", 45.92], ["gold", 46.14]] },
+  { t: 46.95, w: [["Shuffled", 46.95], ["up", 47.67], ["and", 48.94], ["took", 49.33], ["control", 49.96]] },
+  { t: 52.9, w: [["WYATT!", 52.9], ["The", 54.38], ["legend's", 54.57], ["true —", 55.31]] },
+  { t: 56.05, w: [["Even", 56.05], ["Grandma", 56.25], ["Rockie", 57.03], ["bows", 57.69], ["to", 59.0], ["you!", 59.23]] },
+  { t: 62.33, w: [["Smidgen", 62.33], ["growled,", 62.97], ["the", 63.79], ["llama", 64.01], ["stared", 64.51]] },
+  { t: 65.13, w: [["Six", 65.13], ["pounds", 65.46], ["of", 65.94], ["doom —", 66.16], ["you", 67.04], ["weren't", 67.12], ["scared", 67.67]] },
+  { t: 68.18, w: [["Coach", 68.18], ["James", 68.54], ["said, \"", 68.96], ["Kid,", 69.49], ["you've", 69.69], ["got", 70.16], ["the", 70.45], ["spark\"", 70.71]] },
+  { t: 71.49, w: [["You", 71.49], ["played", 71.64], ["your", 72.03], ["cards", 72.3], ["and", 72.87], ["left", 73.16], ["your", 73.48], ["mark", 73.82]] },
+  { t: 77.55, w: [["WYATT!", 77.55], ["The 10", 78.79], ["th", 78.99], ["Legend", 79.45], ["of", 79.91], ["Rolfe!", 80.07]] },
+  { t: 81.01, w: [["Happy", 81.01], ["birthday,", 81.63], ["brave", 82.53], ["and", 82.85], ["bold", 83.16]] },
+  { t: 83.72, w: [["Ten", 83.72], ["candles", 84.11], ["and", 85.03], ["a", 85.29], ["crown", 85.47], ["of", 86.69], ["gold", 87.07]] },
+  { t: 89.92, w: [["WYATT!", 89.92], ["This", 91.32], ["song's", 91.56], ["for", 92.15], ["you —", 92.42]] },
+  { t: 92.99, w: [["From", 92.99], ["Uncle", 93.23], ["James:", 93.91], ["I'm", 94.55], ["proud", 94.93], ["of", 95.31], ["you!", 95.53]] },
+  { t: 95.86, w: [["The 10", 95.86], ["th", 96.14], ["Legend", 96.48], ["of", 97.46], ["Rolfe...", 97.86], ["that's", 98.98], ["you", 99.35]] },
 ];
 const CREDIT_BEATS = [
   { t: 0,     kind: 'title' },
@@ -1333,7 +1336,7 @@ function creditsRoll(onDone) {
   };
   const setBg = (path) => { bg.style.opacity = '0'; setTimeout(() => { bg.style.backgroundImage = path ? `url("${path}")` : 'none'; bg.style.opacity = '1'; }, 160); };
 
-  let beatIdx = -1, lineIdx = -1, ended = false, continued = false, raf = 0, capLine = null;
+  let beatIdx = -1, lineIdx = -1, ended = false, continued = false, raf = 0, capWords = [];
 
   function showScene(b) {
     stage.innerHTML = '';
@@ -1402,16 +1405,17 @@ function creditsRoll(onDone) {
     while (li + 1 < CREDIT_LINES.length && CREDIT_LINES[li + 1].t <= t) li++;
     if (li !== lineIdx && li >= 0) {
       lineIdx = li;
-      cap.innerHTML = `<span class="cap-line" style="--fill:0%">${CREDIT_LINES[li].text}</span>`;
-      capLine = cap.firstChild;
+      cap.innerHTML = '';
+      const inner = el('div', 'cap-inner'); // words flow inline here (the caption box is a grid)
+      capWords = CREDIT_LINES[li].w.map(([word, wt]) => {
+        const s = el('span', 'cw'); s.textContent = word + ' '; inner.appendChild(s); return { s, wt };
+      });
+      cap.appendChild(inner);
       cap.classList.remove('show'); void cap.offsetWidth; cap.classList.add('show');
     }
-    // karaoke fill — the current line "loads in" left-to-right, hitting 100% just as the next begins
-    if (capLine && lineIdx >= 0) {
-      const ls = CREDIT_LINES[lineIdx].t, le = (lineIdx + 1 < CREDIT_LINES.length) ? CREDIT_LINES[lineIdx + 1].t : ls + 4;
-      const pct = Math.max(0, Math.min(1, (t - ls) / Math.max(0.1, le - ls))) * 100;
-      capLine.style.setProperty('--fill', pct.toFixed(1) + '%');
-    }
+    // karaoke: light each word the MOMENT it's sung — held notes/instrumental breaks simply don't
+    // advance the highlight (no creeping), it resumes when the next word actually lands.
+    for (const cw of capWords) if (!cw.lit && t >= cw.wt) { cw.lit = true; cw.s.classList.add('lit'); }
     if (!continued && (t >= 103.5 || (audioEl() && audioEl().ended))) { beatIdx = CREDIT_BEATS.length - 1; showScene(CREDIT_BEATS[beatIdx]); }
     raf = requestAnimationFrame(loop);
   }
