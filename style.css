@@ -145,6 +145,11 @@ button:disabled { opacity: .45; pointer-events: none; }
 .hero-bar .threat { font-size: 12px; background: #ffe9e6; border: 2px solid var(--barn); color: var(--barn-dark); border-radius: 999px; padding: 3px 9px; font-weight: 600; white-space: nowrap; }
 .hero-bar.me { border-color: var(--grass-dark); }
 .hero-bar.targetable { outline: 4px solid var(--gold); cursor: pointer; animation: pulse 1s infinite; }
+/* attacking the enemy hero: make the WHOLE highlighted bar the tap target. Lift it above the opp-hand / 🃏 count
+   pill (which can clip the bar's lower-right), and add a forgiving vertical hit margin via a transparent overlay
+   so a tap anywhere on — or just above/below — the highlighted bar lands the hit, not just near the avatar. */
+.hero-bar.foe.targetable { position: relative; z-index: 6; }
+.hero-bar.foe.targetable::after { content: ''; position: absolute; inset: -14px 0; z-index: 1; }
 
 .boardrow { display: flex; gap: 8px; justify-content: center; align-items: center; min-height: 92px; flex: 1; padding: 4px; border-radius: 14px; }
 .boardrow.mine.playable-zone { outline: 3px dashed var(--gold); background: rgba(241,196,15,.12); }
