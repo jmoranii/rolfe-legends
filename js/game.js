@@ -205,7 +205,7 @@ function fxText(spec) {
 function cardText(d) {
   const parts = [];
   if (d.guard) parts.push('🛡️ Guard');
-  if (d.fast) parts.push('⚡ Fast');
+  if (d.fast) parts.push('🚀 Fast');
   if (d.bc) parts.push(`When played: ${fxText(d.bc)}`);
   if (d.aura) parts.push(`Your other critters have +${d.aura.a} Attack`);
   if (d.sot) parts.push('Start of your turn: a random ally gets +1/+1');
@@ -237,7 +237,7 @@ function critterEl(state, p, inst) {
   c.appendChild(el('div', 'stats',
     `<span class="a">⚔️${a}${a > inst.atk ? '✨' : ''}</span><span class="h">❤${inst.hp}</span>`));
   if (inst.guard) c.appendChild(el('div', 'badge', '🛡️'));
-  else if (inst.fast && inst.canAttack) c.appendChild(el('div', 'badge', '⚡'));
+  else if (inst.fast && inst.canAttack) c.appendChild(el('div', 'badge', '🚀'));
   if (inst.sick) c.classList.add('sick');
   return c;
 }
@@ -412,9 +412,13 @@ function prefightScreen(bossIdx) {
     change.onclick = () => { sfx.tap(); builderScreen(() => prefightScreen(bossIdx)); };
     panel.appendChild(change);
   }
+  const help = el('button', 'quiet', '❓ How cards work');
+  help.style.marginTop = '8px';
+  help.onclick = () => { sfx.tap(); showCardPrimer(null); };
+  panel.appendChild(help);
   const btns = el('div', 'btns');
   const go = el('button', 'primary', '⚔️ BATTLE!');
-  go.onclick = () => { sfx.tap(); startCampaignBattle(bossIdx); };
+  go.onclick = () => { sfx.tap(); if (bossIdx === 0 && !save.seenPrimer) showCardPrimer(() => startCampaignBattle(bossIdx)); else startCampaignBattle(bossIdx); };
   const back = el('button', 'quiet', '← Map');
   back.onclick = () => { sfx.tap(); mapScreen(); };
   btns.appendChild(back); btns.appendChild(go);
@@ -781,10 +785,13 @@ function playerTurnBegins() {
 
   // Basics, taught during the (unloseable) Rusty fight — one per turn, priority order.
   if (B.bossIdx === 0) {
-    if (pl.turnsTaken === 1) once('t_play', 'Tap a card, then tap it again to put your critter on the field. New critters are 💤 <b>sleepy</b> the turn you play them — they wake up and can attack on your NEXT turn!');
-    // only fire the attack tip once there's a genuinely awake attacker — never call a sleeping critter "ready"
+    if (pl.turnsTaken === 1) once('t_play', 'Tap a card, then tap it again (or tap your field) to put your animal down. New critters are 💤 <b>sleepy</b> the turn you play them — they wake up and can attack on your NEXT turn!');
+    // only fire the attack tips once there's a genuinely awake attacker — never call a sleeping critter "ready"
     const hasReady = pl.board.some(c => c.canAttack && !c.sick && effAtk(state, 0, c) > 0 && attackTargets(state, c.iid).length);
-    if (hasReady) once('t_attack', 'Your critter woke up! ⚔️ <b>Tap it</b>, then tap a target — smash an enemy critter, OR hit the enemy hero directly. Knock Rusty to 0 ❤ to win!');
+    const foeHasCritter = state.players[1].board.some(c => c.hp > 0);
+    if (hasReady) once('t_attack', 'Your animal woke up! ⚔️ <b>Tap it</b>, then tap what to hit — your target glows gold.');
+    if (hasReady && foeHasCritter) once('t_trade', '⚔️ Important: when your animal attacks <b>another animal</b>, they BOTH get hurt — your Punch hits them, and their Punch hits you right back. So trade smart: send a strong hitter, or gang up to win the fight!');
+    if (hasReady) once('t_hero', '💡 You don\'t have to fight his animals — you can attack <b>Rusty himself!</b> Tap your animal, then tap <b>Rusty\'s bar at the top</b>. Knock his ❤ to <b>0</b> and you WIN!', () => pulseBtn('.hero-bar.foe'));
     if (pl.turnsTaken >= 2) once('t_energy', 'Those ⚡ at the bottom are your <b>energy</b>. You get +1 every turn (up to 5), and each card costs energy to play (the number in its corner). Try to spend it all each turn!');
     if (pl.turnsTaken >= 3) once('t_threat', 'See "⚔️ incoming" up top? That\'s how hard Rusty can hit you next turn. Always check it before you end your turn!');
   }
@@ -792,6 +799,9 @@ function playerTurnBegins() {
   if (B.bossIdx <= 1) {
     if (state.players.some(p2 => p2.board.some(c => c.guard)) || pl.hand.some(c => cardDef(c).guard)) {
       once('t_guard', '🛡️ <b>Guard</b> critters protect their whole team — enemies MUST attack them first. Put one in front of your squishy friends!');
+    }
+    if (pl.hand.some(c => cardDef(c).fast) || state.players.some(p2 => p2.board.some(c => c.fast))) {
+      once('t_fast', '🚀 <b>Fast</b> animals are wide awake — they can attack the <b>same turn</b> you play them (no 💤 nap first)! Ruby and the Sprinter are zoomers.');
     }
     once('t_log', '📜 See the <b>scroll button</b> in the top-left? Tap it anytime to read everything that\'s happened — every card, attack, and ouch!', () => pulseBtn('.logbtn'));
     once('t_coachbtn', 'Forgot the plan? 🧢 Tap <b>Coach James</b> (top-left) anytime for a reminder on who you\'re fighting and how to beat them!', () => pulseBtn('.coachbtn'));
@@ -883,6 +893,34 @@ function narrate(e) {
   }
   if (save.logOpen) renderSideLog(); // live-update the side panel as each action happens
 }
+// First-time "how cards work" primer — a labeled sample card shown once before the first fight,
+// re-openable from any prefight via the ❓ button. Front-loads the card grammar (cost / punch /
+// toughness / powers) so a new player isn't decoding a card cold mid-battle.
+function showCardPrimer(onDone) {
+  save.seenPrimer = true; persist();
+  const ov = el('div', 'overlay');
+  const p = el('div', 'panel primer');
+  p.appendChild(el('h2', '', 'How your cards work 🃏'));
+  p.appendChild(el('div', 'primer-sub', 'Every animal card shows these four things:'));
+  const row = el('div', 'primer-row');
+  const card = handCardEl('billy_goat'); card.classList.add('primer-card');
+  row.appendChild(card);
+  const key = el('div', 'primer-key');
+  key.innerHTML =
+    '<div class="pk"><span class="pk-i">⚡</span><span><b>Cost</b> — the energy to play it (the number in the top corner)</span></div>' +
+    '<div class="pk"><span class="pk-i">⚔️</span><span><b>Punch</b> — how hard it hits</span></div>' +
+    '<div class="pk"><span class="pk-i">❤</span><span><b>Toughness</b> — how much it can take before it faints</span></div>' +
+    '<div class="pk"><span class="pk-i">🛡️🚀</span><span><b>Powers</b> — some animals have a special power like 🛡️ <b>Guard</b> or 🚀 <b>Fast</b>. Coach James explains each when it shows up!</span></div>';
+  row.appendChild(key);
+  p.appendChild(row);
+  p.appendChild(el('div', 'primer-note', '✨ Some cards are <b>Tricks</b> instead of animals — one-time magic that happens the moment you play it.'));
+  const btn = el('button', 'primary', 'Got it — let\'s go! ⚔️');
+  btn.onclick = () => { sfx.tap(); ov.remove(); if (onDone) onDone(); };
+  p.appendChild(btn);
+  ov.appendChild(p);
+  document.body.appendChild(ov);
+}
+
 function showLogOverlay() {
   const ov = el('div', 'overlay');
   const p = el('div', 'panel logpanel');
