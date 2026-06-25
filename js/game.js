@@ -1576,6 +1576,7 @@ function builderScreen(onDone) {
   const meta = el('div', 'deckmeta');
   const grid = el('div', 'shelves');
   w.appendChild(meta);
+  w.appendChild(el('div', 'builder-rule', 'Up to <b>2</b> of each card · <b>1</b> of each ⭐ Legend.<br>Tap a card to add it — tap a <b>MAX</b> card to clear it.'));
   w.appendChild(grid);
 
   function render() {
@@ -1628,11 +1629,15 @@ function builderScreen(onDone) {
         const c = handCardEl(id);
         const n = working.filter(x => x === id).length;
         const cap = d.legendary ? 1 : 2;
-        if (n > 0) { c.classList.add('indeck'); c.appendChild(el('div', 'count', `×${n}`)); }
+        if (n > 0) {
+          c.classList.add('indeck');
+          if (n >= cap) c.classList.add('maxed');                            // gold "MAX" — this card's copy limit is reached
+          c.appendChild(el('div', 'count', n >= cap ? `×${n} MAX` : `×${n}`));
+        }
         c.onclick = () => {
           sfx.tap();
-          if (n >= cap) { working = working.filter(x => x !== id); }           // cycle back to 0
-          else if (working.length >= DECK_MAX) { toast(`That's the max (${DECK_MAX}) — tap a card with a ×number to remove it.`); return; }
+          if (n >= cap) { working = working.filter(x => x !== id); toast(`Removed ${d.name} — you can have ${cap} ${d.legendary ? 'of a ⭐ Legend' : 'of each card'}.`); }  // at max → tap clears it
+          else if (working.length >= DECK_MAX) { toast(`That's the max deck size (${DECK_MAX}) — tap a card with a ×number to remove one.`); return; }
           else { working.push(id); }
           render();
         };

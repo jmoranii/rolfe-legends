@@ -8,13 +8,16 @@ New items: add under **Open** with a `_(source, YYYY-MM-DD)_` tag. Newest batch 
 
 ## Open
 
-### Deck builder
-- [ ] **Make the copy limits obvious.** It isn't clear you can run **2 copies of every
-  card except legendaries** (legendaries are limited to **1**). Surface the rule in the
-  builder UI — e.g. a per-card "×2 max" / "Legendary ×1" indicator and clear feedback
-  when a card is maxed out. _(playtest, 2026-06-18)_
+_Nothing open right now — caught up on playtest feedback. New items go here (newest batch on top)._
 
 ## Shipped
+
+### Deck builder — copy limits made obvious — _shipped 2026-06-25_
+- [x] **Make the copy limits obvious.** Added a persistent rule banner ("2 of each card ·
+  1 of each ⭐ Legend · tap a MAX card to clear it"), a gold **×N MAX** badge + gold outline
+  when a card hits its cap (vs the green outline = in deck with room to add), and a toast when
+  a max-tap clears a card (previously a silent surprise). The 2/1 cap already existed in the
+  engine — this just surfaces it. _(from playtest, 2026-06-18)_
 
 ### Onboarding & the Rusty tutorial — _shipped 2026-06-25_
 Front-loaded a **"How your cards work" primer** (a labeled sample card — Cost / Punch /
