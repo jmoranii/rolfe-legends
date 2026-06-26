@@ -267,6 +267,13 @@ function pulseBtn(sel) {
   btn.classList.add('pulse-hint');
   setTimeout(() => btn.classList.remove('pulse-hint'), 8000);
 }
+// momentary "YOUR TURN" sweep when control returns to the player (campaign only — couch uses the pass overlay)
+function turnBanner(text) {
+  document.querySelectorAll('.turn-banner').forEach(n => n.remove());
+  const b = el('div', 'turn-banner', text);
+  document.body.appendChild(b);
+  setTimeout(() => b.remove(), 1300);
+}
 
 // ================= SCREENS =================
 
@@ -602,6 +609,11 @@ function renderBattle() {
     coachBtn.onclick = () => { sfx.tap(); coachSay(`<b>vs ${B.boss.name}:</b> ${B.boss.tip}`, true); };
     app.appendChild(coachBtn);
   }
+  const glossBtn = el('button', 'quiet glossbtn', '📖');
+  glossBtn.style.cssText = 'position:absolute;top:8px;left:' + (B.mode === 'campaign' ? '140' : '96') + 'px;padding:4px 10px;font-size:13px;z-index:10;';
+  glossBtn.title = 'What do the icons mean?';
+  glossBtn.onclick = () => { sfx.tap(); showGlossary(); };
+  app.appendChild(glossBtn);
   app.appendChild(s);
   applySelectionHighlights();
   renderSideLog();
@@ -841,8 +853,9 @@ function showEnrageCutscene(e, onDone) {
     : names.length === 1 ? `She whistles — ${names[0]} comes running!`
     : `She whistles — ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} come running!`;
   const buff = (e.a || e.h) ? ` Her whole barn rallies <b>+${e.a}/+${e.h}</b>!` : '';
+  const taunt = (B.boss && B.boss.enrageLine) || 'Oh — you\'ve gone and woken Grandma up.';
   wrap.appendChild(el('div', 'enrage-cut-body',
-    `She sets down the rolling pin. <i>"Oh — you've gone and woken Grandma up."</i><br>${dogs}${buff}<br><b>Knock down her dogs, then finish her FAST!</b>`));
+    `She sets down the rolling pin. <i>"${taunt}"</i><br>${dogs}${buff}<br><b>Knock down her dogs, then finish her FAST!</b>`));
   wrap.appendChild(el('div', 'tapnote', '👆 tap to continue'));
   let done = false;
   const finish = () => { if (done) return; done = true; wrap.remove(); onDone(); };
@@ -918,6 +931,37 @@ function showCardPrimer(onDone) {
   btn.onclick = () => { sfx.tap(); ov.remove(); if (onDone) onDone(); };
   p.appendChild(btn);
   ov.appendChild(p);
+  document.body.appendChild(ov);
+}
+
+// battle keyword glossary — a one-tap "what do the icons mean?" key (re-checkable anytime,
+// without making the tiny critter badges tappable and fighting with select-to-attack)
+function showGlossary() {
+  const ov = el('div', 'overlay');
+  const p = el('div', 'panel glossary');
+  p.appendChild(el('h2', '', '📖 What the icons mean'));
+  const rows = [
+    ['⚡', 'Cost', 'Energy to play a card (the number in its corner).'],
+    ['⚔️', 'Punch', 'How hard a critter hits.'],
+    ['❤', 'Toughness', 'How much it can take before it faints.'],
+    ['🛡️', 'Guard', 'Enemies MUST attack this critter first — it shields your team.'],
+    ['🚀', 'Fast', 'Can attack the same turn you play it (no 💤 nap first).'],
+    ['💤', 'Sleepy', 'Just played — wakes up and can attack on your next turn.'],
+    ['✨', 'Trick', 'A one-time card — it happens the moment you play it.'],
+  ];
+  const list = el('div', 'gloss-list');
+  for (const [icon, name, desc] of rows) {
+    const r = el('div', 'gloss-row');
+    r.appendChild(el('span', 'gloss-i', icon));
+    r.appendChild(el('div', '', `<b>${name}</b> — ${desc}`));
+    list.appendChild(r);
+  }
+  p.appendChild(list);
+  const btn = el('button', 'primary', 'Got it!');
+  btn.onclick = () => { sfx.tap(); ov.remove(); };
+  p.appendChild(btn);
+  ov.appendChild(p);
+  ov.onclick = (ev) => { if (ev.target === ov) ov.remove(); };
   document.body.appendChild(ov);
 }
 
@@ -1096,7 +1140,7 @@ function runEvents(events, done) {
   narrate(e);
   const next = (ms) => setTimeout(() => runEvents(rest, done), ms);
   switch (e.t) {
-    case 'turnStart': { sfx.energy(); renderBattle(); next(380); break; }
+    case 'turnStart': { sfx.energy(); renderBattle(); if (B.mode === 'campaign' && e.p === meIdx()) turnBanner('⚔️ YOUR TURN!'); next(380); break; }
     case 'play': {
       DUCKY.test(e.cardId) ? sfx.quack() : sfx.play();
       renderBattle();
@@ -1252,7 +1296,7 @@ function endOfBattle() {
   if (firstWin) {
     save.progress = bossIdx + 1;
     persist();
-    revealRewards(b, 0, () => afterVictory(bossIdx));
+    bossBeatLine(b, () => revealRewards(b, 0, () => afterVictory(bossIdx)));
   } else {
     panelScreen(`You beat ${b.name} again!`, '💪', 'Just showing off now.', [
       ['← Map', () => mapScreen()],
@@ -1518,6 +1562,21 @@ function panelScreen(title, emoji, body, buttons) {
     btns.appendChild(b);
   }
   p.appendChild(btns);
+  ov.appendChild(p);
+  document.body.appendChild(ov);
+}
+
+// a beaten boss reacts in-character (their painted face + a line) before the reward reveal
+function bossBeatLine(b, done) {
+  if (!b.beatLine || location.hash === '#autoplay') { done(); return; }
+  const ov = el('div', 'overlay');
+  const p = el('div', 'panel beatline');
+  p.appendChild(artImg(`assets/cards/sig_${b.id}.png`, b.emoji, 'beatline-face'));
+  p.appendChild(el('h2', '', `You beat ${b.name}!`));
+  p.appendChild(el('p', '', `<i>"${b.beatLine}"</i>`));
+  const btn = el('button', 'primary', 'Continue ▶');
+  btn.onclick = () => { sfx.tap(); ov.remove(); done(); };
+  p.appendChild(btn);
   ov.appendChild(p);
   document.body.appendChild(ov);
 }
