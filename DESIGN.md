@@ -24,6 +24,25 @@
 
 damage (pick critter / any target / all enemy critters / enemy hero), heal (your hero / pick ally), draw N, buff (+A/+H, pick ally / all allies / random ally / other allies), temp-turn flags (your critters +1 atk this turn; your attacks ignore Guard this turn), summon tokens, bounce (return enemy critter to its owner's hand), debuff (all enemy critters −1 atk, min 0), aura (other allies +1 atk while this lives), start-of-turn trigger (random ally +1/+1), battlecry = "When played:".
 
+## Backyard Practice — fight 0, the scripted warm-up (Sat 2026-07-04)
+
+Before Rusty, a brand-new player gets a ~90-second, fully-choreographed, unloseable practice
+vs **Old Scarecrow** ("Stands there. Menacingly." — 🌾, HP 6, empty deck, never acts; not in
+BOSSES). Design: **do-first, one-verb-per-beat, constrained choices, spotlight guidance,
+instant celebration** — reading-first (the old primer auto-gate) is out. Three beats:
+**play a card** (hand holds exactly Barn Cat; anatomy chips label the real card's ⚡/⚔️/❤ —
+this replaces the primer as the anatomy teacher; 💤 sleepy shown on the played cat),
+**attack** (the scarecrow's turn passes comically, the cat wakes, tap it → tap him),
+**energy choice** (2⚡; Billy the Goat 2⚡ vs Prize Pig 4⚡ dimmed; wrong tap = shake + toast),
+then finish him with both critters → confetti → "Rusty's waiting!" Skippable ("I've played
+before →"), replayable (🎓 Practice on the title once seen), auto-skipped for saves with
+progress. The script is pure data (`js/tutorial.js`) replayed through the engine by the unit
+tests — every step proven legal and winnable. A spotlight (dim veil with a hole) guides each
+tap; `doAction` accepts only the scripted move. The Rusty fight also declutters: threat meter
+and 📜/🧢/📖 stay hidden until the tip that explains each one pops it in (progressive HUD),
+and every coach tip is on a diet (≤ ~12 words, one bold verb, one emoji). Recycle and Bedtime
+— previously untaught — now get a first-exposure tip + glossary rows.
+
 ## The boss ladder — each fight teaches ONE thing
 
 | # | Boss | HP | Deck archetype | The lesson | Coach's pre-fight tip (voice: warm, brief) |

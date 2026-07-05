@@ -2,6 +2,7 @@
 import { CARDS, TOKENS, STARTER_DECK, BOSSES, PRESETS, validateDeck, collectionFor, presetsFor, deckBuilderUnlocked, DECK_MIN, DECK_MAX, cardCategory, CATEGORIES, deckStats } from '../js/cards.js';
 import { newGame, act, legalActions, canPlay, playTargets, attackTargets, threat, effAtk, findCritter, HAND_CAP, BOARD_CAP, ENERGY_CAP, BEDTIME_TURN } from '../js/logic.js';
 import { chooseAction, aiTurn } from '../js/ai.js';
+import { SCARECROW, practiceState, PRACTICE_STEPS, actionMatches, scriptedAction } from '../js/tutorial.js';
 
 let passed = 0, failed = 0;
 function ok(cond, name) {
@@ -447,6 +448,69 @@ console.log('— AI sanity —');
     s = state; steps++;
   }
   ok(s.over, `AI vs AI game terminates (steps=${steps})`);
+}
+
+console.log('— backyard practice (tutorial script) —');
+{
+  // every card referenced by the script exists
+  const s0 = practiceState();
+  for (const id of [...s0.players[0].hand, ...s0.players[0].deck, ...s0.players[1].hand, ...s0.players[1].deck]) {
+    ok(!!CARDS[id], `practice card exists: ${id}`);
+  }
+  for (const step of PRACTICE_STEPS) {
+    ok(step.coach && step.coach.length > 0, `practice step ${step.id} has coach copy`);
+    if (step.allow?.card) ok(!!CARDS[step.allow.card], `practice allow card exists: ${step.allow.card}`);
+    if (step.spotlight?.card) ok(!!CARDS[step.spotlight.card], `practice spotlight card exists: ${step.spotlight.card}`);
+  }
+  // rigged-state shape
+  eq(s0.players[0].hand, ['barn_cat'], 'practice opening hand');
+  eq(s0.players[0].energy, 1, 'practice opening energy');
+  eq(s0.players[0].turnsTaken, 1, 'practice starts on turn 1');
+  eq(s0.players[1].hero.hp, 6, 'scarecrow HP');
+  eq(s0.players[1].deck.length, 0, 'scarecrow has no deck');
+  eq(s0.active, 0, 'player goes first in practice');
+  ok(!s0.bootEvents, 'practice state has no boot events');
+}
+{
+  // full script replay through the real engine: every step legal, ends in a win
+  let s = practiceState();
+  const seen = [];
+  for (const step of PRACTICE_STEPS) {
+    if (s.over) break;
+    if (step.who === 'foe') {
+      eq(s.active, 1, `practice ${step.id}: scarecrow's turn`);
+      const r = act(s, { type: 'end' });
+      s = r.state; seen.push(...r.events);
+      continue;
+    }
+    if (!step.allow) continue; // tap-to-advance beats don't touch the engine
+    let guard = 0;
+    do {
+      const a = scriptedAction(s, step);
+      ok(!!a, `practice ${step.id}: scripted action exists`);
+      if (!a) break;
+      ok(actionMatches(s, step, a), `practice ${step.id}: scripted action matches its own allowlist`);
+      ok(legalActions(s).some(l => JSON.stringify(l) === JSON.stringify(a)) || a.type === 'attack',
+        `practice ${step.id}: action is legal`);
+      const r = act(s, a);
+      s = r.state; seen.push(...r.events);
+    } while (step.repeat && !s.over && ++guard < 5);
+  }
+  ok(s.over && s.winner === 0, 'practice ends in a scripted win for Wyatt');
+  ok(s.players[1].hero.hp <= 0, 'scarecrow falls to 0');
+  ok(seen.every(e => e.t !== 'recycle' && e.t !== 'bedtime'), 'practice never shows recycle or bedtime');
+}
+{
+  // the affordable-vs-not beat: at the energy step, goat is playable and pig is not
+  let s = practiceState();
+  s = act(s, scriptedAction(s, PRACTICE_STEPS[1])).state;   // play barn cat
+  s = act(s, { type: 'end' }).state;                        // end turn 1
+  s = act(s, { type: 'end' }).state;                        // scarecrow passes
+  eq(s.players[0].energy, 2, 'turn 2 energy is 2');
+  const hand = s.players[0].hand;
+  eq(hand, ['billy_goat', 'prize_pig'], 'turn 2 draws goat + pig together');
+  ok(canPlay(s, hand.indexOf('billy_goat')), 'goat affordable at 2⚡');
+  ok(!canPlay(s, hand.indexOf('prize_pig')), 'pig NOT affordable at 2⚡');
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

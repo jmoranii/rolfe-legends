@@ -6,9 +6,10 @@ import {
 } from './cards.js';
 import {
   newGame, act, canPlay, playTargets, attackTargets, threat, effAtk, findCritter,
-  ENERGY_CAP,
+  ENERGY_CAP, BEDTIME_TURN,
 } from './logic.js';
 import { chooseAction } from './ai.js';
+import { SCARECROW, practiceState, PRACTICE_STEPS, actionMatches } from './tutorial.js';
 import * as sfx from './sfx.js';
 import * as music from './music.js';
 
@@ -18,11 +19,12 @@ const cardDef = (id) => CARDS[id] || TOKENS[id];
 const SAVE_KEY = 'rolfeLegends.v1';
 let save;
 try { save = JSON.parse(localStorage.getItem(SAVE_KEY)) || null; } catch { save = null; }
-if (!save || save.v !== 1) save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: true, music: true, logOpen: false, crowned: false, seenTips: {} };
+if (!save || save.v !== 1) save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: true, music: true, logOpen: false, crowned: false, seenTips: {}, seenPractice: false };
 // migrate old single-custom saves to the two-slot model (one slot per couch-battler)
 if (!save.customs) { save.customs = save.custom ? [[...save.custom], null] : [null, null]; delete save.custom; }
 if (save.deckId === 'custom') save.deckId = 'custom1';
 if (save.music === undefined) save.music = true;
+if (save.seenPractice === undefined) save.seenPractice = save.progress > 0; // pre-practice saves skip the warm-up
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* private mode */ } }
 sfx.setEnabled(save.sound);
 music.setEnabled(save.music);
@@ -38,7 +40,7 @@ function el(tag, cls, html) {
   if (html !== undefined) e.innerHTML = html;
   return e;
 }
-function clear() { app.innerHTML = ''; document.querySelectorAll('.coach, .overlay, .log-side').forEach(n => n.remove()); }
+function clear() { app.innerHTML = ''; document.querySelectorAll('.coach, .overlay, .log-side, .spot, .tut-note').forEach(n => n.remove()); }
 function toast(msg) {
   document.querySelectorAll('.toast').forEach(n => n.remove());
   document.body.appendChild(el('div', 'toast', msg));
@@ -267,6 +269,29 @@ function pulseBtn(sel) {
   btn.classList.add('pulse-hint');
   setTimeout(() => btn.classList.remove('pulse-hint'), 8000);
 }
+// progressive HUD: battle chrome stays hidden until the tip that explains it fires.
+// Returning players (2+ bosses beaten) and Couch Battle see everything immediately.
+function hudVisible(key) {
+  if (!B) return true;
+  if (B.mode === 'vs') return true;
+  if (B.mode === 'practice') return false;
+  return !!save.seenTips[key] || B.bossIdx >= 2 || save.progress >= 2;
+}
+// a hidden HUD element pops in the moment its tip introduces it
+function revealHud(sel) {
+  const n = document.querySelector(sel);
+  if (!n) return;
+  n.classList.remove('hud-hidden');
+  n.classList.add('hud-pop');
+  pulseBtn(sel);
+}
+// gentle "that doesn't work" wiggle (unaffordable card, sleeping critter)
+function shakeEl(sel) {
+  const n = document.querySelector(sel);
+  if (!n) return;
+  n.classList.add('shake');
+  setTimeout(() => n.classList.remove('shake'), 450);
+}
 // momentary "YOUR TURN" sweep when control returns to the player (campaign only — couch uses the pass overlay)
 function turnBanner(text) {
   document.querySelectorAll('.turn-banner').forEach(n => n.remove());
@@ -290,7 +315,8 @@ function titleScreen() {
   s.appendChild(el('div', 'title-balloon', save.crowned ? '👑 The 10th Legend of Rolfe 👑' : '9 legends came before you. Become the 10th.'));
   const btns = el('div', 'title-btns');
   const play = el('button', 'primary', save.progress === 0 ? '▶ START' : '▶ CONTINUE');
-  play.onclick = () => { sfx.tap(); save.progress === 0 ? prefightScreen(0) : mapScreen(); };
+  // brand-new player: warm up in the backyard first (skippable in-battle); then straight to Rusty
+  play.onclick = () => { sfx.tap(); save.progress === 0 ? (save.seenPractice ? prefightScreen(0) : startPractice('rusty')) : mapScreen(); };
   btns.appendChild(play);
   const vs = el('button', '', '🛋️ COUCH BATTLE');
   vs.onclick = () => { sfx.tap(); vsSetupScreen(); };
@@ -299,6 +325,11 @@ function titleScreen() {
     const col = el('button', '', '🃏 MY CARDS');
     col.onclick = () => { sfx.tap(); builderScreen(); };
     btns.appendChild(col);
+  }
+  if (save.seenPractice) {
+    const pr = el('button', 'quiet', '🎓 Practice');
+    pr.onclick = () => { sfx.tap(); startPractice('title'); };
+    btns.appendChild(pr);
   }
   const set = el('button', 'quiet', '⚙️ Settings');
   set.onclick = () => { sfx.tap(); settingsScreen(); };
@@ -425,7 +456,7 @@ function prefightScreen(bossIdx) {
   panel.appendChild(help);
   const btns = el('div', 'btns');
   const go = el('button', 'primary', '⚔️ BATTLE!');
-  go.onclick = () => { sfx.tap(); if (bossIdx === 0 && !save.seenPrimer) showCardPrimer(() => startCampaignBattle(bossIdx)); else startCampaignBattle(bossIdx); };
+  go.onclick = () => { sfx.tap(); startCampaignBattle(bossIdx); }; // card anatomy is taught by Backyard Practice now; ❓ stays as the reference
   const back = el('button', 'quiet', '← Map');
   back.onclick = () => { sfx.tap(); mapScreen(); };
   btns.appendChild(back); btns.appendChild(go);
@@ -471,6 +502,134 @@ function startVsBattle(deckA, deckB, nameA, nameB) {
 const meIdx = () => (B.mode === 'vs' ? B.state.active : 0);
 const foeIdx = () => 1 - meIdx();
 
+// ---------------- Backyard Practice (scripted warm-up) ----------------
+// A ~90-second, unloseable, fully-choreographed 3-beat tutorial vs Old Scarecrow.
+// Script data lives in tutorial.js (pure, replay-tested); this is the thin UI driver:
+// it reuses the REAL battle renderer + engine, gates doAction to the scripted step,
+// and moves a spotlight. The scarecrow never acts — we play 'end' for him.
+let practiceTapH = null; // one-shot advance-on-tap listener (removed on step change/quit)
+
+function startPractice(returnTo) {
+  practiceCleanup();
+  B = {
+    mode: 'practice', boss: SCARECROW, bgId: 'rusty', state: practiceState(),
+    stepIdx: 0, sel: null, busy: false, names: {}, log: [],
+    pnames: ['Wyatt', SCARECROW.name], practiceReturn: returnTo,
+  };
+  music.play('battle');
+  setScreenBg(bossBgUrl('rusty'), null); // Rusty's open field is the backyard
+  renderBattle();
+  turnBanner('🎓 PRACTICE!');
+  practiceStep();
+}
+
+function practiceCleanup() {
+  document.querySelectorAll('.spot, .tut-note').forEach(n => n.remove());
+  if (practiceTapH) { document.body.removeEventListener('pointerdown', practiceTapH); practiceTapH = null; }
+}
+
+function practiceStep() {
+  if (!B || B.mode !== 'practice') return;
+  const step = PRACTICE_STEPS[B.stepIdx];
+  if (!step) return;
+  if (step.who === 'foe') { scarecrowTurn(step); return; }
+  coachSay(step.coach, true);
+  practiceOverlay();
+  if (step.advance === 'tap') {
+    // any tap advances — installed after a beat so the tap that opened this step can't double-fire
+    setTimeout(() => {
+      if (!B || B.mode !== 'practice' || PRACTICE_STEPS[B.stepIdx] !== step) return;
+      const h = () => {
+        practiceTapH = null;
+        if (B && B.mode === 'practice' && PRACTICE_STEPS[B.stepIdx] === step) { B.stepIdx++; practiceStep(); }
+      };
+      practiceTapH = h;
+      document.body.addEventListener('pointerdown', h, { once: true });
+    }, 400);
+  }
+}
+
+// advance past the step the player just satisfied (doAction gated it, so it matched)
+function practiceAdvance() {
+  if (!B || B.mode !== 'practice') return;
+  const step = PRACTICE_STEPS[B.stepIdx];
+  if (!step) return;
+  if (!(step.repeat && !B.state.over)) B.stepIdx++;
+  practiceStep();
+}
+
+// The scarecrow's whole turn: an idle gag line, a wobble, then he… ends his turn.
+function scarecrowTurn(step) {
+  coachSay(step.coach, true);
+  document.querySelector('.hero-bar.foe')?.classList.add('wiggle');
+  B.busy = true;
+  setTimeout(() => {
+    if (!B || B.mode !== 'practice') return;
+    let res;
+    try { res = act(B.state, { type: 'end' }); } catch (e) { console.error(e); B.busy = false; return; }
+    B.state = res.state;
+    renderBattle();
+    runEvents(res.events, () => {
+      if (!B || B.mode !== 'practice') return;
+      B.busy = false; renderBattle();
+      B.stepIdx++; practiceStep();
+    });
+  }, 1600); // long enough to read the gag
+}
+
+// Spotlight: a body-level singleton with a box-shadow "hole" over the step's target.
+// Self-healing — re-resolved from the step's SEMANTIC target after every render,
+// so full renderBattle() rebuilds can never strand it on a dead element.
+function spotTargetEl(spec) {
+  if (!spec || !B) return null;
+  const p0 = B.state.players[0];
+  switch (spec.type) {
+    case 'hand': { const i = p0.hand.indexOf(spec.card); return i === -1 ? null : document.querySelector(`.handcard[data-hand="${i}"]`); }
+    case 'critter': { const c = p0.board.find(x => x.cardId === spec.card); return c ? document.querySelector(`.critter[data-iid="${c.iid}"]`) : null; }
+    case 'ready': { const c = p0.board.find(x => x.canAttack && !x.sick); return c ? document.querySelector(`.critter[data-iid="${c.iid}"]`) : null; }
+    case 'field': return document.querySelector('.boardrow.mine');
+    case 'foeHero': return document.querySelector('.hero-bar.foe');
+    case 'endturn': return document.querySelector('.endturn');
+  }
+  return null;
+}
+function practiceOverlay() {
+  if (!B || B.mode !== 'practice') { document.querySelectorAll('.spot, .tut-note').forEach(n => n.remove()); return; }
+  const step = PRACTICE_STEPS[B.stepIdx];
+  if (!step || step.who !== 'player' || B.busy) { document.querySelectorAll('.spot, .tut-note').forEach(n => n.remove()); return; }
+  const spec = (B.sel && step.thenSpotlight) ? step.thenSpotlight : step.spotlight;
+  requestAnimationFrame(() => {
+    if (!B || B.mode !== 'practice' || PRACTICE_STEPS[B.stepIdx] !== step) return;
+    document.querySelectorAll('.tut-note').forEach(n => n.remove());
+    const t = spotTargetEl(spec);
+    let spot = document.querySelector('.spot');
+    if (!t) { spot?.remove(); return; }
+    if (!spot) { spot = el('div', 'spot'); document.body.appendChild(spot); }
+    const r = t.getBoundingClientRect(), pad = 8;
+    spot.style.left = (r.left - pad) + 'px';
+    spot.style.top = (r.top - pad) + 'px';
+    spot.style.width = (r.width + pad * 2) + 'px';
+    spot.style.height = (r.height + pad * 2) + 'px';
+    if (step.annotate && spec && spec.type === 'hand') anatomyNotes(t);
+  });
+}
+// little labeled chips pointing at the REAL card's numbers (replaces the old primer overlay)
+function anatomyNotes(cardEl) {
+  const pairs = [['.cost', '⚡ cost'], ['.stats .a', '⚔️ punch'], ['.stats .h', '❤ toughness']];
+  for (const [sel, label] of pairs) {
+    const n = cardEl.querySelector(sel);
+    if (!n) continue;
+    const r = n.getBoundingClientRect();
+    const note = el('div', 'tut-note', `◂ ${label}`);
+    document.body.appendChild(note);
+    const nr = note.getBoundingClientRect();
+    let x = r.right + 6;
+    if (x + nr.width > innerWidth - 4) { x = r.left - nr.width - 6; note.textContent = `${label} ▸`; }
+    note.style.left = Math.max(4, x) + 'px';
+    note.style.top = Math.max(4, r.top + r.height / 2 - nr.height / 2) + 'px';
+  }
+}
+
 function renderBattle() {
   clear();
   const s = el('div', 'battle');
@@ -489,11 +648,13 @@ function renderBattle() {
     : el('div', 'face', pf.hero.emoji);
   if (pf.hero.enraged) foeFace.classList.add('enraged-face');
   fbar.appendChild(foeFace);
-  const fnm = el('div', 'nm', `${pf.hero.name}${B.mode === 'campaign' ? `<span class="sub">${pf.hero.enraged ? '🔥 ENRAGED' : B.boss.title}</span>` : ''}`);
+  const fnm = el('div', 'nm', `${pf.hero.name}${B.mode !== 'vs' ? `<span class="sub">${pf.hero.enraged ? '🔥 ENRAGED' : B.boss.title}</span>` : ''}`);
   fbar.appendChild(fnm);
   const th = threat(state, me);
   if (state.active === foe) fbar.appendChild(el('div', 'energychip', `⚡ ${pf.energy}`));
-  fbar.appendChild(el('div', 'threat', `⚔️ ${th.incoming} incoming · ⚡${th.nextEnergy} next`));
+  const thEl = el('div', 'threat', `⚔️ ${th.incoming} incoming · ⚡${th.nextEnergy} next`);
+  if (!hudVisible('t_threat')) thEl.classList.add('hud-hidden');
+  fbar.appendChild(thEl);
   fbar.appendChild(el('div', 'hp', `❤ ${Math.max(0, pf.hero.hp)}`));
   fbar.onclick = () => onTargetTap({ kind: 'hero', p: foe });
   s.appendChild(fbar);
@@ -553,7 +714,7 @@ function renderBattle() {
   // my hero bar
   const mbar = el('div', 'hero-bar me');
   mbar.dataset.hero = me;
-  mbar.appendChild(B.mode === 'campaign'
+  mbar.appendChild(B.mode !== 'vs'
     ? artImg('assets/ui/portrait_wyatt.png', pm.hero.emoji, 'face')
     : el('div', 'face', pm.hero.emoji));
   mbar.appendChild(el('div', 'nm', pm.hero.name));
@@ -586,11 +747,16 @@ function renderBattle() {
   quit.style.cssText = 'position:absolute;top:8px;left:8px;padding:4px 10px;font-size:13px;z-index:10;';
   quit.onclick = () => {
     sfx.tap();
-    confirmPanel('Leave this battle?', () => { B = null; save.progress === 0 ? titleScreen() : mapScreen(); });
+    const wasPractice = B.mode === 'practice';
+    confirmPanel(wasPractice ? 'Leave practice?' : 'Leave this battle?', () => {
+      practiceCleanup(); B = null;
+      wasPractice || save.progress === 0 ? titleScreen() : mapScreen();
+    });
   };
   app.appendChild(quit);
   const logBtn = el('button', 'quiet logbtn' + (save.logOpen && logIsSideMode() ? ' on' : ''), '📜');
   logBtn.style.cssText = 'position:absolute;top:8px;left:52px;padding:4px 10px;font-size:13px;z-index:10;';
+  if (!hudVisible('t_log')) logBtn.classList.add('hud-hidden');
   // wide screen → toggle a live side-log in the margin; narrow → open the modal log
   logBtn.onclick = () => {
     sfx.tap();
@@ -606,14 +772,30 @@ function renderBattle() {
     const coachBtn = el('button', 'coachbtn');
     coachBtn.style.cssText = 'position:absolute;top:6px;left:96px;z-index:10;background-image:url("assets/ui/portrait_coach.png");';
     coachBtn.title = 'Coach James — tap for a hint';
+    if (!hudVisible('t_coachbtn')) coachBtn.classList.add('hud-hidden');
     coachBtn.onclick = () => { sfx.tap(); coachSay(`<b>vs ${B.boss.name}:</b> ${B.boss.tip}`, true); };
     app.appendChild(coachBtn);
   }
   const glossBtn = el('button', 'quiet glossbtn', '📖');
   glossBtn.style.cssText = 'position:absolute;top:8px;left:' + (B.mode === 'campaign' ? '140' : '96') + 'px;padding:4px 10px;font-size:13px;z-index:10;';
   glossBtn.title = 'What do the icons mean?';
+  if (!hudVisible('t_glossary')) glossBtn.classList.add('hud-hidden');
   glossBtn.onclick = () => { sfx.tap(); showGlossary(); };
   app.appendChild(glossBtn);
+  // practice: a quiet escape hatch for kids (or grown-ups) who already know card games
+  if (B.mode === 'practice') {
+    const skip = el('button', 'quiet', 'I\'ve played before →');
+    skip.style.cssText = 'position:absolute;top:8px;right:8px;padding:4px 10px;font-size:12px;z-index:10;';
+    skip.onclick = () => {
+      sfx.tap();
+      const ret = B.practiceReturn;
+      practiceCleanup();
+      save.seenPractice = true; persist();
+      B = null;
+      ret === 'title' ? titleScreen() : prefightScreen(0);
+    };
+    app.appendChild(skip);
+  }
   app.appendChild(s);
   applySelectionHighlights();
   renderSideLog();
@@ -634,7 +816,7 @@ function renderSideLog() {
   for (const line of B.log.slice(0, 50)) list.appendChild(el('div', 'logline', line));
   panel.appendChild(list);
 }
-window.addEventListener('resize', () => { if (document.querySelector('.battle')) renderSideLog(); });
+window.addEventListener('resize', () => { if (document.querySelector('.battle')) { renderSideLog(); if (B && B.mode === 'practice') practiceOverlay(); } });
 
 // ---------- selection / input ----------
 function onHandTap(i) {
@@ -643,7 +825,7 @@ function onHandTap(i) {
   const cardId = state.players[me].hand[i];
   if (!canPlay(state, i)) {
     const d = cardDef(cardId);
-    if (d.cost > state.players[me].energy) toast(`Not enough ⚡ for ${d.name} (needs ${d.cost})`);
+    if (d.cost > state.players[me].energy) { toast(`Not enough ⚡ for ${d.name} (needs ${d.cost})`); shakeEl(`.handcard[data-hand="${i}"]`); }
     else if (d.type === 'critter') toast('Your field is full! (max 4)');
     else toast('No target for that right now.');
     return;
@@ -676,7 +858,7 @@ function onMyCritterTap(iid) {
   const inst = findCritter(state, me, iid);
   if (!inst) return;
   if (B.sel && B.sel.kind === 'critter' && B.sel.iid === iid) { B.sel = null; applySelectionHighlights(); sfx.tap(); return; }
-  if (inst.sick) { toast('💤 Just arrived — ready next turn!'); return; }
+  if (inst.sick) { toast('💤 Still napping — wakes up next turn!'); shakeEl(`.critter[data-iid="${iid}"]`); return; }
   if (!inst.canAttack) { toast('Already attacked this turn.'); return; }
   if (effAtk(state, me, inst) <= 0) { toast('0 attack — it can\'t fight (yet).'); return; }
   if (!attackTargets(state, iid).length) return;
@@ -708,6 +890,7 @@ function onTargetTap(target) {
 }
 
 function applySelectionHighlights() {
+  if (B && B.mode === 'practice') practiceOverlay(); // keep the spotlight glued to the current step (incl. thenSpotlight swap on select)
   const state = B.state, me = meIdx(), foe = foeIdx();
   document.querySelectorAll('.handcard.selected, .critter.selected, .critter.targetable, .hero-bar.targetable, .boardrow.playable-zone')
     .forEach(n => n.classList.remove('selected', 'targetable', 'playable-zone'));
@@ -745,6 +928,14 @@ function coachHint(key, text) {
 // ---------- actions & event animation ----------
 function doAction(action) {
   if (B.busy) return;
+  // practice: only the scripted move goes through — anything else gets a gentle nudge
+  if (B.mode === 'practice') {
+    const step = PRACTICE_STEPS[B.stepIdx];
+    if (!step || !step.allow || !actionMatches(B.state, step, action)) {
+      toast('👆 Tap the bright spot!');
+      return;
+    }
+  }
   B.busy = true;
   B.sel = null;
   document.querySelectorAll('.coach').forEach(n => n.remove()); // tip clears once the player acts on it
@@ -760,6 +951,9 @@ function doAction(action) {
     if (B.mode === 'campaign') {
       if (B.state.active === 1) aiLoop();
       else { B.busy = false; renderBattle(); playerTurnBegins(); }
+    } else if (B.mode === 'practice') {
+      // never aiLoop — the script drives; a 'foe' step ends the scarecrow's turn itself
+      B.busy = false; renderBattle(); practiceAdvance();
     } else {
       // vs: if turn just ended, pass the device
       if (action.type === 'end') { B.busy = false; renderBattle(); showPassOverlay(() => {}); }
@@ -796,30 +990,35 @@ function playerTurnBegins() {
   const once = (key, text, onShow) => { if (!shown) shown = tipOnce(key, text, onShow); };
 
   // Basics, taught during the (unloseable) Rusty fight — one per turn, priority order.
+  // Tip diet: ≤ ~12 words, one bold verb, one emoji. Detail lives in the 📖 glossary;
+  // sleepy/unaffordable are taught at the moment of the mis-tap (shake + toast) and in Practice.
   if (B.bossIdx === 0) {
-    if (pl.turnsTaken === 1) once('t_play', 'Tap a card, then tap it again (or tap your field) to put your animal down. New critters are 💤 <b>sleepy</b> the turn you play them — they wake up and can attack on your NEXT turn!');
+    if (pl.turnsTaken === 1) once('t_play', '<b>Tap</b> a card, then tap your field to play it! 🐾');
     // only fire the attack tips once there's a genuinely awake attacker — never call a sleeping critter "ready"
     const hasReady = pl.board.some(c => c.canAttack && !c.sick && effAtk(state, 0, c) > 0 && attackTargets(state, c.iid).length);
     const foeHasCritter = state.players[1].board.some(c => c.hp > 0);
-    if (hasReady) once('t_attack', 'Your animal woke up! ⚔️ <b>Tap it</b>, then tap what to hit — your target glows gold.');
-    if (hasReady && foeHasCritter) once('t_trade', '⚔️ Important: when your animal attacks <b>another animal</b>, they BOTH get hurt — your Punch hits them, and their Punch hits you right back. So trade smart: send a strong hitter, or gang up to win the fight!');
-    if (hasReady) once('t_hero', '💡 You don\'t have to fight his animals — you can attack <b>Rusty himself!</b> Tap your animal, then tap <b>Rusty\'s bar at the top</b>. Knock his ❤ to <b>0</b> and you WIN!', () => pulseBtn('.hero-bar.foe'));
-    if (pl.turnsTaken >= 2) once('t_energy', 'Those ⚡ at the bottom are your <b>energy</b>. You get +1 every turn (up to 5), and each card costs energy to play (the number in its corner). Try to spend it all each turn!');
-    if (pl.turnsTaken >= 3) once('t_threat', 'See "⚔️ incoming" up top? That\'s how hard Rusty can hit you next turn. Always check it before you end your turn!');
+    if (hasReady) once('t_attack', 'It\'s awake! <b>Tap it</b>, then tap a glowing target. ⚔️');
+    if (hasReady && foeHasCritter) once('t_trade', 'Animals <b>hit back</b> when you attack them — trade smart! ⚔️');
+    if (hasReady) once('t_hero', 'You can <b>attack Rusty himself</b> — tap his bar up top! 🐕', () => pulseBtn('.hero-bar.foe'));
+    if (pl.turnsTaken >= 2) once('t_energy', '⚡ is energy. Cards cost ⚡. <b>Spend it</b> every turn!');
+    if (pl.turnsTaken >= 3) once('t_threat', '"⚔️ incoming" is Rusty\'s next hit — <b>check it</b> every turn!', () => revealHud('.hero-bar.foe .threat'));
   }
   // These span the first two fights, firing the first time each is relevant (after the basics).
   if (B.bossIdx <= 1) {
     if (state.players.some(p2 => p2.board.some(c => c.guard)) || pl.hand.some(c => cardDef(c).guard)) {
-      once('t_guard', '🛡️ <b>Guard</b> critters protect their whole team — enemies MUST attack them first. Put one in front of your squishy friends!');
+      once('t_guard', '🛡️ Guards <b>block</b> for their team — enemies must hit them first!');
     }
     if (pl.hand.some(c => cardDef(c).fast) || state.players.some(p2 => p2.board.some(c => c.fast))) {
-      once('t_fast', '🚀 <b>Fast</b> animals are wide awake — they can attack the <b>same turn</b> you play them (no 💤 nap first)! Ruby and the Sprinter are zoomers.');
+      once('t_fast', '🚀 Fast animals <b>attack right away</b> — no nap needed!');
     }
-    once('t_log', '📜 See the <b>scroll button</b> in the top-left? Tap it anytime to read everything that\'s happened — every card, attack, and ouch!', () => pulseBtn('.logbtn'));
-    once('t_coachbtn', 'Forgot the plan? 🧢 Tap <b>Coach James</b> (top-left) anytime for a reminder on who you\'re fighting and how to beat them!', () => pulseBtn('.coachbtn'));
-    if (pl.hand.some(c => cardDef(c).type === 'trick')) once('t_trick', '✨ <b>Tricks</b> are one-time magic — play one and it happens right away!');
+    once('t_log', '📜 <b>Tap the scroll</b> to re-read everything that happened!', () => revealHud('.logbtn'));
+    once('t_coachbtn', '🧢 <b>Tap Coach James</b> anytime for the game plan!', () => revealHud('.coachbtn'));
+    once('t_glossary', '📖 Forget an icon? <b>Tap the book</b> anytime!', () => revealHud('.glossbtn'));
+    if (pl.hand.some(c => cardDef(c).type === 'trick')) once('t_trick', '✨ Tricks <b>happen instantly</b> — one-time magic, then gone!');
   }
-  if (B.bossIdx === 1 && pl.hand.includes('ddg')) once('t_aoe', '<b>Duck, Duck, GOOSE!</b> hits ALL of Aaron\'s critters at once. Best when his field is crowded!');
+  if (B.bossIdx === 1 && pl.hand.includes('ddg')) once('t_aoe', '🪿 Duck, Duck, GOOSE! <b>hits all</b> his critters at once!');
+  // Bedtime warning — ANY campaign fight, a few turns before it actually hits (turn 16)
+  if (pl.turnsTaken >= BEDTIME_TURN - 4) once('t_bedtime', '🌙 <b>Bedtime at turn 16</b> — then heroes take damage. Finish strong!');
 }
 
 const DUCKY = /duck|quack|goose|ddg/;
@@ -941,13 +1140,15 @@ function showGlossary() {
   const p = el('div', 'panel glossary');
   p.appendChild(el('h2', '', '📖 What the icons mean'));
   const rows = [
-    ['⚡', 'Cost', 'Energy to play a card (the number in its corner).'],
+    ['⚡', 'Cost', 'Energy to play a card (the number in its corner). You gain +1 each turn, up to 5.'],
     ['⚔️', 'Punch', 'How hard a critter hits.'],
     ['❤', 'Toughness', 'How much it can take before it faints.'],
     ['🛡️', 'Guard', 'Enemies MUST attack this critter first — it shields your team.'],
     ['🚀', 'Fast', 'Can attack the same turn you play it (no 💤 nap first).'],
     ['💤', 'Sleepy', 'Just played — wakes up and can attack on your next turn.'],
     ['✨', 'Trick', 'A one-time card — it happens the moment you play it.'],
+    ['♻️', 'Recycle', 'Empty deck? Your used cards shuffle back in — you never run out.'],
+    ['🌙', 'Bedtime', `At turn ${BEDTIME_TURN} both heroes start taking damage each turn — finish strong!`],
   ];
   const list = el('div', 'gloss-list');
   for (const [icon, name, desc] of rows) {
@@ -1140,7 +1341,7 @@ function runEvents(events, done) {
   narrate(e);
   const next = (ms) => setTimeout(() => runEvents(rest, done), ms);
   switch (e.t) {
-    case 'turnStart': { sfx.energy(); renderBattle(); if (B.mode === 'campaign' && e.p === meIdx()) turnBanner('⚔️ YOUR TURN!'); next(380); break; }
+    case 'turnStart': { sfx.energy(); renderBattle(); if (B.mode !== 'vs' && e.p === meIdx()) turnBanner('⚔️ YOUR TURN!'); next(380); break; }
     case 'play': {
       DUCKY.test(e.cardId) ? sfx.quack() : sfx.play();
       renderBattle();
@@ -1221,6 +1422,8 @@ function runEvents(events, done) {
     case 'recycle': {
       toast(`♻️ ${B.state.players[e.p].hero.name}'s deck reshuffled — ${e.count} cards back!`);
       sfx.unlock();
+      // first recycle anyone sees is the lesson (this mechanic used to go untaught)
+      if (B.mode === 'campaign') tipOnce('t_recycle', '♻️ Empty deck? Used cards <b>shuffle back</b> — you never run out!');
       next(520); break;
     }
     case 'enrage': {
@@ -1265,6 +1468,19 @@ function runEvents(events, done) {
 // ---------- end of battle ----------
 function endOfBattle() {
   B.busy = true;
+  // Backyard Practice complete — celebrate, flag it seen, and hand off to Rusty
+  if (B.mode === 'practice') {
+    practiceCleanup();
+    sfx.win(); sfx.fanfare(); confetti(70);
+    save.seenPractice = true; persist();
+    const ret = B.practiceReturn;
+    panelScreen('You\'re ready!', '🎉',
+      `<i>"${SCARECROW.beatLine}"</i><br><br>You know the moves. <b>Rusty's waiting!</b> 🐾`,
+      ret === 'title'
+        ? [['🏠 Back to Title', () => { B = null; titleScreen(); }]]
+        : [['⚔️ Meet Rusty!', () => { B = null; prefightScreen(0); }]]);
+    return;
+  }
   const won = B.mode === 'campaign' ? B.state.winner === 0 : true;
   if (B.mode === 'vs') {
     sfx.win(); confetti(50);
@@ -1770,7 +1986,7 @@ function settingsScreen() {
   p.appendChild(el('div', '', '<br>'));
   const reset = el('button', 'quiet', '🗑️ Start campaign over');
   reset.onclick = () => confirmPanel('Really erase ALL progress?', () => {
-    save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: save.sound, music: save.music, logOpen: save.logOpen, crowned: false, seenTips: {} };
+    save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: save.sound, music: save.music, logOpen: save.logOpen, crowned: false, seenTips: {}, seenPractice: false };
     persist(); toast('Fresh start!'); titleScreen();
   });
   p.appendChild(reset);

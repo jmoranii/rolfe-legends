@@ -498,3 +498,34 @@ button:disabled { opacity: .45; pointer-events: none; }
   .critter { width: 68px; min-height: 76px; } .critter .art { font-size: 26px; }
   .hand { min-height: 108px; }
 }
+
+/* ---------------- Backyard Practice (scripted warm-up) ---------------- */
+/* Spotlight: a positioned hole in a dim veil — the giant spread shadow darkens
+   everything EXCEPT the target. pointer-events:none (same philosophy as .coach):
+   wrong taps are policed by the practice allowlist, not by blocking the screen. */
+.spot {
+  position: fixed; z-index: 55; pointer-events: none; border-radius: 14px;
+  box-shadow: 0 0 0 200vmax rgba(24, 16, 9, .55);
+  outline: 3px solid var(--gold); outline-offset: -1px;
+  transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease;
+}
+/* anatomy chips — little labels pointing at the real card's numbers */
+.tut-note {
+  position: fixed; z-index: 56; pointer-events: none; white-space: nowrap;
+  background: #2b1d12; color: #fdf6e3; border: 1px solid var(--gold);
+  border-radius: 8px; padding: 3px 8px; font-size: 12px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .4); animation: coachin .25s ease;
+}
+/* gentle "that doesn't work" wiggle (unaffordable card / napping critter) */
+.shake { animation: tut-shake .4s ease; }
+@keyframes tut-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); }
+}
+/* the scarecrow's menacing... standing */
+.wiggle { animation: tut-wiggle .9s ease; }
+@keyframes tut-wiggle { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-1.2deg); } 70% { transform: rotate(1.2deg); } }
+/* progressive HUD: chrome stays hidden until the tip that explains it fires */
+.hud-hidden { display: none !important; }
+.hud-pop { animation: hud-pop .5s ease; }
+@keyframes hud-pop { 0% { transform: scale(0); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
