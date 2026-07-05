@@ -23,5 +23,10 @@
 <body>
   <div id="app"></div>
   <script type="module" src="js/game.js"></script>
+  <script>
+    // offline play: register the service worker (relative path keeps the GitHub Pages subpath scope).
+    // Registration failure (old browser, blocked storage) must stay silent — the game works without it.
+    if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  </script>
 </body>
 </html>

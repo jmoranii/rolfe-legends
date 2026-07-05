@@ -3,6 +3,8 @@ import { CARDS, TOKENS, STARTER_DECK, BOSSES, PRESETS, validateDeck, collectionF
 import { newGame, act, legalActions, canPlay, playTargets, attackTargets, threat, effAtk, findCritter, HAND_CAP, BOARD_CAP, ENERGY_CAP, BEDTIME_TURN } from '../js/logic.js';
 import { chooseAction, aiTurn } from '../js/ai.js';
 import { SCARECROW, practiceState, PRACTICE_STEPS, actionMatches, scriptedAction } from '../js/tutorial.js';
+import { coachDeckFor } from '../js/cards.js';
+import { encodeFarmCode, decodeFarmCode } from '../js/farmcode.js';
 
 let passed = 0, failed = 0;
 function ok(cond, name) {
@@ -511,6 +513,51 @@ console.log('— backyard practice (tutorial script) —');
   eq(hand, ['billy_goat', 'prize_pig'], 'turn 2 draws goat + pig together');
   ok(canPlay(s, hand.indexOf('billy_goat')), 'goat affordable at 2⚡');
   ok(!canPlay(s, hand.indexOf('prize_pig')), 'pig NOT affordable at 2⚡');
+}
+
+console.log('— coach mercy decks —');
+{
+  // for every boss, with exactly the collection a kid would have at that fight,
+  // Coach can hand over a LEGAL deck — with and without the Dog Man secret
+  for (let i = 0; i < BOSSES.length; i++) {
+    for (const secrets of [{}, { dogMan: true }]) {
+      const owned = collectionFor(i, secrets);
+      const deck = coachDeckFor(i, owned);
+      ok(deck && deck.length === 12, `coach deck exists for ${BOSSES[i].id} (dogMan:${!!secrets.dogMan})`);
+      ok(validateDeck(deck, owned) === null, `coach deck legal for ${BOSSES[i].id} (dogMan:${!!secrets.dogMan}): ${validateDeck(deck, owned)}`);
+      if (secrets.dogMan) ok(deck.includes('dog_man'), `coach deck leads with Dog Man for ${BOSSES[i].id}`);
+      else ok(!deck.includes('dog_man'), `no Dog Man before the secret is found (${BOSSES[i].id})`);
+    }
+  }
+  ok(coachDeckFor(99, collectionFor(0)) === null, 'coach deck null for bad boss index');
+}
+
+console.log('— secret farm code —');
+{
+  const save = { v: 1, progress: 5, crowned: false, secrets: { dogMan: true }, customs: [['barn_cat', 'barn_cat', 'billy_goat', 'billy_goat', 'shep', 'striker', 'striker', 'mama_hen', 'prize_pig', 'slide_tackle', 'ddg', 'blessing'], null], deckId: 'custom1' };
+  const code = encodeFarmCode(save);
+  ok(code.startsWith('FARM-'), 'code has FARM- prefix');
+  const d = decodeFarmCode(code);
+  ok(!!d, 'code decodes');
+  eq(d.progress, 5, 'progress round-trips');
+  eq(d.dogMan, true, 'dog man secret round-trips');
+  eq(d.customs[0].length, 12, 'custom deck round-trips');
+  eq(d.deckId, 'custom1', 'deck choice round-trips');
+  // tamper resistance + garbage
+  ok(decodeFarmCode(code.slice(0, -1) + (code.endsWith('0') ? '1' : '0')) === null, 'checksum rejects a typo');
+  ok(decodeFarmCode('FARM-nonsense-abc') === null, 'garbage rejected');
+  ok(decodeFarmCode('hello') === null, 'non-code rejected');
+  ok(decodeFarmCode('') === null, 'empty rejected');
+  // hostile payloads sanitize
+  const evil = encodeFarmCode({ progress: 42, secrets: {}, customs: [['not_a_card'], null], deckId: 'starter' });
+  ok(decodeFarmCode(evil) === null, 'out-of-range progress rejected');
+  const weird = decodeFarmCode(encodeFarmCode({ progress: 3, secrets: {}, customs: [['not_a_card', 'x', 'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], null], deckId: 'starter' }));
+  ok(weird && weird.customs[0] === null, 'unknown-card deck slot resets to null');
+  // whitespace + case tolerance on the prefix path
+  ok(!!decodeFarmCode('  ' + code + '  '), 'trims whitespace');
+  // coach deckId never encodes (transient)
+  const c2 = decodeFarmCode(encodeFarmCode({ progress: 2, secrets: {}, customs: [null, null], deckId: 'coach' }));
+  eq(c2.deckId, 'starter', 'coach deck id falls back to starter in codes');
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

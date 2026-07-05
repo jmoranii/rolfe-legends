@@ -12,6 +12,22 @@ _Nothing open right now — caught up on playtest feedback. New items go here (n
 
 ## Shipped
 
+### Insurance + mercy: offline play, farm codes, stuck-kid ladder — _shipped 2026-07-05_
+The "before Wyatt gets the link" batch (James picked 1/2/3 from the polish list):
+- [x] **Offline play** — `sw.js` service worker: shell network-first (fresh code online,
+  last-known-good offline), art/music cache-first filled during play (full asset set ~40MB —
+  no precache punishment; emoji/silence fallbacks cover the uncached). Registration is
+  silent-fail. Verified: Chromium e2e boots the game and starts a battle fully offline.
+- [x] **Secret Farm Code** — Settings → 🔑: the save (progress/crown/Dog Man/custom decks)
+  as a copyable `FARM-…` code with checksum; paste to restore on any device. Codec is pure
+  (`js/farmcode.js`), round-trip + tamper + hostile-payload tested.
+- [x] **Mercy ladder** (James's design: lead with the secret) — 3 straight losses to the same
+  boss → Coach leans in with a heavy **Dog Man Easter-egg hint** ("the llama on the title
+  screen… tap her three times"); still losing → one-tap **"Coach builds you a deck!"** applies
+  a per-boss counter-deck (`coachDeckFor` in cards.js — Dog Man leads it once found, he's the
+  deliberately-overpowered mercy hammer) and jumps straight into the rematch. Streaks reset
+  on a win. Every coach deck proven legal at exactly the collection a kid has at that fight.
+
 ### Just-in-time coaching in the Rusty/Aaron fights — _shipped 2026-07-04_
 James: tips fired at turn start, "not always at the time that it makes the most sense"
 (e.g. Guard explained because one sat in your hand, not when it mattered). Reworked as an

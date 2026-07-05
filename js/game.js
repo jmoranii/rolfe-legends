@@ -2,8 +2,9 @@
 import {
   CARDS, TOKENS, STARTER_DECK, BOSSES, PRESETS, WYATT, COACH,
   collectionFor, presetsFor, deckBuilderUnlocked, validateDeck,
-  DECK_MIN, DECK_MAX, cardCategory, CATEGORIES, deckStats,
+  DECK_MIN, DECK_MAX, cardCategory, CATEGORIES, deckStats, coachDeckFor,
 } from './cards.js';
+import { encodeFarmCode, decodeFarmCode } from './farmcode.js';
 import {
   newGame, act, canPlay, playTargets, attackTargets, threat, effAtk, findCritter,
   ENERGY_CAP, BEDTIME_TURN,
@@ -19,12 +20,14 @@ const cardDef = (id) => CARDS[id] || TOKENS[id];
 const SAVE_KEY = 'rolfeLegends.v1';
 let save;
 try { save = JSON.parse(localStorage.getItem(SAVE_KEY)) || null; } catch { save = null; }
-if (!save || save.v !== 1) save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: true, music: true, logOpen: false, crowned: false, seenTips: {}, seenPractice: false };
+if (!save || save.v !== 1) save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: true, music: true, logOpen: false, crowned: false, seenTips: {}, seenPractice: false, streaks: {}, coachDeck: null };
 // migrate old single-custom saves to the two-slot model (one slot per couch-battler)
 if (!save.customs) { save.customs = save.custom ? [[...save.custom], null] : [null, null]; delete save.custom; }
 if (save.deckId === 'custom') save.deckId = 'custom1';
 if (save.music === undefined) save.music = true;
 if (save.seenPractice === undefined) save.seenPractice = save.progress > 0; // pre-practice saves skip the warm-up
+if (!save.streaks) save.streaks = {};               // consecutive losses per boss (mercy ladder)
+if (save.coachDeck === undefined) save.coachDeck = null; // Coach's one-tap mercy deck
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* private mode */ } }
 sfx.setEnabled(save.sound);
 music.setEnabled(save.music);
@@ -416,6 +419,7 @@ function availableDecks() {
   save.customs.forEach((c, i) => {
     if (c) list.push({ id: 'custom' + (i + 1), name: `My Deck ${i + 1}`, emoji: i ? '📝' : '✏️', cards: c });
   });
+  if (save.coachDeck) list.push({ id: 'coach', name: 'Coach\'s Pick', emoji: '🧢', cards: save.coachDeck });
   return list;
 }
 function currentDeck() {
@@ -1541,20 +1545,50 @@ function endOfBattle() {
   if (!won) {
     sfx.lose();
     const b = B.boss, bossIdx = B.bossIdx;
+    save.streaks[b.id] = (save.streaks[b.id] || 0) + 1;
+    persist();
+    const streak = save.streaks[b.id];
+    // Mercy ladder, rung 1 (3 straight losses, secret unfound): a heavy hint at the
+    // llama's secret — being handed a SECRET beats being handed advice, and Dog Man
+    // is deliberately overpowered: he's the mercy hammer.
+    if (streak >= 3 && !save.secrets.dogMan && !save.seenTips.hint_dogman) {
+      save.seenTips.hint_dogman = true; persist();
+      panelScreen(`${b.name} wins this one…`, '🤫',
+        `Coach James looks around, then leans in close.<br><br><i>"Psst. Don't tell anyone… the <b>llama on the title screen</b> is guarding a secret. Tap her <b>three times</b>. 🦙"</i>`, [
+          ['🦙 Go see the llama', () => titleScreen()],
+          ['🔁 REMATCH!', () => startCampaignBattle(bossIdx)],
+        ]);
+      return;
+    }
     const canBuild = deckBuilderUnlocked(save.progress);
     // once the deck builder is unlocked, Coach nudges toward building a counter-deck
     const deckNudge = canBuild
       ? `<br><br>💡 Stuck? Tap <b>🃏 My Decks</b> to build a stronger deck — or one made to counter ${b.name}!`
       : '';
     const buttons = [['🔁 REMATCH!', () => startCampaignBattle(bossIdx)]];
+    // Mercy ladder, rung 2: still stuck → Coach hands over a counter-deck, one tap,
+    // straight back into the fight (Dog Man leads it once the secret's found).
+    let mercyLine = '';
+    if (streak >= 3) {
+      const coachDeck = coachDeckFor(bossIdx, ownedSet());
+      if (coachDeck) {
+        mercyLine = `<br><br>🧢 <b>That's ${streak} in a row — want a hand?</b>`;
+        buttons.unshift(['🧢 Coach builds you a deck!', () => {
+          save.coachDeck = coachDeck; save.deckId = 'coach'; persist();
+          toast(`🧢 Coach handed you a deck built to beat ${b.name}!`);
+          startCampaignBattle(bossIdx);
+        }]);
+      }
+    }
     if (canBuild) buttons.push(['🃏 My Decks', () => builderScreen(() => prefightScreen(bossIdx))]);
     buttons.push(['← Map', () => (save.progress === 0 ? titleScreen() : mapScreen())]);
-    panelScreen(`${b.name} wins this one…`, '😮', `<i>"${b.lossTip}"</i><br><span style="font-size:12px;opacity:.7">— Coach James</span>${deckNudge}`, buttons);
+    panelScreen(`${b.name} wins this one…`, '😮', `<i>"${b.lossTip}"</i><br><span style="font-size:12px;opacity:.7">— Coach James</span>${mercyLine}${deckNudge}`, buttons);
     return;
   }
   // victory!
   sfx.win(); confetti(70);
   const bossIdx = B.bossIdx, b = B.boss;
+  if (save.streaks[b.id]) { save.streaks[b.id] = 0; persist(); } // the wall fell — mercy ladder resets
   const firstWin = bossIdx === save.progress;
   if (firstWin) {
     save.progress = bossIdx + 1;
@@ -2031,9 +2065,13 @@ function settingsScreen() {
   mus.onclick = () => { save.music = !save.music; music.setEnabled(save.music); if (save.music) music.unlock(); persist(); mus.innerHTML = save.music ? '🎵 Music: ON' : '🎵 Music: OFF'; sfx.tap(); };
   p.appendChild(mus);
   p.appendChild(el('div', '', '<br>'));
+  const code = el('button', '', '🔑 Secret Farm Code');
+  code.onclick = () => { sfx.tap(); showFarmCode(); };
+  p.appendChild(code);
+  p.appendChild(el('div', '', '<br>'));
   const reset = el('button', 'quiet', '🗑️ Start campaign over');
   reset.onclick = () => confirmPanel('Really erase ALL progress?', () => {
-    save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: save.sound, music: save.music, logOpen: save.logOpen, crowned: false, seenTips: {}, seenPractice: false };
+    save = { v: 1, progress: 0, secrets: {}, customs: [null, null], deckId: 'starter', sound: save.sound, music: save.music, logOpen: save.logOpen, crowned: false, seenTips: {}, seenPractice: false, streaks: {}, coachDeck: null };
     persist(); toast('Fresh start!'); titleScreen();
   });
   p.appendChild(reset);
@@ -2043,6 +2081,60 @@ function settingsScreen() {
   p.appendChild(back);
   s.appendChild(p);
   app.appendChild(s);
+}
+
+// ---------------- secret farm code (save backup/restore) ----------------
+// The whole farm in a magic code: copy it somewhere safe, paste it back anytime
+// (new tablet, cleared browser data) and the legend is restored. Codec + tests
+// live in farmcode.js; this is just the overlay.
+function showFarmCode() {
+  const ov = el('div', 'overlay');
+  const p = el('div', 'panel farmcode');
+  p.appendChild(el('h2', '', '🔑 Secret Farm Code'));
+  p.appendChild(el('p', '', 'Your whole farm, saved in one magic code. Keep a copy somewhere safe — paste it back anytime to restore your legend!'));
+  const out = el('textarea', 'code-out');
+  out.readOnly = true;
+  out.value = encodeFarmCode(save);
+  out.onclick = () => out.select();
+  p.appendChild(out);
+  const copy = el('button', '', '📋 Copy my code');
+  copy.onclick = async () => {
+    sfx.tap();
+    try { await navigator.clipboard.writeText(out.value); toast('📋 Copied! Save it somewhere safe.'); }
+    catch { out.select(); toast('Press and hold the code to copy it.'); }
+  };
+  p.appendChild(copy);
+  p.appendChild(el('div', 'farmcode-divider', '— or restore a farm —'));
+  const inp = el('textarea', 'code-in');
+  inp.placeholder = 'Paste a farm code here…';
+  p.appendChild(inp);
+  const restore = el('button', '', '🌱 Restore this farm');
+  restore.onclick = () => {
+    sfx.tap();
+    const d = decodeFarmCode(inp.value);
+    if (!d) { toast('Hmm — that code doesn\'t look right. Check for missing letters!'); return; }
+    confirmPanel('Replace your current farm with this one?', () => {
+      save.progress = d.progress;
+      save.crowned = d.crowned;
+      save.secrets.dogMan = d.dogMan;
+      save.customs = d.customs;
+      save.deckId = d.deckId;
+      save.seenPractice = true; // a restored farm belongs to someone who's played
+      save.coachDeck = null;
+      if (!availableDecks().some(x => x.id === save.deckId)) save.deckId = 'starter';
+      persist();
+      sfx.unlock(); confetti(40);
+      toast('🌾 Farm restored — welcome back!');
+      ov.remove();
+      titleScreen();
+    });
+  };
+  p.appendChild(restore);
+  const back = el('button', 'quiet', '← Back');
+  back.onclick = () => { sfx.tap(); ov.remove(); };
+  p.appendChild(back);
+  ov.appendChild(p);
+  document.body.appendChild(ov);
 }
 
 // ---------------- autoplay (testing attract mode) ----------------

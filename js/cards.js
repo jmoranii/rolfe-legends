@@ -292,6 +292,39 @@ export const CATEGORIES = [
   { id: 'legends',   name: 'Legends',   emoji: '🌟' },
 ];
 
+// ---- Coach's mercy decks -----------------------------------------------------
+// When a kid is stuck (3+ straight losses), Coach offers a one-tap deck built to
+// counter that boss. Ordered wishlists per boss; the builder takes what's OWNED at
+// that point (respecting copy limits), leads with Dog Man if the secret is found,
+// and pads from the starter deck. Always returns a legal 12-card deck (or null).
+const COACH_PICKS = {
+  rusty:   ['striker', 'striker', 'billy_goat', 'billy_goat', 'prize_pig', 'barn_cat', 'barn_cat', 'shep', 'mama_hen', 'slide_tackle', 'ddg', 'blessing'],
+  aaron:   ['ddg', 'slide_tackle', 'sprinter', 'sig_rusty', 'shep', 'mama_hen', 'billy_goat', 'billy_goat', 'barn_cat', 'barn_cat', 'striker', 'striker'],
+  jacob:   ['nutmeg', 'nutmeg', 'slide_tackle', 'slide_tackle', 'goat_stampede', 'billy_goat', 'billy_goat', 'prize_pig', 'striker', 'striker', 'sprinter', 'sprinter', 'sig_aaron'],
+  tory:    ['slide_tackle', 'slide_tackle', 'ddg', 'goat_stampede', 'math_whiz', 'math_whiz', 'striker', 'striker', 'billy_goat', 'billy_goat', 'prize_pig', 'sig_rusty'],
+  brody:   ['shep', 'shep', 'sig_rusty', 'sig_jacob', 'blessing', 'mama_hen', 'mama_hen', 'magic_vanish', 'prize_pig', 'billy_goat', 'billy_goat', 'math_whiz'],
+  chelsea: ['sig_tory', 'mama_hen', 'mama_hen', 'prize_pig', 'prize_pig', 'billy_goat', 'billy_goat', 'striker', 'striker', 'goat_stampede', 'magic_vanish', 'sig_brody'],
+  flaj:    ['magic_vanish', 'magic_vanish', 'striker', 'striker', 'sprinter', 'sprinter', 'sig_brody', 'trickster', 'trickster', 'slide_tackle', 'slide_tackle', 'billy_goat'],
+  rocky:   ['nutmeg', 'nutmeg', 'llama', 'sig_flaj', 'trickster', 'trickster', 'goat_stampede', 'goat_stampede', 'slide_tackle', 'magic_vanish', 'maestro', 'blessing'],
+};
+export function coachDeckFor(bossIdx, owned) {
+  const b = BOSSES[bossIdx];
+  if (!b) return null;
+  const deck = [], counts = {};
+  const add = (id) => {
+    const c = CARDS[id];
+    if (!c || !owned.has(id) || deck.length >= 12) return;
+    const max = c.legendary ? 1 : 2;
+    if ((counts[id] || 0) >= max) return;
+    counts[id] = (counts[id] || 0) + 1;
+    deck.push(id);
+  };
+  add('dog_man'); // the mercy hammer — leads whenever the secret's been found
+  for (const id of COACH_PICKS[b.id] || []) add(id);
+  for (const id of STARTER_DECK) add(id); // pad to legal from the starter
+  return deck.length >= DECK_MIN ? deck : null;
+}
+
 // ---- Deck scorecard -------------------------------------------------------------
 // One stat language for everything: your deck, the presets, and every boss.
 // 💥 Punch = how hard it hits. 🛡️ Toughness = how well it survives. ✨ Tricks = how sneaky it is.
