@@ -262,6 +262,12 @@ function tipOnce(key, text, onShow) {
   if (onShow) onShow();
   return true; // signals "a tip was shown this turn" to the one-per-turn gate
 }
+// A just-in-time teachable moment — a tipOnce fired AT the action that makes the
+// concept real (playing a Guard, the first mutual trade, the glowing hero bar),
+// not batched at turn start. Sets B.moment so the turn-start ladder yields the floor.
+function tipMoment(key, text, onShow) {
+  if (B && tipOnce(key, text, onShow)) B.moment = true;
+}
 // draw the eye to a battle button when its tutorial tip fires
 function pulseBtn(sel) {
   const btn = document.querySelector(sel);
@@ -865,6 +871,10 @@ function onMyCritterTap(iid) {
   sfx.tap();
   B.sel = { kind: 'critter', iid };
   applySelectionHighlights();
+  // the hero bar just lit up gold — THE moment to reveal you can attack Rusty himself
+  if (B.mode === 'campaign' && B.bossIdx === 0 && attackTargets(state, iid).some(t => t.kind === 'hero')) {
+    tipMoment('t_hero', 'The glowing bar up top means you can attack <b>Rusty himself</b>! 🐕');
+  }
 }
 
 function onTargetTap(target) {
@@ -938,9 +948,16 @@ function doAction(action) {
   }
   B.busy = true;
   B.sel = null;
+  clearTimeout(B.idleT); // acting cancels any pending hesitation nudge
+  B.moment = false;
   document.querySelectorAll('.coach').forEach(n => n.remove()); // tip clears once the player acts on it
   // VS: hide the incoming player's hand the moment the turn flips — no peeking during animations
   if (B.mode === 'vs' && action.type === 'end') B.hideHand = true;
+  // just-in-time teaching context, captured before the action mutates state (first two fights only)
+  const jit = (B.mode === 'campaign' && B.bossIdx <= 1 && B.state.active === 0) ? {
+    played: action.type === 'play' ? cardDef(B.state.players[0].hand[action.hand]) : null,
+    tradedIntoCritter: action.type === 'attack' && action.target.kind === 'critter',
+  } : null;
   let res;
   try { res = act(B.state, action); }
   catch (e) { console.error(e); B.busy = false; return; }
@@ -948,6 +965,14 @@ function doAction(action) {
   if (action.type !== 'attack') renderBattle(); // attacks animate against the pre-action DOM
   runEvents(res.events, () => {
     if (B.state.over) return endOfBattle();
+    // teach the concept the player JUST made real — at its moment, not at turn start
+    if (jit && !B.state.over) {
+      const d = jit.played;
+      if (d && d.guard) tipMoment('t_guard', `🛡️ ${d.name} <b>guards</b> — enemies must attack him first!`);
+      else if (d && d.fast) tipMoment('t_fast', '🚀 <b>Fast!</b> No nap — it can attack right now!');
+      else if (d && d.type === 'trick') tipMoment('t_trick', '✨ That was a Trick — <b>instant magic</b>, then it\'s gone!');
+      else if (jit.tradedIntoCritter) tipMoment('t_trade', 'See? Animals <b>hit back</b> — both got hurt. Trade smart! ⚔️');
+    }
     if (B.mode === 'campaign') {
       if (B.state.active === 1) aiLoop();
       else { B.busy = false; renderBattle(); playerTurnBegins(); }
@@ -989,36 +1014,58 @@ function playerTurnBegins() {
   let shown = false;
   const once = (key, text, onShow) => { if (!shown) shown = tipOnce(key, text, onShow); };
 
-  // Basics, taught during the (unloseable) Rusty fight — one per turn, priority order.
-  // Tip diet: ≤ ~12 words, one bold verb, one emoji. Detail lives in the 📖 glossary;
-  // sleepy/unaffordable are taught at the moment of the mis-tap (shake + toast) and in Practice.
+  // Most concepts now teach themselves AT the action that makes them real (see the tipMoment
+  // call sites: play-a-Guard/Fast/Trick + first trade in doAction, hero-bar glow in
+  // onMyCritterTap, first recycle in runEvents, mis-taps via shake+toast, everything else in
+  // Backyard Practice). This ladder only carries turn-start truths + the meta buttons — and it
+  // yields the floor whenever a just-in-time moment already fired this action.
+  if (B.moment) { B.moment = false; armIdleNudge(); return; }
   if (B.bossIdx === 0) {
-    if (pl.turnsTaken === 1) once('t_play', '<b>Tap</b> a card, then tap your field to play it! 🐾');
-    // only fire the attack tips once there's a genuinely awake attacker — never call a sleeping critter "ready"
+    // only fire once there's a genuinely awake attacker — never call a sleeping critter "ready"
     const hasReady = pl.board.some(c => c.canAttack && !c.sick && effAtk(state, 0, c) > 0 && attackTargets(state, c.iid).length);
-    const foeHasCritter = state.players[1].board.some(c => c.hp > 0);
     if (hasReady) once('t_attack', 'It\'s awake! <b>Tap it</b>, then tap a glowing target. ⚔️');
-    if (hasReady && foeHasCritter) once('t_trade', 'Animals <b>hit back</b> when you attack them — trade smart! ⚔️');
-    if (hasReady) once('t_hero', 'You can <b>attack Rusty himself</b> — tap his bar up top! 🐕', () => pulseBtn('.hero-bar.foe'));
     if (pl.turnsTaken >= 2) once('t_energy', '⚡ is energy. Cards cost ⚡. <b>Spend it</b> every turn!');
-    if (pl.turnsTaken >= 3) once('t_threat', '"⚔️ incoming" is Rusty\'s next hit — <b>check it</b> every turn!', () => revealHud('.hero-bar.foe .threat'));
   }
-  // These span the first two fights, firing the first time each is relevant (after the basics).
+  // These span the first two fights, each firing the first time it's actually relevant.
   if (B.bossIdx <= 1) {
-    if (state.players.some(p2 => p2.board.some(c => c.guard)) || pl.hand.some(c => cardDef(c).guard)) {
-      once('t_guard', '🛡️ Guards <b>block</b> for their team — enemies must hit them first!');
+    // the threat meter appears the first time there IS a threat — not on an arbitrary turn
+    if (threat(state, 0).incoming > 0) once('t_threat', '"⚔️ incoming" = the hit coming next turn. <b>Check it</b>!', () => revealHud('.hero-bar.foe .threat'));
+    if (B.log.length >= 6) once('t_log', '📜 <b>Tap the scroll</b> to re-read everything that happened!', () => revealHud('.logbtn'));
+    if (pl.turnsTaken >= 3) once('t_coachbtn', '🧢 <b>Tap Coach James</b> anytime for the game plan!', () => revealHud('.coachbtn'));
+    // the glossary earns its intro once at least one keyword icon has actually appeared
+    if (save.seenTips.t_guard || save.seenTips.t_fast || save.seenTips.t_trick) {
+      once('t_glossary', '📖 Forget an icon? <b>Tap the book</b> anytime!', () => revealHud('.glossbtn'));
     }
-    if (pl.hand.some(c => cardDef(c).fast) || state.players.some(p2 => p2.board.some(c => c.fast))) {
-      once('t_fast', '🚀 Fast animals <b>attack right away</b> — no nap needed!');
-    }
-    once('t_log', '📜 <b>Tap the scroll</b> to re-read everything that happened!', () => revealHud('.logbtn'));
-    once('t_coachbtn', '🧢 <b>Tap Coach James</b> anytime for the game plan!', () => revealHud('.coachbtn'));
-    once('t_glossary', '📖 Forget an icon? <b>Tap the book</b> anytime!', () => revealHud('.glossbtn'));
-    if (pl.hand.some(c => cardDef(c).type === 'trick')) once('t_trick', '✨ Tricks <b>happen instantly</b> — one-time magic, then gone!');
   }
-  if (B.bossIdx === 1 && pl.hand.includes('ddg')) once('t_aoe', '🪿 Duck, Duck, GOOSE! <b>hits all</b> his critters at once!');
+  // AoE clicks when his field is actually crowded — the moment the lesson is true
+  if (B.bossIdx === 1 && pl.hand.includes('ddg') && state.players[1].board.filter(c => c.hp > 0).length >= 2) {
+    once('t_aoe', '🪿 Duck, Duck, GOOSE! <b>hits all</b> his critters at once!');
+  }
   // Bedtime warning — ANY campaign fight, a few turns before it actually hits (turn 16)
   if (pl.turnsTaken >= BEDTIME_TURN - 4) once('t_bedtime', '🌙 <b>Bedtime at turn 16</b> — then heroes take damage. Finish strong!');
+  armIdleNudge();
+}
+
+// Hesitation nudge: if the kid sits idle on his turn (first two fights only), Coach softly
+// offers the contextual next step — the gentle successor to Practice's spotlight. Once per
+// turn, never over an existing bubble, cancelled the moment he acts.
+function armIdleNudge() {
+  if (!B || B.mode !== 'campaign' || B.bossIdx > 1) return;
+  clearTimeout(B.idleT);
+  const turnNo = B.state.players[0].turnsTaken;
+  if (B.nudgedTurn === turnNo) return;
+  B.idleT = setTimeout(() => {
+    if (!B || B.mode !== 'campaign' || B.busy || B.state.active !== 0 || B.state.over) return;
+    if (B.sel || document.querySelector('.coach')) return; // mid-decision or already guided
+    B.nudgedTurn = turnNo;
+    const s = B.state, pl = s.players[0];
+    const ready = pl.board.some(c => c.canAttack && !c.sick && effAtk(s, 0, c) > 0 && attackTargets(s, c.iid).length);
+    const playable = pl.hand.some((c, i) => canPlay(s, i));
+    const msg = ready ? 'Your animal can attack — <b>tap it</b>! ⚔️'
+      : playable ? '<b>Tap a card</b> to play it! 🐾'
+      : 'All done? <b>Tap END TURN</b> ➤';
+    coachSay(msg);
+  }, 9000);
 }
 
 const DUCKY = /duck|quack|goose|ddg/;

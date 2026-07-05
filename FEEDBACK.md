@@ -12,6 +12,26 @@ _Nothing open right now — caught up on playtest feedback. New items go here (n
 
 ## Shipped
 
+### Just-in-time coaching in the Rusty/Aaron fights — _shipped 2026-07-04_
+James: tips fired at turn start, "not always at the time that it makes the most sense"
+(e.g. Guard explained because one sat in your hand, not when it mattered). Reworked as an
+extension of the practice philosophy — concepts teach themselves at the action that makes
+them real:
+- [x] **Guard / Fast / Trick** → the moment YOU play one (in `doAction`'s completion, with
+  the card's name: "🛡️ Shep guards — enemies must attack him first!").
+- [x] **Mutual trade** → right after your first critter-vs-critter attack, when both damage
+  numbers just flew ("See? Animals hit back — both got hurt.").
+- [x] **Attack the hero** → the moment you select an attacker and his bar starts glowing.
+- [x] **Threat meter** → the first time incoming damage is actually > 0 (was: turn 3).
+- [x] **Meta buttons earn their intros**: 📜 after the log has ≥6 lines, 📖 only once a
+  keyword icon has actually appeared, 🪿 AoE tip only when Aaron's field is crowded (≥2).
+- [x] **Hesitation nudge**: idle ~9s on your turn (fights 1–2) → Coach softly offers the
+  contextual next step (attack / play / end turn); once per turn, never over an existing
+  bubble, cancelled the moment you act. Replaces the turn-1 "how to play" lecture entirely —
+  turn 1 now opens quiet.
+- [x] Rusty's prefight tip no longer says "Drag" (legacy copy from a pre-tap design).
+  _(from James's live test, 2026-07-04)_
+
 ### Backyard Practice — the first-five-minutes overhaul — _shipped 2026-07-04_
 Wyatt hadn't seen the game yet, so the whole learning path got a ground-up redesign around
 **do-first, one-verb-per-beat, constrained choices, spotlight guidance, instant celebration**:

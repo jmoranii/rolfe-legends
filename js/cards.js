@@ -120,7 +120,7 @@ export const BOSSES = [
     deck: ['puppy', 'puppy', 'puppy', 'puppy', 'puppy', 'big_puppy', 'big_puppy', 'big_puppy', 'big_puppy', 'loyal_friend', 'loyal_friend', 'loyal_friend'],
     persona: { aggression: 0.2, tradeCare: 0.0, healAt: 0, smart: 0, neverLethal: true, curve: 'wide' },
     intro: 'Rusty wags. Rusty is ready. Rusty has no idea what a card game is.',
-    tip: 'Drag a critter onto the field, then tap it to attack. Rusty mostly wants belly rubs.',
+    tip: 'Play a critter every turn and go for Rusty himself — he mostly wants belly rubs.',
     lossTip: 'Play a critter every turn if you can — an empty field means Rusty gets to chew on YOU.',
     beatLine: '*tail wag* Woof! …okay, okay, you win. Belly rubs? 🐾',
     reward: ['sig_rusty', 'sprinter'],
