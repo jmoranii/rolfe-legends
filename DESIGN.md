@@ -4,7 +4,7 @@
 
 ## Core rules (Hearthstone-lite, tuned for a 10-year-old first-timer)
 
-- Two heroes face off. **Hero HP: 20** (Rusty 12, Dad 11, Grandma Rockie 23).
+- Two heroes face off. **Hero HP: 20** (Rusty 12, Dad 11, Granny Rockie 23).
 - **Energy ⚡:** you start your turn with energy = number of your turns so far, **capped at 5** (1, 2, 3, 4, 5, 5, …). Spend it to play cards; unspent energy is lost. The math of "what can I afford" is the first strategy layer.
 - **Decks: 12–24 cards** player-built (boss decks are 12), max 2 copies of a card (Legendary cards max 1). *(Briefly tried 3 copies — too consistent, reverted.)* Small decks are reliable, big decks are surprising — a real strategy tradeoff. Start of game: player going first draws 4, second draws 5. **Draw 1/turn.** Hand cap 7 (draw skipped with a "Hand full!" toast — no card burning, gentle).
 - **Decks recycle:** played tricks and fallen critters go to a discard pile; when your deck runs dry it auto-reshuffles (♻️ toast). You never run out of cards. Tokens evaporate instead.
@@ -53,18 +53,18 @@ and every coach tip is on a diet (≤ ~12 words, one bold verb, one emoji). Recy
 | 4 | **Mom** (Tory) 💪 | 20 | **Buffs/support** — makes her team huge | Kill the support first (priority targets) | "Your mom makes everyone around her stronger. Take out the helpers before the muscle." |
 | 5 | **Uncle Brody** 🔥 | 20 | **Aggro burn** — Fast critters, face damage | Racing vs healing; when to defend | "Brody goes FAST and loud. Heal up, put up Guards, survive the storm — then win." |
 | 6 | **Aunt Chelsea** 💖 | 20 | **Heal/control** — removal + heals, outlasts you | Out-pace healing with CONSISTENT board damage | "Chelsea heals every turn. Little pokes get undone — keep critters on the field and deal damage EVERY turn." |
-| 7 | **Grampa Flaj** 🚜 | 20 | **Big tanks** — slow giants | Answer big threats (or race them) | "Grampa's slow but his critters are TOUGH as old boots. Hit fast, or pack a vanishing act." |
-| 8 | **Grandma Rockie** 👑 | 23 | **Everything** — smart mixed deck, best AI, guard wall, **ENRAGE phase** | The final exam | "Grandma Rockie's seen every trick in this game — most of them are hers. Use EVERYTHING you've learned." |
+| 7 | **Poppa Flaj** 🚜 | 20 | **Big tanks** — slow giants | Answer big threats (or race them) | "Poppa's slow but his critters are TOUGH as old boots. Hit fast, or pack a vanishing act." |
+| 8 | **Granny Rockie** 👑 | 23 | **Everything** — smart mixed deck, best AI, guard wall, **ENRAGE phase** | The final exam | "Granny Rockie's seen every trick in this game — most of them are hers. Use EVERYTHING you've learned." |
 
 Boss AI personalities: per-boss heuristic weights (aggression, trade-care, heal threshold, curve priority). All bosses lethal-check except Rusty. Rockie additionally prioritizes killing your aura/snowball pieces and holds AoE for value.
 
-**Grandma Rockie's ENRAGE (final-boss phase 2):** the first time she drops to/below 12 HP, a ONE-TIME burst fires. It opens with a **full-screen cutscene** — her fiery ENRAGED portrait, big and centered, with a plain-language explanation of what's happening, paced for a reader ("tap to continue") so it never "just happens fast." Then she whistles in her two dogs, which animate in one at a time: **Smidgen** — her little white guard dog, "six pounds of pure doom," a 3/4 Guard — leads, followed by a 3/3 Guard Dog. Both are Guards that block immediately, so you have to knock them down to reach her. No heal, no permanent buff: a single telegraphed wall. The summons always land (even from an empty field), so it never whiffs when you're ahead on board, and her hero-bar avatar stays the ENRAGED portrait for the rest of the fight. This is the only enrage in the game; it's a per-hero config (`enrage: { at, summon: [cardIds], a, h }`) the engine reads, so any boss *could* get one later. **Smidgen is `grand_finale`, a summon-only token** — she appears ONLY here, evaporates on death (never recycles into Rockie's deck), and is never a player-collectible card.
+**Granny Rockie's ENRAGE (final-boss phase 2):** the first time she drops to/below 12 HP, a ONE-TIME burst fires. It opens with a **full-screen cutscene** — her fiery ENRAGED portrait, big and centered, with a plain-language explanation of what's happening, paced for a reader ("tap to continue") so it never "just happens fast." Then she whistles in her two dogs, which animate in one at a time: **Smidgen** — her little white guard dog, "six pounds of pure doom," a 3/4 Guard — leads, followed by a 3/3 Guard Dog. Both are Guards that block immediately, so you have to knock them down to reach her. No heal, no permanent buff: a single telegraphed wall. The summons always land (even from an empty field), so it never whiffs when you're ahead on board, and her hero-bar avatar stays the ENRAGED portrait for the rest of the fight. This is the only enrage in the game; it's a per-hero config (`enrage: { at, summon: [cardIds], a, h }`) the engine reads, so any boss *could* get one later. **Smidgen is `grand_finale`, a summon-only token** — she appears ONLY here, evaporates on death (never recycles into Rockie's deck), and is never a player-collectible card.
 
 **Difficulty intent (selfplay-verified):** Rusty ~unloseable → Aaron easy → mid bosses occasionally need a retry → Rockie is a deliberate wall (~16% KID-policy win rate; expect several attempts even with a tuned deck, and the ENRAGE dogs are where greedy boards get punished). Losing is part of the strategy lesson; rematch is instant. (Curveball — ignore-Guard — is the kid's key tech against her Guard wall; the AI proxy under-uses it, so a human reads higher than 16%.)
 
 ## The campaign arc — the 10th Legend
 
-Map = a farm path with 8 portrait nodes + a crown. **Bosses you haven't reached yet are a mystery** (`???` + ❓, no portrait/name) — you only find out who's next when you beat the one before them, so every rung is a reveal. Beaten + current bosses show their portrait/name. Beat a boss → **win their signature card** (pack-opening reveal moment) + scheduled unlocks. Beat Grandma Rockie → crown screen: **"WYATT — THE 10TH LEGEND OF ROLFE"** — 9 legends came before (the 8 bosses + Coach James); on his 10th birthday he completes the ten. Confetti, golden card back unlocked, signed *"Happy 10th Birthday, Wyatt — love, Uncle James."*
+Map = a farm path with 8 portrait nodes + a crown. **Bosses you haven't reached yet are a mystery** (`???` + ❓, no portrait/name) — you only find out who's next when you beat the one before them, so every rung is a reveal. Beaten + current bosses show their portrait/name. Beat a boss → **win their signature card** (pack-opening reveal moment) + scheduled unlocks. Beat Granny Rockie → crown screen: **"WYATT — THE 10TH LEGEND OF ROLFE"** — 9 legends came before (the 8 bosses + Coach James); on his 10th birthday he completes the ten. Confetti, golden card back unlocked, signed *"Happy 10th Birthday, Wyatt — love, Uncle James."*
 
 ## Unlock schedule
 
@@ -78,8 +78,8 @@ Map = a farm path with 8 portrait nodes + a crown. **Bosses you haven't reached 
 | Mom (Tory) | **Mom** (sig), Magic Vanish | — |
 | Brody | **Uncle Brody** (sig), The Trickster | preset *Speed Demons*, *Magic Show* |
 | Chelsea | **Aunt Chelsea** (sig), Piano Maestro, **Goldie** (the llama) | — |
-| Grampa Flaj | **Grampa Flaj** (sig) | preset *Big Barn Energy* |
-| Grandma Rockie | **Grandma Rockie** (sig) | Crown, golden card back, Dog Man hint, **champion's reward: every card from every boss deck joins the collection** |
+| Poppa Flaj | **Poppa Flaj** (sig) | preset *Big Barn Energy* |
+| Granny Rockie | **Granny Rockie** (sig) | Crown, golden card back, Dog Man hint, **champion's reward: every card from every boss deck joins the collection** |
 | 🤫 Secret | **Dog Man** | Tap the llama on the title screen 3× |
 
 Boss decks become playable in **VS Mode** once beaten (replay value + "play AS mom").
@@ -121,14 +121,14 @@ Boss decks become playable in **VS Mode** once beaten (replay value + "play AS m
 | Mom | 4 | 3/4 | Your other critters have +1 Attack | "Says 'be careful!' Makes you stronger anyway." |
 | Uncle Brody | 4 | 5/2 | Fast | "REAL TALK." |
 | Aunt Chelsea | 3 | 2/3 | When played: heal your hero 4 | "Hugs that heal." |
-| Grampa Flaj | 5 | 5/6 | When played: your other critters get +0/+2 | "Tough as old boots." |
-| Grandma Rockie | 5 | 4/5 | When played: deal 2 to all enemy critters | "Final boss energy. Bakes cookies." |
+| Poppa Flaj | 5 | 5/6 | When played: your other critters get +0/+2 | "Tough as old boots." |
+| Granny Rockie | 5 | 4/5 | When played: deal 2 to all enemy critters | "Final boss energy. Bakes cookies." |
 
 ### Preset decks (Coach's Picks — one-tap good decks, freeform builder for when he's ready)
 - **Farm Friends** (post-Aaron): go-wide farm core — Barn Cat ×2, Billy ×2, Shep, Mama Hen ×2, Prize Pig, Rusty, Aaron Lil Tornado, Goat Stampede, Duck Duck GOOSE!
 - **Speed Demons** (post-Brody): Sprinter ×2, Barn Cat ×2, Striker ×2, Billy ×2, Uncle Brody, Curveball, Slide Tackle, Goat Stampede
 - **Magic Show** (post-Brody): Trickster ×2, Magic Vanish, Slide Tackle ×2, Barn Cat ×2, Billy ×2, Striker ×2, Uncle Brody
-- **Big Barn Energy** (post-Flaj): Prize Pig, Grampa Flaj, Goldie (the llama), Mama Hen ×2, Shep, Barn Cat ×2, Billy ×2, Blessing, Slide Tackle
+- **Big Barn Energy** (post-Flaj): Prize Pig, Poppa Flaj, Goldie (the llama), Mama Hen ×2, Shep, Barn Cat ×2, Billy ×2, Blessing, Slide Tackle
 
 ## Readability layer (playtest rounds 1–2, Jun 10–11)
 
@@ -146,7 +146,7 @@ Five looping tracks in `assets/audio/` (`js/music.js` — loop + 600ms crossfade
 |---|---|---|---|
 | Main theme | `title.mp3` | Title, Map, menus | warm Americana folk adventure (banjo/fiddle/whistle), instrumental |
 | Battle | `battle.mp3` | Bosses 1–7, Couch Battle | upbeat bluegrass hoedown, instrumental |
-| Final boss | `boss.mp3` | Grandma Rockie fight | music-box intro → epic orchestral folk menace, instrumental |
+| Final boss | `boss.mp3` | Granny Rockie fight | music-box intro → epic orchestral folk menace, instrumental |
 | **Crown anthem** | `anthem.mp3` | Win/crown screen | **"The 10th Legend of Rolfe" — Wyatt's birthday song, custom lyrics, gang-vocal hoedown** |
 | Deck builder | `deckbuild.mp3` | Deck builder | relaxed porch bluegrass thinking music, instrumental |
 
@@ -175,7 +175,7 @@ Warm farm palette (barn red `#b5413a`, hay gold `#e8b94e`, sky `#8ecae6`, grass 
 
 ## Battle backgrounds (wired Sat 2026-06-13)
 
-Each boss fights on their own painted "place" — climbing the ladder feels like traveling through the farm and the family. Eight landscape stages (`assets/backgrounds/bg_<bossId>.png`, ~1536×1024, style-matched to the card series) sit behind the board: Rusty's open field, Aaron's farmyard, Dad's barn-door wall, Mom's sunflower field, Brody's dusty driveway, Chelsea's firelit room, Grampa's pasture, Rockie's golden-hour porch. Each is painted as a *quiet stage* — soft-focus, a calm open lower-center where the board sits, an edge vignette, unpopulated (the cards are the characters).
+Each boss fights on their own painted "place" — climbing the ladder feels like traveling through the farm and the family. Eight landscape stages (`assets/backgrounds/bg_<bossId>.png`, ~1536×1024, style-matched to the card series) sit behind the board: Rusty's open field, Aaron's farmyard, Dad's barn-door wall, Mom's sunflower field, Brody's dusty driveway, Chelsea's firelit room, Poppa's pasture, Rockie's golden-hour porch. Each is painted as a *quiet stage* — soft-focus, a calm open lower-center where the board sits, an edge vignette, unpopulated (the cards are the characters).
 
 **Drop-in, same spirit as the card art:** `applyBattleBg()` (`js/game.js`) probes `bg_<id>.png` once, caches the result, and applies it via CSS only after it loads — a missing PNG silently leaves the warm dark fallback tone, with no console errors (they can land incrementally). Couch Battle reuses Rusty's neutral field. **Legibility is protected by a tunable scrim** (`.battle.has-bg` in `style.css`): a `--scrim` dark wash (locked at `0.42`) + a vignette tame every scene, and the exposed midbar (energy/turn label) gets a chip + light text so it reads on any photo. The board, HP/energy, card text, and hero bars keep their opaque cream backings, so they stay crisp on top. If a stage ever reads too busy, dial `--scrim` up or re-roll that one muted (`./assets/generate-art.sh bg_<id>`) rather than darkening it destructively in code.
 

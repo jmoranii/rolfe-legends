@@ -11,7 +11,7 @@
 export const TOKENS = {
   chick:    { id: 'chick',    name: 'Chick',    type: 'critter', cost: 0, atk: 1, hp: 1, emoji: '🐤', flavor: 'Cheep cheep.', token: true },
   duckling: { id: 'duckling', name: 'Duckling', type: 'critter', cost: 0, atk: 1, hp: 1, emoji: '🐥', flavor: 'Follows you everywhere.', token: true },
-  guard_dog:{ id: 'guard_dog',name: 'Guard Dog',type: 'critter', cost: 0, atk: 3, hp: 3, guard: true, emoji: '🦮', flavor: 'Grandma whistled. You are in trouble.', token: true },
+  guard_dog:{ id: 'guard_dog',name: 'Guard Dog',type: 'critter', cost: 0, atk: 3, hp: 3, guard: true, emoji: '🦮', flavor: 'Granny whistled. You are in trouble.', token: true },
 };
 
 const C = {}; // all card defs by id
@@ -46,8 +46,8 @@ def({ id: 'sig_jacob',   name: 'Dad',               type: 'critter', cost: 3, at
 def({ id: 'sig_tory',    name: 'Mom',               type: 'critter', cost: 4, atk: 3, hp: 4, legendary: true, aura: { a: 1 }, emoji: '👩‍🌾', flavor: "Says 'be careful!' Makes you stronger anyway." });
 def({ id: 'sig_brody',   name: 'Uncle Brody',       type: 'critter', cost: 4, atk: 5, hp: 2, legendary: true, fast: true, emoji: '🤠', flavor: 'REAL TALK.' });
 def({ id: 'sig_chelsea', name: 'Aunt Chelsea',      type: 'critter', cost: 3, atk: 2, hp: 3, legendary: true, bc: { kind: 'heal', n: 6, target: 'self-hero' }, emoji: '🤗', flavor: 'Hugs that heal.' });
-def({ id: 'sig_flaj',    name: 'Grampa Flaj',       type: 'critter', cost: 5, atk: 5, hp: 6, legendary: true, bc: { kind: 'buff', a: 0, h: 2, target: 'other-allies' }, emoji: '👴', flavor: 'Tough as old boots.' });
-def({ id: 'sig_rocky',   name: 'Grandma Rockie',     type: 'critter', cost: 5, atk: 4, hp: 5, legendary: true, bc: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '👵', flavor: 'Final boss energy. Bakes cookies.' });
+def({ id: 'sig_flaj',    name: 'Poppa Flaj',       type: 'critter', cost: 5, atk: 5, hp: 6, legendary: true, bc: { kind: 'buff', a: 0, h: 2, target: 'other-allies' }, emoji: '👴', flavor: 'Tough as old boots.' });
+def({ id: 'sig_rocky',   name: 'Granny Rockie',     type: 'critter', cost: 5, atk: 4, hp: 5, legendary: true, bc: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '👵', flavor: 'Final boss energy. Bakes cookies.' });
 
 // ---- Boss-only cards -------------------------------------------------------
 // Rusty
@@ -85,23 +85,23 @@ def({ id: 'gentle_goat',  name: 'Gentle Goat',  type: 'critter', cost: 2, atk: 1
 def({ id: 'time_out',     name: 'Time Out',     type: 'trick',   cost: 3, fx: { kind: 'bounce', target: 'pick-critter-enemy' }, emoji: '⏰', flavor: 'Go think about what you did.' });
 def({ id: 'guard_cat',    name: 'Lily',         type: 'critter', cost: 3, atk: 2, hp: 5, guard: true, emoji: '🐈‍⬛', flavor: "Chelsea's cat. Sees everything. Judges everything." });
 def({ id: 'big_hug',      name: 'Rig',          type: 'critter', cost: 5, atk: 4, hp: 6, emoji: '🦮', flavor: "Chelsea's VERY big dog. Hugs you whether you like it or not." });
-// Grampa Flaj
+// Poppa Flaj
 def({ id: 'barn_owl',      name: 'Barn Owl',      type: 'critter', cost: 1, atk: 1, hp: 2, emoji: '🦉', flavor: 'Saw you sneak that cookie.' });
 def({ id: 'haybale',       name: 'Haybale',       type: 'critter', cost: 2, atk: 0, hp: 4, guard: true, emoji: '🌾', flavor: 'Surprisingly hard to move.' });
 def({ id: 'stubborn_mule', name: 'Stubborn Mule', type: 'critter', cost: 3, atk: 2, hp: 5, guard: true, emoji: '🫏', flavor: 'Has decided. Will not be re-deciding.' });
 def({ id: 'iron_skillet',  name: 'Iron Skillet',  type: 'trick',   cost: 2, fx: { kind: 'buff', a: 0, h: 3, target: 'pick-ally' }, emoji: '🍳', flavor: 'Older than your parents. Works better too.' });
 def({ id: 'prize_bull',    name: 'Prize Bull',    type: 'critter', cost: 4, atk: 5, hp: 4, emoji: '🐂', flavor: 'The fence is a suggestion.' });
 def({ id: 'old_tractor',   name: 'Old Tractor',   type: 'critter', cost: 5, atk: 4, hp: 7, emoji: '🚜', flavor: 'Starts on the third try. Every time. For 40 years.' });
-// Grandma Rockie
+// Granny Rockie
 def({ id: 'knitting_needles', name: 'Knitting Needles', type: 'trick',   cost: 1, fx: { kind: 'damage', n: 2, target: 'pick-critter-enemy' }, emoji: '🪡', flavor: 'Click. Click. Doom.' });
 def({ id: 'yarn_beast',       name: 'Yarn Beast',       type: 'critter', cost: 4, atk: 4, hp: 4, emoji: '🧶', flavor: 'It was a sweater. It evolved.' });
 def({ id: 'garden_gnome',     name: 'Garden Gnome',     type: 'critter', cost: 2, atk: 2, hp: 3, emoji: '🧙', flavor: 'Moves when you blink.' });
 def({ id: 'wise_owl',         name: 'Wise Owl',         type: 'critter', cost: 2, atk: 1, hp: 3, emoji: '🦉', flavor: 'Knows what you did. Knows what you WILL do.' });
 def({ id: 'cookie_batch',     name: 'Cookie Batch',     type: 'trick',   cost: 2, fx: { kind: 'heal', n: 4, target: 'self-hero' }, emoji: '🍪', flavor: 'Fresh from the oven. Non-negotiable.' });
 def({ id: 'secret_recipe',    name: 'Secret Recipe',    type: 'trick',   cost: 3, fx: { kind: 'buff', a: 1, h: 1, target: 'all-allies' }, emoji: '📜', flavor: 'Written nowhere. Remembered perfectly.' });
-def({ id: 'watch_dog',        name: 'Watch Dog',        type: 'critter', cost: 3, atk: 3, hp: 3, guard: true, emoji: '🐕‍🦺', flavor: 'Grandma trained him. Be afraid.' });
+def({ id: 'watch_dog',        name: 'Watch Dog',        type: 'critter', cost: 3, atk: 3, hp: 3, guard: true, emoji: '🐕‍🦺', flavor: 'Granny trained him. Be afraid.' });
 def({ id: 'rolling_pin',      name: 'Rolling Pin',      type: 'trick',   cost: 4, fx: { kind: 'damage', n: 2, target: 'all-enemy-critters' }, emoji: '🥖', flavor: 'For dough. Mostly.' });
-// Smidgen is now Grandma's ENRAGE summon (not a deck card): a fierce little Guard who blocks for her.
+// Smidgen is now Granny's ENRAGE summon (not a deck card): a fierce little Guard who blocks for her.
 // token:true → evaporates on death (never recycles into Rockie's deck). Art: grand_finale.png.
 def({ id: 'grand_finale',     name: 'Smidgen',          type: 'critter', cost: 5, atk: 3, hp: 4, guard: true, token: true, emoji: '🐾', flavor: "Rockie's little white lap dog. Six pounds of pure doom." });
 
@@ -178,28 +178,28 @@ export const BOSSES = [
     reward: ['sig_chelsea', 'maestro', 'llama'],
   },
   {
-    id: 'flaj', name: 'Grampa Flaj', title: 'The Mountain', emoji: '👴', hp: 20,
+    id: 'flaj', name: 'Poppa Flaj', title: 'The Mountain', emoji: '👴', hp: 20,
     deck: ['barn_owl', 'barn_owl', 'haybale', 'haybale', 'stubborn_mule', 'stubborn_mule', 'prize_bull', 'prize_bull', 'old_tractor', 'old_tractor', 'iron_skillet', 'sig_flaj'],
     persona: { aggression: 0.5, tradeCare: 0.6, healAt: 0, smart: 0, curve: 'big' },
-    intro: 'Grampa Flaj fires up the old tractor. It takes three tries. It always takes three tries.',
-    tip: 'Grampa\'s slow but his critters are TOUGH as old boots. Hit fast, or pack a vanishing act.',
+    intro: 'Poppa Flaj fires up the old tractor. It takes three tries. It always takes three tries.',
+    tip: 'Poppa\'s slow but his critters are TOUGH as old boots. Hit fast, or pack a vanishing act.',
     lossTip: 'His giants arrive late — punish him early, or Magic Vanish a tractor back to his hand (he has to pay for it AGAIN).',
     beatLine: 'Heh. Moved the whole mountain, kiddo. Well done. ⛰️',
     reward: ['sig_flaj'],
     unlocks: { presets: ['big_barn'] },
   },
   {
-    id: 'rocky', name: 'Grandma Rockie', title: 'The Legend', emoji: '👵', hp: 23,
+    id: 'rocky', name: 'Granny Rockie', title: 'The Legend', emoji: '👵', hp: 23,
     deck: ['llama', 'sig_flaj', 'yarn_beast', 'yarn_beast', 'yarn_beast', 'watch_dog', 'watch_dog', 'knitting_needles', 'knitting_needles', 'rolling_pin', 'cookie_batch', 'sig_rocky'],
     persona: { aggression: 0.65, tradeCare: 0.9, healAt: 14, smart: 1, curve: 'mid' },
     // ENRAGE phase: at half health, a ONE-TIME burst — she whistles in her dogs (Smidgen leads, then
     // a Guard Dog), both fierce Guards that block, then rallies her whole board. A loud, telegraphed
     // phase-2 wall (full-screen cutscene in the UI). Smidgen ONLY appears here. No heal, no perma-buff.
     enrage: { at: 12, summon: ['grand_finale', 'guard_dog'], a: 0, h: 0 },
-    intro: 'Grandma Rockie sets down her knitting. "Oh sweetheart. I INVENTED this game."',
-    tip: 'Grandma Rockie\'s seen every trick in this game — most of them are hers. Use EVERYTHING you\'ve learned. And get her down FAST — when she\'s cornered, she gets scary.',
+    intro: 'Granny Rockie sets down her knitting. "Oh sweetheart. I INVENTED this game."',
+    tip: 'Granny Rockie\'s seen every trick in this game — most of them are hers. Use EVERYTHING you\'ve learned. And get her down FAST — when she\'s cornered, she gets scary.',
     lossTip: 'She punishes greed (mind her Rolling Pin). And when she ENRAGES at half health, she unleashes Smidgen — her little white guard dog — plus a Guard Dog. Both block for her! Push through them and finish her FAST.',
-    beatLine: 'Come give your Grandma a hug. 🍪 You earned the cookie.',
+    beatLine: 'Come give your Granny a hug. 🍪 You earned the cookie.',
     enrageLine: 'You want to play rough? …SMIDGEN! 🐾',
     reward: ['sig_rocky'],
     unlocks: { crown: true, goldenBack: true },

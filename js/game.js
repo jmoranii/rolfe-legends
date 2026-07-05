@@ -646,7 +646,7 @@ function renderBattle() {
   // foe hero bar + their hand as backs
   const fbar = el('div', 'hero-bar foe');
   fbar.dataset.hero = foe;
-  // boss avatar — swaps to a fiery ENRAGED portrait once the boss has enraged (Grandma Rockie).
+  // boss avatar — swaps to a fiery ENRAGED portrait once the boss has enraged (Granny Rockie).
   // NB: B.boss only exists in campaign mode — keep the deref inside the campaign branch or couch
   // battle (VS mode, no boss) throws here and the battle screen never renders.
   const foeFace = B.mode === 'campaign'
@@ -1099,7 +1099,7 @@ function showEnrageCutscene(e, onDone) {
     : names.length === 1 ? `She whistles — ${names[0]} comes running!`
     : `She whistles — ${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} come running!`;
   const buff = (e.a || e.h) ? ` Her whole barn rallies <b>+${e.a}/+${e.h}</b>!` : '';
-  const taunt = (B.boss && B.boss.enrageLine) || 'Oh — you\'ve gone and woken Grandma up.';
+  const taunt = (B.boss && B.boss.enrageLine) || 'Oh — you\'ve gone and woken Granny up.';
   wrap.appendChild(el('div', 'enrage-cut-body',
     `She sets down the rolling pin. <i>"${taunt}"</i><br>${dogs}${buff}<br><b>Knock down her dogs, then finish her FAST!</b>`));
   wrap.appendChild(el('div', 'tapnote', '👆 tap to continue'));
@@ -1620,12 +1620,12 @@ const CREDIT_LINES = [
   { t: 26.38, w: [["Dad", 26.38], ["built", 26.71], ["walls,", 27.06], ["but", 27.53], ["they", 27.65], ["came", 27.85], ["down", 28.18]] },
   { t: 28.83, w: [["Mom's", 28.83], ["whole", 29.27], ["team", 29.6], ["got", 29.89], ["run", 30.08], ["out", 30.32], ["of", 30.56], ["town", 30.74]] },
   { t: 31.17, w: [["Brody", 31.17], ["yelled", 31.48], ["REAL", 31.83], ["TALK,", 32.15], ["Chelsea", 32.47], ["healed", 32.77], ["all", 33.11], ["night", 33.35]] },
-  { t: 33.71, w: [["Grampa", 33.71], ["Flaj", 34.18], ["stood", 34.47], ["tough", 34.68], ["as", 34.99], ["boots —", 35.28], ["but", 36.24], ["you", 36.41], ["won", 36.73], ["that", 37.36], ["fight", 37.91]] },
+  { t: 33.71, w: [["Poppa", 33.71], ["Flaj", 34.18], ["stood", 34.47], ["tough", 34.68], ["as", 34.99], ["boots —", 35.28], ["but", 36.24], ["you", 36.41], ["won", 36.73], ["that", 37.36], ["fight", 37.91]] },
   { t: 39.29, w: [["WYATT!", 39.29], ["The 10", 40.13], ["th", 40.29], ["Legend", 40.6], ["of", 41.05], ["Rolfe!", 41.21]] },
   { t: 41.89, w: [["Ten", 41.89], ["years", 42.13], ["old", 42.55], ["with", 42.89], ["a", 43.16], ["heart", 43.21], ["of", 43.52], ["gold", 43.74]] },
   { t: 44.8, w: [["Shuffled", 44.8], ["up", 45.28], ["and", 45.51], ["took", 45.82], ["control", 47.09]] },
   { t: 49.63, w: [["WYATT!", 49.63], ["The", 50.66], ["legend's", 50.88], ["true —", 51.48]] },
-  { t: 52.06, w: [["Even", 52.06], ["Grandma", 52.24], ["Rockie", 52.86], ["kneels", 53.48], ["to", 54.49], ["you!", 54.68]] },
+  { t: 52.06, w: [["Even", 52.06], ["Granny", 52.24], ["Rockie", 52.86], ["kneels", 53.48], ["to", 54.49], ["you!", 54.68]] },
   { t: 56.67, w: [["Smidgen", 56.67], ["growled,", 57.25], ["the", 57.89], ["llama", 58.1], ["stared", 58.52]] },
   { t: 59.07, w: [["Six", 59.07], ["pounds", 59.31], ["of", 59.72], ["doom —", 59.94], ["you", 60.43], ["weren't", 60.57], ["scared", 61.12]] },
   { t: 61.56, w: [["Coach", 61.56], ["James", 61.91], ["said, \"", 62.23], ["Kid,", 62.76], ["you've", 62.99], ["got", 63.27], ["the", 63.51], ["spark\"", 63.77]] },
@@ -1646,9 +1646,9 @@ const CREDIT_BEATS = [
   { t: 28.83, kind: 'boss', id: 'tory',    name: 'Mom',            title: 'The Team Mom' },
   { t: 31.17, kind: 'boss', id: 'brody',   name: 'Uncle Brody',    title: 'The Hurricane' },
   { t: 32.47, kind: 'boss', id: 'chelsea', name: 'Aunt Chelsea',   title: 'The Healer' },
-  { t: 33.71, kind: 'boss', id: 'flaj',    name: 'Grampa Flaj',    title: 'The Mountain' },
+  { t: 33.71, kind: 'boss', id: 'flaj',    name: 'Poppa Flaj',    title: 'The Mountain' },
   { t: 39.29, kind: 'wyatt' },
-  { t: 52.06, kind: 'boss', id: 'rocky',   name: 'Grandma Rockie', title: 'kneels to the champion 🙇' },
+  { t: 52.06, kind: 'boss', id: 'rocky',   name: 'Granny Rockie', title: 'kneels to the champion 🙇' },
   { t: 56.67, kind: 'pets' },
   { t: 61.56, kind: 'coach' },
   { t: 66.33, kind: 'birthday' },

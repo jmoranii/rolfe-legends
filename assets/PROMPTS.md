@@ -9,7 +9,7 @@ Every prompt below is **fully standalone**: copy the whole gray block, paste it 
 1. Work in **one sitting** if you can — and when an image comes out great, generate the next ones **in that same chat** ("Same painted style as above. Now: …"). Same-chat continuation is the single best consistency trick.
 2. One prompt block per image. Attach the reference photo listed. If a result is off, re-roll in the same chat with a short correction ("less realistic, more storybook," "make her clearly recognizable from the photo").
 3. Download → rename to the **exact filename** → drop into `assets/cards/` or `assets/ui/`.
-4. Generate the **test trio first** (marked ⭐): Grandma Rockie, Smidgen, and the title background. Drop them in, look at the game, and tell Hugo if the style needs one adjustment — *before* generating the other fourteen.
+4. Generate the **test trio first** (marked ⭐): Granny Rockie, Smidgen, and the title background. Drop them in, look at the game, and tell Hugo if the style needs one adjustment — *before* generating the other fourteen.
 
 **Privacy note:** reference photos (including the kids') are uploaded to OpenAI when attached. Established practice, your family, your call — just saying it out loud once.
 
@@ -17,9 +17,9 @@ Every prompt below is **fully standalone**: copy the whole gray block, paste it 
 
 | # | Subject | What to grab | Likely source |
 |---|---------|--------------|---------------|
-| 1 | Kim (Grandma Rockie) ⭐ | Clear face, smiling | Your phone / family chat |
+| 1 | Kim (Granny Rockie) ⭐ | Clear face, smiling | Your phone / family chat |
 | 2 | Smidgen (her white lap dog) ⭐ | Any clear photo | Mom's phone — *ask for "recent pics of Smidgen!" — totally normal ask, no spoilers* |
-| 3 | Sean (Grampa Flaj) | Clear face | Your phone |
+| 3 | Sean (Poppa Flaj) | Clear face | Your phone |
 | 4 | Jacob | Clear face | Family chat / Tory |
 | 5 | Tory | Clear face | Your phone |
 | 6 | Brody | Clear face (bonus: hat) | Your phone |
@@ -46,7 +46,7 @@ This exact paragraph appears in every prompt (already inlined below — nothing 
 
 ## THE FAMILY (boss signature cards) — `assets/cards/`, square 1024×1024
 
-### ⭐ 1. Grandma Rockie — `assets/cards/sig_rocky.png`
+### ⭐ 1. Granny Rockie — `assets/cards/sig_rocky.png`
 **Attach:** photo of Kim.
 
 ```
@@ -56,7 +56,7 @@ Warm hand-painted storybook gouache illustration, friendly caricature with gentl
 Subject: the grandmother from the attached reference photo, clearly recognizable. A sweet, kind grandma with a warm smile — but with an unmistakable final-boss glint in her eye. She holds two knitting needles crossed in front of her like a master swordsman. A faint golden aura glows around her. Cozy farmhouse porch behind her, fresh cookies cooling on a windowsill. She has clearly never lost at anything.
 ```
 
-### 2. Grampa Flaj — `assets/cards/sig_flaj.png`
+### 2. Poppa Flaj — `assets/cards/sig_flaj.png`
 **Attach:** photo of Sean.
 
 ```
@@ -238,7 +238,7 @@ Scene: a beautiful small Iowa family farm at golden hour, painted storybook-styl
 
 ## QA checklist (glance at each image before saving)
 
-- **Recognizable?** The #1 test — would Wyatt say "that's Grandma!" instantly? If not: "make them more clearly recognizable from the photo, same painted style."
+- **Recognizable?** The #1 test — would Wyatt say "that's Granny!" instantly? If not: "make them more clearly recognizable from the photo, same painted style."
 - **Style drift?** All should look like ONE artist painted them. If one goes 3D/photoreal/anime: re-roll with "hand-painted storybook gouache, matched series, same style as the others."
 - **No text/frames** sneaked into the art (re-roll if so — the game draws its own frames).
 - **Hands/needles/props** not mangled.

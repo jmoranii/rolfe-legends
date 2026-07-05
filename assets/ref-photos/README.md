@@ -4,9 +4,9 @@ Drop family reference photos here, named like this (jpg/jpeg/png/webp all fine):
 
 | File | Who | Used for |
 |---|---|---|
-| `kim.jpg` ⭐ | Kim (Grandma Rockie) | sig_rocky |
+| `kim.jpg` ⭐ | Kim (Granny Rockie) | sig_rocky |
 | `smidgen.jpg` ⭐ | Smidgen — Kim's white lap dog | grand_finale |
-| `sean.jpg` | Sean (Grampa Flaj) | sig_flaj |
+| `sean.jpg` | Sean (Poppa Flaj) | sig_flaj |
 | `jacob.jpg` | Jacob | sig_jacob |
 | `tory.jpg` | Tory | sig_tory |
 | `brody.jpg` | Brody (hat = bonus) | sig_brody |

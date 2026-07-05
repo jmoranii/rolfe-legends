@@ -22,7 +22,7 @@ Rolfe Legends (Wyatt's 10th-birthday card battler, `~/code/rolfe-legends/`) just
   | Flaj (Sean) | boss | `bg_flaj.png` |
   | Rockie (Kim) | final boss | `bg_rocky.png` |
 
-  > Id quirks that match the existing card filenames: **Grandma Rockie = `rocky`**, **Grampa Flaj = `flaj`**. Coach James is the mentor, **not** a boss — no background.
+  > Id quirks that match the existing card filenames: **Granny Rockie = `rocky`**, **Poppa Flaj = `flaj`**. Coach James is the mentor, **not** a boss — no background.
 
 - **Format:** PNG, landscape ~**1536×1024** (3:2). Each is painted deliberately as a *quiet stage*: muted/slightly desaturated, soft-focus, detail kept to the upper area and edges, a **calm open lower-center** where the board sits, and a soft edge vignette. Unpopulated (no people/animals — the characters are the cards on top).
 
