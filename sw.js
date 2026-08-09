@@ -4,7 +4,7 @@
 // Art + music = cache-first, filled lazily as they're fetched during play (the full
 // asset set is ~40MB — precaching it all would punish the first visit; emoji/silence
 // fallbacks already handle anything not yet cached when offline).
-const CACHE = 'rolfe-legends-v1';
+const CACHE = 'rolfe-legends-v2';
 const SHELL = [
   './', 'index.html', 'style.css', 'manifest.json',
   'js/game.js', 'js/logic.js', 'js/ai.js', 'js/cards.js',

@@ -311,6 +311,27 @@ function turnBanner(text) {
 
 // ================= SCREENS =================
 
+// ---------- fullscreen (ported from RL2: the Amazon Kids browser has no
+// install/standalone mode, so ⛶ is how the toolbar gets out of the way) ----------
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+function fsAvailable() {
+  const d = document.documentElement;
+  return !!(d.requestFullscreen || d.webkitRequestFullscreen);
+}
+async function toggleFullscreen() {
+  const d = document.documentElement;
+  try {
+    if (fsEl()) await (document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen());
+    else await (d.requestFullscreen ? d.requestFullscreen() : d.webkitRequestFullscreen());
+  } catch { /* some webviews refuse fullscreen; the button just no-ops */ }
+}
+const fsLabel = () => `⛶ Full screen: ${fsEl() ? 'ON' : 'OFF'}`;
+for (const evName of ['fullscreenchange', 'webkitfullscreenchange']) {
+  document.addEventListener(evName, () => {
+    document.querySelectorAll('.fs-toggle').forEach(n => { n.innerHTML = fsLabel(); });
+  });
+}
+
 // ---------------- title ----------------
 function titleScreen() {
   clear();
@@ -349,6 +370,12 @@ function titleScreen() {
     btns.appendChild(add);
   }
   s.appendChild(btns);
+  if (fsAvailable()) {
+    const fs = el('button', 'fs-btn', '⛶');
+    fs.setAttribute('aria-label', 'Full screen');
+    fs.onclick = () => { sfx.tap(); toggleFullscreen(); };
+    s.appendChild(fs);
+  }
   // the llama knows things
   const llama = el('div', 'title-llama', '🦙');
   let taps = 0;
@@ -2065,6 +2092,12 @@ function settingsScreen() {
   mus.onclick = () => { save.music = !save.music; music.setEnabled(save.music); if (save.music) music.unlock(); persist(); mus.innerHTML = save.music ? '🎵 Music: ON' : '🎵 Music: OFF'; sfx.tap(); };
   p.appendChild(mus);
   p.appendChild(el('div', '', '<br>'));
+  if (fsAvailable()) {
+    const fs = el('button', 'fs-toggle', fsLabel());
+    fs.onclick = () => { sfx.tap(); toggleFullscreen(); };
+    p.appendChild(fs);
+    p.appendChild(el('div', '', '<br>'));
+  }
   const code = el('button', '', '🔑 Secret Farm Code');
   code.onclick = () => { sfx.tap(); showFarmCode(); };
   p.appendChild(code);
