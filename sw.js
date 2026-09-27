@@ -4,7 +4,13 @@
 // Art + music = cache-first, filled lazily as they're fetched during play (the full
 // asset set is ~40MB — precaching it all would punish the first visit; emoji/silence
 // fallbacks already handle anything not yet cached when offline).
-const CACHE = 'rolfe-legends-v2';
+const CACHE = 'rolfe-legends-v3';
+// Cache Storage is per-ORIGIN, not per-path: every Rolfe Legends game on
+// jmoranii.github.io shares ONE cache list. So activate may delete only this
+// game's own stale versions (same name, older vN), never a sibling game's
+// offline cache. Derived from CACHE so a sequel that copies this file and
+// renames CACHE stays correct. Here it resolves to /^rolfe-legends-v\d+$/.
+const OWN_CACHES = new RegExp(`^${CACHE.replace(/\d+$/, '')}\\d+$`);
 const SHELL = [
   './', 'index.html', 'style.css', 'manifest.json',
   'js/game.js', 'js/logic.js', 'js/ai.js', 'js/cards.js',
@@ -19,7 +25,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && OWN_CACHES.test(k)).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

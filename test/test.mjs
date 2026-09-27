@@ -5,6 +5,8 @@ import { chooseAction, aiTurn } from '../js/ai.js';
 import { SCARECROW, practiceState, PRACTICE_STEPS, actionMatches, scriptedAction } from '../js/tutorial.js';
 import { coachDeckFor } from '../js/cards.js';
 import { encodeFarmCode, decodeFarmCode } from '../js/farmcode.js';
+import { readFileSync } from 'fs';
+import vm from 'vm';
 
 let passed = 0, failed = 0;
 function ok(cond, name) {
@@ -558,6 +560,32 @@ console.log('— secret farm code —');
   // coach deckId never encodes (transient)
   const c2 = decodeFarmCode(encodeFarmCode({ progress: 2, secrets: {}, customs: [null, null], deckId: 'coach' }));
   eq(c2.deckId, 'starter', 'coach deck id falls back to starter in codes');
+}
+
+console.log('— sw.js: shared-origin cache hygiene —');
+{
+  // Cache Storage is per-ORIGIN, not per-path: RL1, RL2, RL3 (and every sequel)
+  // share ONE cache list on jmoranii.github.io. The old activate (`k !== CACHE`)
+  // deleted every sibling game's offline cache. Run the REAL sw.js in a sandbox
+  // against a fake cache list and check exactly who survives activation.
+  const src = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+  const CACHE = (/const CACHE = '([^']+)'/.exec(src) || [])[1] || '';
+  ok(/^rolfe-legends-v\d+$/.test(CACHE), `sw CACHE keeps RL1's own name scheme (got ${CACHE})`);
+  const prev = CACHE.replace(/\d+$/, (n) => String(n - 1)); // the real upgrade path
+  const OWN_STALE = [...new Set([...["rolfe-legends-v1"], prev])].filter((k) => k !== CACHE);
+  const SIBLINGS = ["rolfe-legends-2-v34", "rolfe-legends-2-v35", "rolfe-legends-3-v2", "rolfe-legends-3-v9", "rolfe-legends-4-v1", "rolfe-legends-10-v1", "some-other-app"];
+  const store = new Set([CACHE, ...OWN_STALE, ...SIBLINGS]);
+  const on = {};
+  vm.runInNewContext(src, {
+    self: { addEventListener: (t, fn) => { on[t] = fn; }, skipWaiting: async () => {}, clients: { claim: async () => {} } },
+    caches: { keys: async () => [...store], delete: async (k) => store.delete(k), open: async () => ({}) },
+    location: { origin: 'https://jmoranii.github.io' },
+  });
+  let pending;
+  on.activate({ waitUntil: (p) => { pending = p; } });
+  await pending;
+  const left = [...store].sort().join(',');
+  eq(left, [CACHE, ...SIBLINGS].sort().join(','), 'sw activate deletes only RL1\'s own stale caches (RL2/RL3/RL4 offline caches survive)');
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);
